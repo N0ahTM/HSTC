@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="<?php echo $favicon; ?>">
+    <link rel="stylesheet" href="<?php echo $assetsUrl; ?>styles.css">
+    <script src="<?php echo $assetsUrl; ?>timer.js"></script>
+    <title><?php echo $texts['title']; ?></title>
+</head>
+
+<body>
+
+    <div class="container">
+        <header class="header">
+            <!-- Logo wird jetzt per CSS als Hintergrund geladen -->
+            <div class="logo-container"></div>
+            <h1><?php echo $texts['header']; ?></h1>
+            <h2><?php echo $texts['subheader']; ?></h2>
+        </header>
+
+        <!-- Timer -->
+        <?php if (isset($timer) && $timer['enabled'] === true): ?>
+            <section class="timer">
+                <div class="timer__item">
+                    <div class="timer__data" id="timerResultDays"></div>
+                    <div class="timer__type"><?php echo $locale['timer.days']; ?></div>
+                </div>:
+                <div class="timer__item">
+                    <div class="timer__data" id="timerResultHours"></div>
+                    <div class="timer__type"><?php echo $locale['timer.hours']; ?></div>
+                </div>:
+                <div class="timer__item">
+                    <div class="timer__data" id="timerResultMinutes"></div>
+                    <div class="timer__type"><?php echo $locale['timer.minutes']; ?></div>
+                </div>:
+                <div class="timer__item">
+                    <div class="timer__data" id="timerResultSeconds"></div>
+                    <div class="timer__type"><?php echo $locale['timer.seconds']; ?></div>
+                </div>
+            </section>
+            <script type="application/javascript">
+                startTimer(<?php echo $timer['days']; ?>, <?php echo $timer['hours']; ?>, <?php echo $timer['minutes']; ?>, <?php echo $startTime; ?>, <?php echo $timeShift; ?>);
+            </script>
+        <?php endif; ?>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        Wenn Sie noch Fragen haben, kontaktieren Sie bitte 
+        <a href="mailto:info@hstc.space">info@hstc.space</a>.
+    </footer>
+
+</body>
+</html>

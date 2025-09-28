@@ -1,0 +1,33 @@
+@charset "UTF-8";
+/* ------------------------------------------- */
+/*	Responsive Editor Styles — Block Editor
+/* ------------------------------------------- */
+.editor-styles-wrapper {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  letter-spacing: -0.015em;
+  line-height: 1.75;
+  -moz-font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;
+}
+
+.editor-styles-wrapper address,
+.editor-styles-wrapper blockquote,
+.editor-styles-wrapper pre {
+  padding: 28px;
+  font-style: italic;
+}
+
+.editor-styles-wrapper blockquote p:first-child {
+  margin-top: 0;
+}
+
+.editor-styles-wrapper blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.editor-styles-wrapper blockquote p {
+  max-width: none;
+}
+
+/*# sourceMappingURL=gutenberg-editor.css.map */
