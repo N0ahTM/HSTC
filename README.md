@@ -1,197 +1,93 @@
-# HSTC AWS Amplify Test Environment
+# HSTC Plattform
 
-Eine vollständige Test-Implementierung für AWS Amplify mit Authentifizierung, Datenmanagement, Lambda-Funktionen und Storage.
+Eine vollständig lauffähige Webplattform für die **Helvetic Security & Transport Corporation (HSTC)** mit Discord-Login, Mitgliederverwaltung, News-System, Eventplanung und Organisationsflotte.
 
 ## 🚀 Schnellstart
 
-1. **Abhängigkeiten installieren:**
+1. **Abhängigkeiten installieren**
    ```bash
    npm install
    ```
-
-2. **Amplify Backend initialisieren:**
+2. **Datenbank initialisieren (optional, erstellt Demo-Daten)**
    ```bash
-   npm create amplify@latest
+   npm run db:seed
    ```
-
-3. **Sandbox-Umgebung starten:**
+3. **Entwicklungsserver starten**
    ```bash
-   npx ampx sandbox
+   npm run dev
    ```
+4. Die Seite ist anschließend unter [http://localhost:3000](http://localhost:3000) erreichbar.
 
-4. **Test-Website öffnen:**
-   ```bash
-   npm start
-   ```
+## 🔐 Konfiguration
 
-## 📋 Features
+Leg in einer `.env`-Datei (Projektwurzel) die folgenden Variablen an:
 
-### 🔐 Authentifizierung
-- Benutzerregistrierung mit E-Mail-Verifizierung
-- Anmeldung/Abmeldung
-- Passwort-Richtlinien
-- Multi-Factor Authentication (optional)
-- Benutzerdefinierte Attribute für HSTC-Piloten
+```
+DISCORD_CLIENT_ID=dein_discord_client_id
+DISCORD_CLIENT_SECRET=dein_discord_client_secret
+DISCORD_CALLBACK_URL=http://localhost:3000/auth/discord/callback
+DISCORD_WIDGET_GUILD=628996745837150211
+SESSION_SECRET=ein_sicheres_sitzungsgeheimnis
+HSTC_ADMIN_IDS=111111111111111111,222222222222222222
+```
 
-### 📊 Datenmanagement
-- **Pilot Profile:** Call Signs, Rollen, Schiffspräferenzen
-- **Missions:** Kampf-, Transport-, Erkundungsmissionen
-- **Ship Registry:** Flottenverwaltung und -status
-- **Operations Log:** Mission- und Ereignisprotokolle
-- **Announcements:** Organisationsnachrichten
-- **Fleet Status:** Live-Flottenstatistiken
+- `HSTC_ADMIN_IDS` enthält die Discord-IDs, die beim Login automatisch Administratorrechte erhalten (Komma-separiert).
+- `DISCORD_WIDGET_GUILD` kann auf eine eigene Guild-ID angepasst werden, um Statistiken im Dashboard anzuzeigen.
 
-### ⚡ Lambda-Funktionen
-- Mission Status Abfragen
-- Pilot-Registrierung
-- Flottenbericht-Generierung
-- Discord-Integration
-- Anpassbare Geschäftslogik
+## 🧩 Features
 
-### 💾 Storage
-- Hierarchische Dateispeicherung
-- Rollenbasierte Zugriffskontrolle
-- Mission Briefings und Berichte
-- Pilot-spezifische Dateien
-- Organisations-Assets
+### Authentifizierung
+- Discord OAuth2 Login inkl. Sessionverwaltung
+- Automatische Profilerstellung und Aktualisierung bei jedem Login
+- Adminsteuerung über `HSTC_ADMIN_IDS`
 
-## 🧪 Testing Dashboard
+### Mitgliederprofil & Community
+- Verpflichtender Ingame-Handle, frei wählbares Motto und Biografie
+- Mehrfachauswahl für Einsatzbereiche (Pilot, PVP, Mining, usw.)
+- Verwaltung der persönlichen Organisationsflotte inkl. Verfügbarkeit
+- Automatische Aggregation aller Schiffe auf der öffentlichen Seite
 
-Die Website enthält ein umfassendes Testing Dashboard mit:
+### News & Kommunikation
+- Öffentlicher Newsfeed
+- Interner Newsfeed für eingeloggte Mitglieder
+- Markdown-Unterstützung für News-Einträge
+- Admin-Panel zur Veröffentlichung neuer Beiträge
 
-- **Authentifizierung Tests:** Registrierung, Anmeldung, Benutzerverwaltung
-- **Daten-API Tests:** CRUD-Operationen für alle Modelle
-- **Funktions-Tests:** Lambda-Funktion Ausführung und Überwachung
-- **Storage Tests:** Datei-Upload, -Download und -Verwaltung
-- **System Status:** Live-Überwachung aller Services
-- **Live Data:** Echzeit-Updates und Statistiken
+### Events & Community-Features
+- Eventübersicht mit Datum, Uhrzeit und Treffpunkt
+- Admin-Panel zur Planung neuer Events
+- Discord-Widget mit Live-Statistiken (Mitglieder online, Voice-Teilnehmer)
 
-## 📁 Projektstruktur
+## 🗂 Projektstruktur
 
 ```
 HSTC/
-├── amplify/
-│   ├── auth/
-│   │   └── resource.ts          # Authentifizierungskonfiguration
-│   ├── data/
-│   │   └── resource.ts          # GraphQL Schema und Modelle
-│   ├── storage/
-│   │   └── resource.ts          # S3 Storage Konfiguration
-│   ├── my-first-function/
-│   │   ├── resource.ts          # Lambda-Funktionsdefinition
-│   │   └── handler.ts           # Lambda-Handler-Code
-│   └── backend.ts               # Backend-Konfiguration
-├── index.html                   # Test-Website mit integriertem Dashboard
-├── package.json                 # Abhängigkeiten und Scripts
-└── README.md                    # Diese Datei
+├── public/                 # Statische Assets & Frontend
+│   ├── assets/css/main.css
+│   ├── assets/js/app.js
+│   └── index.html
+├── server/                 # Express-Server & Routen
+│   ├── index.js
+│   ├── middleware/
+│   ├── routes/
+│   ├── services/
+│   └── utils/
+├── scripts/                # Hilfsskripte (Build, Seed)
+├── db/                     # SQLite-Datenbanken (wird automatisch erstellt)
+├── package.json
+└── README.md
 ```
 
-## 🛠 Entwicklung
+## 🛡 Sicherheit & Datenschutz
+- Sessions werden serverseitig in SQLite gespeichert (keine sensiblen Daten im Browser)
+- Discord-Profile speichern nur Avatar, Discord-ID, Nutzername sowie freiwillig angegebene Orga-Daten
+- Zugriff auf interne Daten (Mitglieder-News, Profilverwaltung) nur mit aktiver Discord-Session
 
-### Amplify Sandbox
-```bash
-npx ampx sandbox
-```
-Startet eine lokale Entwicklungsumgebung mit Hot-Reload für Backend-Änderungen.
-
-### Production Deploy
-```bash
-npx ampx deploy
-```
-Deployed das Backend in die AWS-Cloud.
-
-### Git Integration
-```bash
-git add .
-git commit -m "Update backend configuration"
-git push
-```
-Löst automatisch CI/CD-Builds aus.
-
-## 🔧 Konfiguration
-
-### Authentifizierung
-- **E-Mail-Verifizierung:** Aktiviert mit benutzerdefinierten Nachrichten
-- **Passwort-Richtlinie:** Mindestens 8 Zeichen, Groß-/Kleinschreibung, Zahlen
-- **MFA:** Optional mit TOTP-Support
-- **Benutzerdefinierte Attribute:** Organisation Role, Pilot Call Sign, Join Date, etc.
-
-### Daten-Schema
-- **Pilot:** Vollständige Pilotprofile mit Statistiken
-- **Mission:** Verschiedene Missionstypen und Status
-- **Ship:** Flottenregistry mit Wartungsstatus
-- **OperationLog:** Detaillierte Ereignisprotokolle
-- **Announcement:** Organisationskommunikation
-- **FleetStatus:** Aggregierte Flottenstatistiken
-
-### Storage-Bereiche
-- **public/:** Öffentlich zugängliche Dateien
-- **missions/:** Missionsbriefings und -berichte
-- **pilots/{id}/:** Pilot-spezifische private Dateien
-- **fleet/:** Schiffsdokumentation
-- **admin/:** Administrative Dateien (nur Admins)
-
-### Lambda-Funktionen
-- Verarbeitung von Geschäftslogik
-- Integration mit externen APIs (Discord, etc.)
-- Automatisierte Berichte und Benachrichtigungen
-- Datenvalidierung und -transformation
-
-## 🎯 Testing
-
-### Manuelle Tests
-1. Öffnen Sie `index.html` in einem Browser
-2. Verwenden Sie das Testing Dashboard
-3. Testen Sie alle Module einzeln
-4. Führen Sie den Volltest aus
-
-### Automatisierte Tests
-```bash
-npm run test
-```
-
-### Service-Überwachung
-Das Dashboard bietet Live-Überwachung für:
-- Backend-Verfügbarkeit
-- Authentifizierungsservice
-- GraphQL API
-- S3 Storage
-- Lambda-Funktionen
-
-## 📈 Überwachung
-
-### Live-Updates
-- Online-Pilotenanzahl
-- Aktive Missionen
-- Flottenstatus
-- Systemlast
-
-### Logging
-- Alle API-Aufrufe werden protokolliert
-- Fehler werden im Dashboard angezeigt
-- Performance-Metriken werden erfasst
-
-## 🔒 Sicherheit
-
-### Autorisierung
-- Rollenbasierte Zugriffskontrolle (RBAC)
-- Gruppen: Admins, Officers, Members, Recruits
-- Ressourcen-spezifische Berechtigungen
-- Owner-basierte Zugriffskontrolle
-
-### Daten-Schutz
-- Verschlüsselte Datenübertragung (HTTPS)
-- Sichere Authentifizierung (AWS Cognito)
-- Daten-Isolation zwischen Benutzern
-- Audit-Logs für alle Aktionen
-
-## 📞 Support
-
-Bei Fragen oder Problemen:
-1. Überprüfen Sie das Testing Dashboard auf Fehlermeldungen
-2. Konsultieren Sie die [AWS Amplify Dokumentation](https://docs.amplify.aws/)
-3. Kontaktieren Sie das HSTC-Entwicklerteam
+## 🧪 Testen & Deployment
+- `npm run dev` startet den Express-Server mit automatischem Reload (via nodemon)
+- `npm run start` startet den Server ohne Reload (Production-Modus)
+- `npm run build` erstellt eine statische Kopie der Frontend-Assets im `dist/`-Ordner
 
 ## 📄 Lizenz
 
-© 2947-3025 Helvetic Security & Transport Corporation
+© 2947–aktuelles Spieljahr (Realjahr + 930) Helvetic Security & Transport Corporation. Alle Rechte vorbehalten.
