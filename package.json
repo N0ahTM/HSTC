@@ -1,0 +1,26 @@
+{
+  "name": "hstc-amplify-test",
+  "version": "1.0.0",
+  "description": "HSTC Test Website with AWS Amplify integration",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx ampx sandbox",
+    "build": "npm run build:amplify",
+    "build:amplify": "npx ampx generate outputs --format json",
+    "deploy": "npx ampx deploy",
+    "start": "npx http-server . -p 3000"
+  },
+  "dependencies": {
+    "aws-amplify": "^6.0.0",
+    "@aws-amplify/ui": "^6.0.0"
+  },
+  "devDependencies": {
+    "@aws-amplify/backend": "^1.0.0",
+    "@aws-amplify/backend-cli": "^1.0.0",
+    "typescript": "^5.0.0",
+    "http-server": "^14.1.1"
+  },
+  "keywords": ["amplify", "aws", "hstc", "test"],
+  "author": "HSTC Team",
+  "license": "MIT"
+}
