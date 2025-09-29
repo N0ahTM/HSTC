@@ -1,59 +1,47 @@
-# 🚀 HSTC Amplify Deployment Guide
+﻿# HSTC Amplify Deployment Guide
 
-## Schnelle Bereitstellung
+## 1. Vorbereitungen
 
-### 1. Abhängigkeiten installieren
-```powershell
+1. Sicherstellen, dass alle Secrets (Discord Client ID/Secret) gesetzt sind.
+2. Optional: `VITE_ADMIN_DISCORD_IDS` in Amplify Environment Variables ergänzen.
+3. Sandbox einmal laufen lassen, um `amplify_outputs.json` zu generieren und lokal zu testen.
+
+```bash
 npm install
+npx ampx sandbox
+npm run dev
 ```
 
-### 2. Amplify Backend bereitstellen
-```powershell
-# Sandbox für Entwicklung
-npx ampx sandbox
+## 2. CI/CD über Amplify
 
-# Production Deployment
+1. Änderungen committen (`git status` prüfen, anschließend `git commit` & `git push`).
+2. Amplify Hosting löst automatisch einen Build aus:
+   - Backend Synthese & Deployment
+   - Frontend Build (`npm run build` via Vite)
+   - Ausrollen auf die verbundene Domain (z. B. `hstc.space`)
+
+## 3. Manuelles Deployment (Fallback)
+
+```bash
+# Backend & Hosting
 npx ampx deploy
 ```
 
-### 3. Website starten
-```powershell
-# Lokaler Server
-npm start
+Bei Bedarf kann `--branch <name>` gesetzt werden, um eine Stage zu deployen.
 
-# Oder einfach index.html im Browser öffnen
-```
+## 4. Nach dem Deployment prüfen
 
-## 🎯 Test-Commands
+- Login via Discord (Hosted UI Redirect)
+- Öffentliche Seite (`/`) + Mitgliederfunktionen (News, Events, Profil)
+- Fleet-Übersicht & Discord Widget
+- Amplify Console → Monitoring (Logs/Lambda/Errors)
 
-```powershell
-# Alle Services testen
-npm run test
+## 5. Rollback / Hotfix
 
-# Sandbox mit Debug-Informationen
-npx ampx sandbox --debug
+- Git Revert auf vorherigen Commit
+- `npx ampx deploy` erneut ausführen oder neuen Commit pushen
+- Amplify behält alte Builds, sodass über die Hosting-Konsole ein Rollback möglich ist
 
-# Outputs generieren
-npx ampx generate outputs --format json
-```
+---
 
-## 📋 Checkliste nach Deployment
-
-- [ ] Alle Services im Dashboard grün
-- [ ] Auth-Test erfolgreich
-- [ ] Data API funktioniert
-- [ ] Lambda-Funktionen antworten
-- [ ] Storage Upload/Download funktioniert
-- [ ] Live-Updates aktiv
-
-## 🔧 Konfiguration
-
-Die Website ist vollständig konfiguriert und einsatzbereit:
-- ✅ Authentifizierung mit benutzerdefinierten Attributen
-- ✅ GraphQL API mit 6 Datenmodellen
-- ✅ Lambda-Funktionen mit HSTC-spezifischer Logik
-- ✅ S3 Storage mit rollenbasierter Zugriffskontrolle
-- ✅ Umfassendes Testing Dashboard
-- ✅ Live-Überwachung aller Services
-
-Ready to launch! 🚀 o7
+**Tipp:** Für Staging-Umgebungen separate Amplify-Branches verwenden (z. B. `develop`, `preview`).

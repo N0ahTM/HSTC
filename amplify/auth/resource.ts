@@ -1,60 +1,82 @@
-import { defineAuth } from '@aws-amplify/backend';
+﻿import { defineAuth, secret } from '@aws-amplify/backend';
 
 /**
- * Define and configure authentication for the HSTC application
- * This includes user registration, login, password reset, and user attributes
+ * Cognito configuration that delegates sign-in to Discord via a custom OIDC provider.
+ * The Discord client id/secret must be stored as Amplify secrets (DISCORD_CLIENT_ID / DISCORD_CLIENT_SECRET).
  */
+const discordClientId = secret('DISCORD_CLIENT_ID');
+const discordClientSecret = secret('DISCORD_CLIENT_SECRET');
+
 export const auth = defineAuth({
   loginWith: {
-    email: {
-      // Enable email verification
-      verificationEmailStyle: 'code',
-      verificationEmailSubject: 'HSTC - Verifiziere deine E-Mail-Adresse',
-      verificationEmailBody: (createCode) =>
-        `Willkommen bei HSTC! Verwende diesen Code zur Verifizierung: ${createCode()}`,
+    oauth: {
+      domainPrefix: 'hstc-platform',
+      scopes: ['openid', 'email', 'profile'],
+      responseType: 'code',
+      redirectSignInUrl: [
+        'http://localhost:5173/',
+        'https://hstc.space/',
+        'https://hstc.space/?disidcallback=discord',
+      ],
+      redirectSignOutUrl: [
+        'http://localhost:5173/',
+        'https://hstc.space/',
+      ],
+      providers: {
+        oidc: [
+          {
+            name: 'discord',
+            clientId: discordClientId,
+            clientSecret: discordClientSecret,
+            authorizeUrl: 'https://discord.com/api/oauth2/authorize',
+            tokenUrl: 'https://discord.com/api/oauth2/token',
+            attributesRequestMethod: 'GET',
+            attributesUrl: 'https://discord.com/api/users/@me',
+            jwksUri: 'https://discord.com/api/oauth2/jwk',
+            scopes: ['identify', 'email'],
+            attributeMapping: {
+              email: 'email',
+              preferred_username: 'username',
+              name: 'global_name',
+              picture: 'avatar',
+              website: 'banner',
+              custom: {
+                'custom:discord_id': 'id',
+                'custom:discord_discriminator': 'discriminator',
+                'custom:discord_avatar': 'avatar',
+              },
+            },
+          },
+        ],
+      },
     },
-    // Optional: Add phone number login
-    phone: false,
   },
   userAttributes: {
-    // Standard attributes
     email: {
-      required: true,
+      required: false,
       mutable: true,
     },
-    // Custom attributes for HSTC
-    'custom:organization_role': {
+    'custom:discord_id': {
       dataType: 'String',
-      mutable: true,
-    },
-    'custom:pilot_call_sign': {
-      dataType: 'String', 
-      mutable: true,
-    },
-    'custom:join_date': {
-      dataType: 'DateTime',
       mutable: false,
     },
-    'custom:ship_preference': {
+    'custom:discord_discriminator': {
       dataType: 'String',
       mutable: true,
     },
-    'custom:preferred_language': {
+    'custom:discord_avatar': {
       dataType: 'String',
       mutable: true,
     },
+  },
+  multifactor: {
+    mode: 'off',
   },
   passwordPolicy: {
-    minLength: 8,
-    requireLowercase: true,
-    requireUppercase: true,
-    requireNumbers: true,
+    minLength: 12,
+    requireLowercase: false,
+    requireUppercase: false,
+    requireNumbers: false,
     requireSymbols: false,
-  },
-  accountRecovery: 'email',
-  multifactor: {
-    mode: 'optional',
-    totp: true,
-    sms: false,
   },
 });
