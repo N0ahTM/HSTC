@@ -1,0 +1,46 @@
+.badge {
+  position: absolute;
+  top: 2.5rem;
+  right: 2.5rem;
+  padding: 1.1rem 1.4rem;
+  background: rgba(6, 7, 8, 0.78);
+  border: 1px solid rgba(255, 119, 51, 0.25);
+  box-shadow: 0 22px 45px rgba(0, 0, 0, 0.45);
+  display: grid;
+  gap: 0.55rem;
+  min-width: 210px;
+  z-index: 3;
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+}
+
+.badge dl {
+  display: grid;
+  gap: 0.65rem;
+  font-size: 0.85rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.badge dl > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1.5rem;
+}
+
+.badge dt {
+  color: var(--color-text-muted);
+}
+
+.badge dd {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .badge {
+    position: static;
+    margin-bottom: 1.5rem;
+    justify-self: center;
+  }
+}

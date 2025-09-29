@@ -1,0 +1,55 @@
+.section {
+  position: relative;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  overflow: hidden;
+  position: relative;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 2.2rem 2rem;
+  color: var(--color-text);
+  isolation: isolate;
+  box-shadow: var(--shadow-md);
+  clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(4, 5, 6, 0.1) 0%, rgba(4, 5, 6, 0.88) 85%);
+  z-index: -1;
+}
+
+.card h3 {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  margin-bottom: 0.65rem;
+}
+
+.card p {
+  color: var(--color-text-muted);
+}
+
+.card:nth-child(1) {
+  background: url('/images/ships/Ship.webp') center/cover no-repeat;
+}
+
+.card:nth-child(2) {
+  background: url('/images/backgrounds/Jumpgate.webp') center/cover no-repeat;
+}
+
+.card:nth-child(3) {
+  background: url('/images/backgrounds/Explosion.webp') center/cover no-repeat;
+}

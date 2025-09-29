@@ -1,0 +1,34 @@
+.grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.card {
+  padding: 2.4rem 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 10, 12, 0.78);
+  box-shadow: var(--shadow-md);
+  min-height: 240px;
+  display: grid;
+  gap: 1rem;
+  clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);
+}
+
+.icon {
+  font-size: 2.2rem;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.tagline {
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  color: var(--color-accent);
+}

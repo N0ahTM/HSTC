@@ -3,3 +3,4 @@ dist/
 .amplify/
 amplify_outputs.json
 .env
+*.tsbuildinfo
