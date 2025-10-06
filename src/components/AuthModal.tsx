@@ -1,1 +1,1 @@
-export {}; // Deprecated Amplify-based auth modal has been retired.
+export {}; // Deprecated Amplify-based auth modal has been retired. 
