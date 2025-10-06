@@ -1,4 +1,7 @@
+import { useRef } from 'react';
+
 import { SectionHeading } from '@/components/SectionHeading';
+import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 
 import styles from './OperationsSection.module.css';
 
@@ -27,8 +30,11 @@ const operations = [
 ];
 
 export function OperationsSection() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  useStaggerReveal(sectionRef, { rootMargin: '0px 0px -12%' });
+
   return (
-    <section className="section" id="operations">
+    <section ref={sectionRef} className="section" id="operations">
       <div className="container">
         <SectionHeading
           eyebrow="Spezialisierungen"
@@ -37,7 +43,7 @@ export function OperationsSection() {
         />
         <div className={styles.grid}>
           {operations.map((operation) => (
-            <article key={operation.title} className={styles.card}>
+            <article key={operation.title} className={styles.card} data-reveal-item>
               <span aria-hidden="true" className={styles.icon}>
                 {operation.icon}
               </span>

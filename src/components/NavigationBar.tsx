@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
+import anime from 'animejs';
+
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 
 import styles from './NavigationBar.module.css';
 
@@ -19,6 +22,9 @@ const navLinks: Array<{ href: string; label: string }> = [
 export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [visible, setVisible] = useState(false); // sichtbar sobald man scrollt
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const navRef = useRef<HTMLElement | null>(null);
+  const mobileMenuRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const threshold = 600; // Pixel ab wann sichtbar
@@ -38,9 +44,50 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [mobileOpen]);
 
+  useEffect(() => {
+    if (!visible || prefersReducedMotion) {
+      return;
+    }
+
+    const nav = navRef.current;
+    if (!nav) {
+      return;
+    }
+
+    anime.remove(nav);
+    anime({
+      targets: nav,
+      opacity: [0, 1],
+      duration: 320,
+      easing: 'easeOutCubic'
+    });
+  }, [visible, prefersReducedMotion]);
+
+  useEffect(() => {
+    if (!mobileOpen || prefersReducedMotion) {
+      return;
+    }
+
+    const menu = mobileMenuRef.current;
+    if (!menu) {
+      return;
+    }
+
+    const items = menu.querySelectorAll('a, button');
+    anime.remove(items);
+    anime({
+      targets: items,
+      opacity: [0, 1],
+      translateX: [16, 0],
+      delay: anime.stagger(70),
+      duration: 280,
+      easing: 'easeOutCubic'
+    });
+  }, [mobileOpen, prefersReducedMotion]);
+
   return (
     <>
-      <header className={clsx(styles.navBar, !visible && styles.isHidden)}>
+  <header ref={navRef} className={clsx(styles.navBar, !visible && styles.isHidden)}>
         <div className="container">
           <div className={styles.inner}>
             <a href="#top" className={styles.logo} onClick={() => setMobileOpen(false)}>
@@ -72,7 +119,11 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
         </div>
 
         {mobileOpen && (
-          <nav className={clsx(styles.navLinks, styles.mobileMenu)} aria-label="Mobiles Hauptmenü">
+          <nav
+            ref={mobileMenuRef}
+            className={clsx(styles.navLinks, styles.mobileMenu)}
+            aria-label="Mobiles Hauptmenü"
+          >
             {navLinks.map((link) => (
               <a key={link.href} href={link.href} onClick={() => setMobileOpen(false)}>
                 {link.label}

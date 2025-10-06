@@ -7,14 +7,6 @@
   text-align: center;
 }
 
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.46), rgba(0, 0, 0, 0.85));
-  z-index: 1;
-}
-
 .content {
   position: relative;
   z-index: 2;
@@ -25,8 +17,8 @@
 
 .logo {
   width: clamp(140px, 18vw, 220px);
-  justify-self: center;
   filter: drop-shadow(0 0 28px rgba(255, 119, 51, 0.55));
+  justify-self: center;
 }
 
 .title {
@@ -34,6 +26,11 @@
   font-size: clamp(2.8rem, 6vw, 5.5rem);
   letter-spacing: 4px;
   text-transform: uppercase;
+}
+
+.title :global(.char) {
+  display: inline-block;
+  white-space: pre;
 }
 
 .subtitle {

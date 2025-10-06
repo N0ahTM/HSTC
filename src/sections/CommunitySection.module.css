@@ -1,28 +1,63 @@
-/* Events layout */
-.filters {
+﻿.filters {
   display: flex;
-  gap: 0.6rem;
   flex-wrap: wrap;
-  margin-bottom: 1.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
 }
 
 .filterBtn {
-  padding: 0.55rem 1rem;
-  background: transparent;
+  position: relative;
+  padding: 0.55rem 1.1rem;
+  background: rgba(10, 12, 14, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   color: var(--color-text);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 0.85rem;
   cursor: pointer;
-  clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%, 0 15%);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
-.filterBtn:hover {
-  background: rgba(255, 119, 51, 0.12);
-  border-color: rgba(255, 119, 51, 0.35);
+.filterBtn::after {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255, 119, 51, 0) 0%, rgba(255, 119, 51, 1) 50%, rgba(255, 119, 51, 0) 100%);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.active {
-  background: rgba(255, 119, 51, 0.18);
+.filterBtn:hover,
+.filterBtn:focus-visible {
   border-color: rgba(255, 119, 51, 0.5);
+  background: rgba(255, 119, 51, 0.12);
+  color: #fff;
+}
+
+.filterBtn:focus-visible {
+  outline: 2px solid rgba(255, 119, 51, 0.6);
+  outline-offset: 2px;
+}
+
+.isActive {
+  background: rgba(255, 119, 51, 0.18);
+  border-color: rgba(255, 119, 51, 0.55);
+  color: #fff;
+}
+
+.isActive::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+.group {
+  margin-bottom: 2.4rem;
 }
 
 .subheading {
@@ -35,19 +70,43 @@
 }
 
 .grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  margin-bottom: 2rem;
+}
+
+.gridItem {
+  list-style: none;
 }
 
 .card {
-  background: rgba(10, 12, 14, 0.78);
+  background: rgba(10, 12, 14, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: var(--shadow-md);
   display: grid;
   grid-template-rows: auto 1fr;
   clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);
+  overflow: hidden;
+  animation: cardEnter 0.45s ease forwards;
+  animation-delay: var(--card-delay, 0s);
+}
+
+[data-animate='off'] .card {
+  animation: none;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .thumb {
@@ -64,50 +123,85 @@
 .cardBody {
   padding: 1.2rem 1rem 1.4rem;
   display: grid;
-  gap: 0.8rem;
+  gap: 0.9rem;
 }
 
 .meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
 }
 
 .badge {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  padding: 0.2rem 0.6rem;
+  padding: 0.25rem 0.6rem;
   background: rgba(255, 119, 51, 0.18);
   color: var(--color-accent);
 }
 
-.badge[data-kind='ingame'] { background: rgba(120, 200, 255, 0.18); color: #bfe6ff; }
+.badge[data-kind='ingame'] {
+  background: rgba(120, 200, 255, 0.18);
+  color: #bfe6ff;
+}
 
 .status {
   font-size: 0.75rem;
-  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
   opacity: 0.8;
 }
-.status[data-status='upcoming'] { color: var(--color-accent); }
+
+.status[data-status='upcoming'] {
+  color: var(--color-accent);
+}
 
 .title {
   font-family: var(--font-heading);
-  font-size: 1.2rem;
+  font-size: 1.25rem;
+  margin: 0;
 }
 
-.desc { color: var(--color-text-muted); }
+.desc {
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
 
 .details {
-  list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
   display: grid;
-  gap: 0.2rem;
-  color: var(--color-text-muted);
+  gap: 0.35rem;
+}
+
+.detailRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem;
   font-size: 0.95rem;
 }
 
-.links { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.4rem; }
+.details dt {
+  font-weight: 600;
+  color: var(--color-text);
+}
 
-.empty { color: var(--color-text-muted); font-style: italic; }
+.details dd {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.links {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0 0 1.6rem;
+}

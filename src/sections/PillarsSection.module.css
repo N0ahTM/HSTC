@@ -20,6 +20,8 @@
   isolation: isolate;
   box-shadow: var(--shadow-md);
   clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
 }
 
 .card::before {

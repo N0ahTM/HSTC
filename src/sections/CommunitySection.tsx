@@ -1,5 +1,8 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { SectionHeading } from '@/components/SectionHeading';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 
 import styles from './CommunitySection.module.css';
 
@@ -24,7 +27,20 @@ interface EventItem {
   links?: EventLink[];
 }
 
-const events: EventItem[] = [
+type EventBuckets = Record<EventStatus, EventItem[]>;
+
+const EVENT_CATEGORIES: Record<EventCategory, string> = {
+  irl: 'Real-Life',
+  ingame: 'Ingame'
+};
+
+const FILTERS: Array<{ key: 'all' | EventCategory; label: string }> = [
+  { key: 'all', label: 'Alle' },
+  { key: 'irl', label: 'Real-Life' },
+  { key: 'ingame', label: 'Ingame' }
+];
+
+const EVENTS: EventItem[] = [
   {
     id: 'bar-citizen-basel-2025',
     title: 'Bar Citizen Basel',
@@ -34,7 +50,7 @@ const events: EventItem[] = [
     location: 'ManaBar Basel, Schweiz',
     image: '/images/Barcitizen_Basel_2025/Manabar.webp',
     description:
-      'Wir haben 1 Abend vor dem Event 125 Anmeldungen für das Bar Citizen Basel erreicht!'
+      'Wir haben einen Abend vor dem Event 125 Anmeldungen für das Bar Citizen Basel erreicht!'
   },
   {
     id: 'citizencon-ebikon-2025',
@@ -76,34 +92,161 @@ const events: EventItem[] = [
   }
 ];
 
-function EventCard({ evt }: { evt: EventItem }) {
-  const badge = evt.category === 'irl' ? 'Real-Life' : 'Ingame';
+function bucketEvents(events: EventItem[]): EventBuckets {
+  return events.reduce<EventBuckets>(
+    (acc, event) => {
+      acc[event.status].push(event);
+      return acc;
+    },
+    { upcoming: [], past: [] }
+  );
+}
+
+export function CommunitySection() {
+  const [activeFilter, setActiveFilter] = useState<'all' | EventCategory>('all');
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const buckets = useMemo(() => {
+    const filtered =
+      activeFilter === 'all'
+        ? EVENTS
+        : EVENTS.filter((event) => event.category === activeFilter);
+
+    return bucketEvents(filtered);
+  }, [activeFilter]);
+
+  const animationEnabled = !prefersReducedMotion;
+
+  // Trigger stagger reveal so that the heading fades in; without this the CSS keeps it at opacity:0
+  if (animationEnabled) {
+    useStaggerReveal(containerRef);
+  }
+
   return (
-    <article className={styles.card}>
+    <section className="section" id="community" data-animate={animationEnabled ? 'on' : 'off'}>
+  <div className="container" ref={containerRef}>
+        <SectionHeading
+          eyebrow="Events"
+          title="Bevorstehende & vergangene Events"
+          description="Echte Treffen & Ingame-Operationen. Füge Bilder, Beschreibungen und Links hinzu – hier bleibt die Historie lebendig."
+        />
+
+        <div role="group" aria-label="Event-Kategorien" className={styles.filters}>
+          {FILTERS.map((filter) => {
+            const isActive = filter.key === activeFilter;
+            return (
+              <button
+                key={filter.key}
+                type="button"
+                className={isActive ? `${styles.filterBtn} ${styles.isActive}` : styles.filterBtn}
+                aria-pressed={isActive}
+                onClick={() => setActiveFilter(filter.key)}
+              >
+                {filter.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <EventGroup
+          title="Bevorstehend"
+          emptyMessage="Keine bevorstehenden Events für diesen Filter."
+          events={buckets.upcoming}
+          animationEnabled={animationEnabled}
+        />
+        <EventGroup
+          title="Vergangen"
+          emptyMessage="Noch keine vergangenen Events für diesen Filter."
+          events={buckets.past}
+          animationEnabled={animationEnabled}
+        />
+      </div>
+    </section>
+  );
+}
+
+interface EventGroupProps {
+  title: string;
+  emptyMessage: string;
+  events: EventItem[];
+  animationEnabled: boolean;
+}
+
+function EventGroup({ title, emptyMessage, events, animationEnabled }: EventGroupProps) {
+  const hasEvents = events.length > 0;
+
+  return (
+    <div className={styles.group}>
+      <h3 className={styles.subheading}>{title}</h3>
+      {hasEvents ? (
+        <ul className={styles.grid} role="list">
+          {events.map((event, index) => (
+            <li key={event.id} className={styles.gridItem}>
+              <EventCard event={event} index={index} animate={animationEnabled} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className={styles.empty}>{emptyMessage}</p>
+      )}
+    </div>
+  );
+}
+
+interface EventCardProps {
+  event: EventItem;
+  index: number;
+  animate: boolean;
+}
+
+function EventCard({ event, index, animate }: EventCardProps) {
+  const details = [
+    { label: 'Datum', value: event.date },
+    { label: 'Zeit', value: event.time },
+    { label: 'Ort', value: event.location }
+  ].filter((detail): detail is { label: string; value: string } => Boolean(detail.value));
+
+  const style: CSSProperties | undefined = animate
+    ? ({ '--card-delay': (index * 0.08).toFixed(2) + 's' } as CSSProperties)
+    : undefined;
+  return (
+    <article className={styles.card} data-status={event.status} style={style}>
       <div className={styles.thumb} aria-hidden="true">
-        <img src={evt.image || '/images/HSTC-Logo.webp'} alt="" loading="lazy" />
+        <img src={event.image ?? '/images/HSTC-Logo.webp'} alt="" loading="lazy" />
       </div>
       <div className={styles.cardBody}>
         <div className={styles.meta}>
-          <span className={styles.badge} data-kind={evt.category}>
-            {badge}
+          <span className={styles.badge} data-kind={event.category}>
+            {EVENT_CATEGORIES[event.category]}
           </span>
-          <span className={styles.status} data-status={evt.status}>
-            {evt.status === 'upcoming' ? 'Bevorstehend' : 'Vergangen'}
+          <span className={styles.status} data-status={event.status}>
+            {event.status === 'upcoming' ? 'Bevorstehend' : 'Vergangen'}
           </span>
         </div>
-        <h3 className={styles.title}>{evt.title}</h3>
-        <p className={styles.desc}>{evt.description}</p>
-        <ul className={styles.details}>
-          {evt.date && <li><strong>Datum:</strong> {evt.date}</li>}
-          {evt.time && <li><strong>Zeit:</strong> {evt.time}</li>}
-          {evt.location && <li><strong>Ort:</strong> {evt.location}</li>}
-        </ul>
-        {evt.links && evt.links.length > 0 && (
+        <h3 className={styles.title}>{event.title}</h3>
+        <p className={styles.desc}>{event.description}</p>
+        {details.length > 0 && (
+          <dl className={styles.details}>
+            {details.map((detail) => (
+              <div key={detail.label} className={styles.detailRow}>
+                <dt>{detail.label}</dt>
+                <dd>{detail.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {event.links && event.links.length > 0 && (
           <div className={styles.links}>
-            {evt.links.map((l) => (
-              <a key={l.href} href={l.href} className="btn btn-outline" target="_blank" rel="noreferrer noopener">
-                {l.label}
+            {event.links.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="btn btn-outline btn-sm"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                {link.label}
               </a>
             ))}
           </div>
@@ -113,62 +256,7 @@ function EventCard({ evt }: { evt: EventItem }) {
   );
 }
 
-const filters: Array<{ key: 'all' | EventCategory; label: string }> = [
-  { key: 'all', label: 'Alle' },
-  { key: 'irl', label: 'Real-Life' },
-  { key: 'ingame', label: 'Ingame' }
-];
 
-export function CommunitySection() {
-  const [activeFilter, setActiveFilter] = useState<'all' | EventCategory>('all');
 
-  const { upcoming, past } = useMemo(() => {
-    const byFilter = (e: EventItem) =>
-      activeFilter === 'all' ? true : e.category === activeFilter;
-    return {
-      upcoming: events.filter((e) => e.status === 'upcoming' && byFilter(e)),
-      past: events.filter((e) => e.status === 'past' && byFilter(e))
-    };
-  }, [activeFilter]);
 
-  return (
-    <section className="section" id="community">
-      <div className="container">
-        <SectionHeading
-          eyebrow="Events"
-          title="Bevorstehende & vergangene Events"
-          description="Echte Treffen & Ingame-Operationen. Füge Bilder, Beschreibungen und Links hinzu – hier bleibt die Historie lebendig."
-        />
 
-        <div className={styles.filters}>
-          {filters.map((f) => (
-            <button
-              key={f.key}
-              className={f.key === activeFilter ? `${styles.filterBtn} ${styles.active}` : styles.filterBtn}
-              onClick={() => setActiveFilter(f.key)}
-              type="button"
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        <h3 className={styles.subheading} id="events-upcoming">Bevorstehend</h3>
-        <div className={styles.grid}>
-          {upcoming.length === 0 && <p className={styles.empty}>Keine bevorstehenden Events für diesen Filter.</p>}
-          {upcoming.map((evt) => (
-            <EventCard key={evt.id} evt={evt} />
-          ))}
-        </div>
-
-        <h3 className={styles.subheading} id="events-past">Vergangen</h3>
-        <div className={styles.grid}>
-          {past.length === 0 && <p className={styles.empty}>Noch keine vergangenen Events für diesen Filter.</p>}
-          {past.map((evt) => (
-            <EventCard key={evt.id} evt={evt} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
