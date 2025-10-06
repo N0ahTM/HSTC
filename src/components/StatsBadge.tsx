@@ -1,3 +1,7 @@
+import { ForwardedRef, forwardRef, useRef } from 'react';
+
+import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
+
 import styles from './StatsBadge.module.css';
 
 interface StatsBadgeProps {
@@ -5,19 +9,31 @@ interface StatsBadgeProps {
   inVoice: number | null;
 }
 
-export function StatsBadge({ onlineMembers, inVoice }: StatsBadgeProps) {
+export const StatsBadge = forwardRef(function StatsBadge(
+  { onlineMembers, inVoice }: StatsBadgeProps,
+  ref: ForwardedRef<HTMLElement>
+) {
+  const onlineRef = useRef<HTMLSpanElement | null>(null);
+  const voiceRef = useRef<HTMLSpanElement | null>(null);
+  useAnimatedNumber(onlineMembers, onlineRef);
+  useAnimatedNumber(inVoice, voiceRef);
+
   return (
-    <aside className={styles.badge} aria-live="polite">
+    <aside ref={ref} className={styles.badge} aria-live="polite">
       <dl>
         <div>
           <dt>Online</dt>
-          <dd>{onlineMembers ?? '—'}</dd>
+          <dd>
+            <span ref={onlineRef}>{onlineMembers ?? '—'}</span>
+          </dd>
         </div>
         <div>
           <dt>In Voice</dt>
-          <dd>{inVoice ?? '—'}</dd>
+          <dd>
+            <span ref={voiceRef}>{inVoice ?? '—'}</span>
+          </dd>
         </div>
       </dl>
     </aside>
   );
-}
+});

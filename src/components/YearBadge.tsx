@@ -1,3 +1,5 @@
+import { ForwardedRef, forwardRef } from 'react';
+
 import styles from './YearBadge.module.css';
 
 interface YearBadgeProps {
@@ -12,9 +14,12 @@ const flags = [
   { src: '/images/flags/austria-flag-square-medium.webp', alt: 'Österreich' }
 ];
 
-export function YearBadge({ verseYear, foundationYear, showRange }: YearBadgeProps) {
+export const YearBadge = forwardRef(function YearBadge(
+  { verseYear, foundationYear, showRange }: YearBadgeProps,
+  ref: ForwardedRef<HTMLElement>
+) {
   return (
-    <aside className={styles.badge} aria-label="Herkunftsländer und Gründungsjahr">
+    <aside ref={ref} className={styles.badge} aria-label="Herkunftsländer und Gründungsjahr">
       {flags.map((flag) => (
         <span key={flag.alt} className={styles.flag}>
           <img src={flag.src} alt={flag.alt} loading="lazy" />
@@ -26,4 +31,4 @@ export function YearBadge({ verseYear, foundationYear, showRange }: YearBadgePro
       </span>
     </aside>
   );
-}
+});
