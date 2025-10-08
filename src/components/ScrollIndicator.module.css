@@ -1,0 +1,52 @@
+.indicator {
+  position: absolute;
+  bottom: 1.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 1rem 0.6rem;
+  background: rgba(10, 12, 14, 0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 11px;
+  color: var(--color-text);
+  font-size: 0.68rem;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  z-index: 3;
+}
+
+.indicator:hover {
+  background: rgba(18, 20, 22, 0.75);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.text {
+  font-weight: 600;
+  font-family: var(--font-sans, inherit);
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  display: inline-block;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+}
+
+@media (max-width: 768px) {
+  .indicator {
+    bottom: 1rem;
+    font-size: 0.62rem;
+    padding: 0.5rem 0.8rem 0.55rem;
+    gap: 0.45rem;
+  }
+  .icon { font-size: 0.9rem; }
+}
