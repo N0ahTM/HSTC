@@ -110,7 +110,7 @@ export function JoinSection({ onJoin, onDiscord }: JoinSectionProps) {
                 onMouseEnter={handleHover}
                 onMouseLeave={handleLeave}
               >
-                Discord Beitreten
+                Discord Besuchen
               </button>
             </div>
             <div className={styles.stats} aria-label="Live Discord Status">
@@ -123,7 +123,7 @@ export function JoinSection({ onJoin, onDiscord }: JoinSectionProps) {
                 <span className={styles.statValue} ref={voiceRef}>{(isLoading || inVoice == null) ? '—' : inVoice}</span>
               </div>
             </div>
-            <p className={styles.note}>Antwort vom Recruit-Team innerhalb von 24 Stunden.</p>
+            <p className={styles.note}>Wenn wir deine RSI-Anfrage nicht mitbekommen, einfach auf dem Discord melden.</p>
           </article>
         </div>
       </div>

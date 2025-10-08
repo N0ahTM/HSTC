@@ -22,6 +22,7 @@
   clip-path: polygon(0 0, 100% 0, 100% 95%, 95% 100%, 0 100%);
   transform-style: preserve-3d;
   transition: transform 0.4s ease;
+  background: center/cover no-repeat;
 }
 
 .card::before {
@@ -44,14 +45,21 @@
   color: var(--color-text-muted);
 }
 
-.card:nth-child(1) {
-  background: url('/images/ships/Ship.webp') center/cover no-repeat;
-}
+/* Card background variants */
+.card--demokratie { background-image: url('/images/ships/Ship.webp'); }
+.card--dach { background-image: url('/images/backgrounds/Jumpgate.webp'); }
+.card--elite { background-image: url('/images/backgrounds/Explosion.webp'); }
+.card--security { background-image: url('/images/backgrounds/Space.webp'); }
+.card--logistics { background-image: url('/images/backgrounds/Starlancer.webp'); }
+.card--recon { background-image: url('/images/backgrounds/Pyro.webp'); }
 
-.card:nth-child(2) {
-  background: url('/images/backgrounds/Jumpgate.webp') center/cover no-repeat;
-}
 
-.card:nth-child(3) {
-  background: url('/images/backgrounds/Explosion.webp') center/cover no-repeat;
+.tagline {
+  font-size: 0.7rem;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-accent);
+  margin-bottom: 0.6rem;
+  opacity: 0.95;
 }
