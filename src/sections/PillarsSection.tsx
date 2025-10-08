@@ -4,6 +4,7 @@ import { SectionHeading } from '@/components/SectionHeading';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { apply3DTilt } from '@/motion/interactions';
+import { animateScrollTo, highlightActiveCard, scheduleSnap } from '@/motion/carousel';
 
 import styles from './PillarsSection.module.css';
 
@@ -54,6 +55,7 @@ export function PillarsSection() {
   const isUserInteracting = useRef(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
+  const snapState = useRef<{ timer: number | null }>({ timer: null });
 
   // Derived list length
   const total = cards.length;
@@ -100,9 +102,14 @@ export function PillarsSection() {
     const children = el.querySelectorAll('article');
     const target = children[index] as HTMLElement | null;
     if (target) {
-      el.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+      // Use anime for controlled timing (respect reduced motion)
+      if (prefersReducedMotion) {
+        el.scrollTo({ left: target.offsetLeft, behavior: 'auto' });
+      } else {
+        animateScrollTo(el, target.offsetLeft, { duration: 520, easing: 'easeOutCubic' });
+      }
     }
-  }, []);
+  }, [prefersReducedMotion]);
 
   const next = useCallback(() => {
     setActiveIndex((idx) => {
@@ -169,31 +176,89 @@ export function PillarsSection() {
   useEffect(() => {
     const el = cardsRef.current; if (!el) return;
     const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        el.scrollLeft += e.deltaY; // convert vertical to horizontal
-        e.preventDefault();
+      // Ignore if horizontal intent is stronger (native horizontal scroll / shift+wheel etc.)
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+      // Nothing to do if content not scrollable horizontally
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (maxScroll <= 0) return;
+
+      // If at boundaries and user keeps scrolling further outward, allow default page scroll
+      if ((e.deltaY < 0 && el.scrollLeft <= 0) || (e.deltaY > 0 && el.scrollLeft >= maxScroll)) {
+        return;
       }
+
+      // Normalize delta across deltaModes (0=pixel,1=line,2=page)
+      let delta = e.deltaY;
+      if (e.deltaMode === 1) delta *= 16; // approx line height
+      else if (e.deltaMode === 2) delta *= el.clientHeight;
+
+      // Apply a small multiplier for a bit more responsive feel on standard wheels
+      const factor = 1.05;
+      // Disable snap while user actively scrolls wheel
+      if (el.style.scrollSnapType !== 'none') {
+        el.style.scrollSnapType = 'none';
+      }
+      el.scrollBy({ left: delta * factor, behavior: 'auto' });
+      // schedule snap after user stops scrolling
+      scheduleSnap(el, snapState.current, 160, { reducedMotion: prefersReducedMotion });
+      e.preventDefault();
     };
     el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
-  }, []);
+    return () => { el.removeEventListener('wheel', onWheel); };
+  }, [prefersReducedMotion]);
 
   // Drag / swipe
   useEffect(() => {
     const el = cardsRef.current; if (!el) return;
-    let startX = 0; let scrollStart = 0; let dragging = false; let moved = false;
+    let startX = 0; let scrollStart = 0; let dragging = false; let moved = false; let lastX = 0; let lastTime = 0; let velocity = 0;
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return; // left only
-      dragging = true; moved = false; startX = e.clientX; scrollStart = el.scrollLeft; el.setPointerCapture(e.pointerId); isUserInteracting.current = true;
+      dragging = true; moved = false; startX = e.clientX; scrollStart = el.scrollLeft; el.setPointerCapture(e.pointerId); isUserInteracting.current = true; lastX = e.clientX; lastTime = performance.now(); velocity = 0;
     };
     const onMove = (e: PointerEvent) => {
-      if (!dragging) return; const dx = e.clientX - startX; if (Math.abs(dx) > 3) moved = true; el.scrollLeft = scrollStart - dx; };
-    const onUp = (e: PointerEvent) => { if (!dragging) return; dragging = false; el.releasePointerCapture(e.pointerId); setTimeout(()=>{isUserInteracting.current=false;}, 1500); };
+      if (!dragging) return;
+      const dx = e.clientX - startX; if (Math.abs(dx) > 3) moved = true; el.scrollLeft = scrollStart - dx;
+      const now = performance.now();
+      const dt = now - lastTime;
+      if (dt > 0) {
+        velocity = (lastX - e.clientX) / dt; // px per ms (negative means moving right)
+        lastX = e.clientX; lastTime = now;
+      }
+    };
+    const onUp = (e: PointerEvent) => {
+      if (!dragging) return; dragging = false; el.releasePointerCapture(e.pointerId);
+      // momentum effect
+      if (!prefersReducedMotion && Math.abs(velocity) > 0.02) {
+        const momentum = velocity * 3200; // scale to pixels
+        let target = el.scrollLeft + momentum;
+        if (target < 0) target = 0; else if (target > el.scrollWidth - el.clientWidth) target = el.scrollWidth - el.clientWidth;
+        animateScrollTo(el, target, { duration: 650, easing: 'easeOutCubic', onComplete: () => scheduleSnap(el, snapState.current, 0, { reducedMotion: prefersReducedMotion }) });
+      } else {
+        scheduleSnap(el, snapState.current, 60, { reducedMotion: prefersReducedMotion });
+      }
+      setTimeout(()=>{isUserInteracting.current=false;}, 800);
+    };
     el.addEventListener('pointerdown', onDown);
     el.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     return () => { el.removeEventListener('pointerdown', onDown); el.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
-  }, []);
+  }, [prefersReducedMotion]);
+
+  // Highlight active card
+  useEffect(() => {
+    if (prefersReducedMotion) return; // still highlight in next effect below
+    const el = cardsRef.current; if (!el) return;
+    const children = Array.from(el.querySelectorAll<HTMLElement>('article'));
+    highlightActiveCard(children, activeIndex, { reducedMotion: prefersReducedMotion });
+  }, [activeIndex, prefersReducedMotion]);
+
+  // Ensure reduced motion still updates styles (no animation path)
+  useEffect(() => {
+    if (!prefersReducedMotion) return; const el = cardsRef.current; if (!el) return;
+    const children = Array.from(el.querySelectorAll<HTMLElement>('article'));
+    highlightActiveCard(children, activeIndex, { reducedMotion: true });
+  }, [prefersReducedMotion, activeIndex]);
 
   return (
     <section ref={sectionRef} className={`section ${styles.section}`} id="mission">
