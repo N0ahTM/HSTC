@@ -12,7 +12,7 @@ export function createStarfield(
   container: HTMLElement,
   options: StarfieldOptions = {}
 ): AnimeInstance[] {
-  const { count = 100, twinkleSpeed = 4000 } = options;
+  const { count = 130, twinkleSpeed = 4000 } = options;
   const animations: AnimeInstance[] = [];
 
   for (let i = 0; i < count; i++) {
@@ -26,16 +26,16 @@ export function createStarfield(
       border-radius: 50%;
       left: ${Math.random() * 100}%;
       top: ${Math.random() * 100}%;
-      opacity: ${0.2 + Math.random() * 0.3};
+      opacity: ${0.4 + Math.random() * 0.9};
       pointer-events: none;
     `;
     container.appendChild(star);
 
     const animation = anime({
       targets: star,
-      opacity: [0.2, 0.8],
-      duration: twinkleSpeed + Math.random() * 3000,
-      delay: Math.random() * 2000,
+      opacity: [0.1, 0.9],
+      duration: twinkleSpeed + Math.random() * 1000,
+      delay: Math.random() * 500,
       direction: 'alternate',
       easing: 'easeInOutSine',
       loop: true

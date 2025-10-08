@@ -15,7 +15,6 @@ const navLinks: Array<{ href: string; label: string }> = [
   { href: '#mission', label: 'Mission' },
   { href: '#operations', label: 'Operationen' },
   { href: '#community', label: 'Community' },
-  { href: '#discord', label: 'Discord' },
   { href: '#join', label: 'Beitreten' }
 ];
 
@@ -107,7 +106,7 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
               <button
                 className={styles.menuToggle}
                 aria-label={mobileOpen ? 'Menü schließen' : 'Menü öffnen'}
-                aria-expanded={mobileOpen}
+                aria-expanded={mobileOpen ? 'true' : 'false'}
                 onClick={() => setMobileOpen((prev) => !prev)}
               >
                 {mobileOpen ? '×' : '☰'}

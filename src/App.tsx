@@ -2,7 +2,6 @@ import { useCallback, useEffect } from 'react';
 import anime, { type AnimeInstance } from 'animejs';
 import { NavigationBar } from '@/components/NavigationBar';
 import { ScrollProgress } from '@/components/ScrollProgress';
-import { DiscordSection } from '@/sections/DiscordSection';
 import { HeroSection } from '@/sections/HeroSection';
 import { PillarsSection } from '@/sections/PillarsSection';
 import { OperationsSection } from '@/sections/OperationsSection';
@@ -89,9 +88,8 @@ function SiteShell() {
         <HeroSection onJoin={openRecruitment} onDiscord={openDiscord} />
         <PillarsSection />
         <OperationsSection />
-        <CommunitySection />
-        <DiscordSection onJoinClick={openDiscord} />
-        <JoinSection onJoin={openRecruitment} onDiscord={openDiscord} />
+  <CommunitySection />
+  <JoinSection onJoin={openRecruitment} onDiscord={openDiscord} />
       </main>
       <FooterSection />
     </>
