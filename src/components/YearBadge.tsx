@@ -20,14 +20,15 @@ export const YearBadge = forwardRef(function YearBadge(
 ) {
   return (
     <aside ref={ref} className={styles.badge} aria-label="Herkunftsländer und Gründungsjahr">
-      {flags.map((flag) => (
-        <span key={flag.alt} className={styles.flag}>
-          <img src={flag.src} alt={flag.alt} loading="lazy" />
-        </span>
-      ))}
-      <span className={styles.year}>
-        {foundationYear}
-        {showRange ? ` – ${verseYear}` : ''}
+      <div className={styles.flags} aria-label="Herkunftsländer">
+        {flags.map((flag) => (
+          <span key={flag.alt} className={styles.flag}>
+            <img src={flag.src} alt={flag.alt} loading="lazy" />
+          </span>
+        ))}
+      </div>
+      <span className={styles.year} aria-label="Seit dem Jahr">
+        Seit 2017
       </span>
     </aside>
   );
