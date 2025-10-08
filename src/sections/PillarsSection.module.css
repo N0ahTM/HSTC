@@ -68,12 +68,18 @@
 }
 
 /* Card background variants */
+/* Legacy variants kept (can be removed once unused in code):
+  .card--dach, .card--elite, .card--security, .card--logistics, .card--recon */
+/* New dedicated variants for each card */
 .card--demokratie { background-image: url('/images/ships/Ship.webp'); }
-.card--dach { background-image: url('/images/backgrounds/Jumpgate.webp'); }
-.card--elite { background-image: url('/images/backgrounds/Explosion.webp'); }
-.card--security { background-image: url('/images/backgrounds/Space.webp'); }
-.card--logistics { background-image: url('/images/backgrounds/Starlancer.webp'); }
-.card--recon { background-image: url('/images/backgrounds/Pyro.webp'); }
+.card--community { background-image: url('/images/backgrounds/Jumpgate.webp'); }
+.card--hauling { background-image: url('/images/backgrounds/Starlancer.webp'); }
+.card--industrial { background-image: url('/images/backgrounds/Space.webp'); }
+.card--exploring { background-image: url('/images/backgrounds/Pyro.webp'); }
+.card--missions { background-image: url('/images/backgrounds/Explosion.webp'); }
+.card--fps { background-image: url('/images/ships/Hornet.webp'); }
+
+/* Optional: remove obsolete ones later */
 
 
 .tagline {

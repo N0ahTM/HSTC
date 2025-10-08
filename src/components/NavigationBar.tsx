@@ -12,8 +12,8 @@ interface NavigationBarProps {
 }
 
 const navLinks: Array<{ href: string; label: string }> = [
-  { href: '#mission', label: 'Mission' },
-  { href: '#operations', label: 'Operationen' },
+  { href: '#top', label: 'Start' },
+  { href: '#mission', label: 'Portfolio' },
   { href: '#community', label: 'Community' },
   { href: '#join', label: 'Beitreten' }
 ];
@@ -106,7 +106,8 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
               <button
                 className={styles.menuToggle}
                 aria-label={mobileOpen ? 'Menü schließen' : 'Menü öffnen'}
-                aria-expanded={mobileOpen ? 'true' : 'false'}
+                aria-expanded={mobileOpen}
+                aria-controls="primary-navigation"
                 onClick={() => setMobileOpen((prev) => !prev)}
               >
                 {mobileOpen ? '×' : '☰'}
@@ -118,6 +119,7 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
         {mobileOpen && (
           <nav
             ref={mobileMenuRef}
+            id="primary-navigation"
             className={clsx(styles.navLinks, styles.mobileMenu)}
             aria-label="Mobiles Hauptmenü"
           >

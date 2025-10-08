@@ -13,44 +13,37 @@ const cards = [
   {
     title: 'MACHTVOLLE DEMOKRATIE',
     tagline: 'Gemeinsam entscheiden',
-    description:
-      'Kein Alleinherrscher – jedes Mitglied hat eine Stimme. Unser Verwaltungsrat trifft demokratisch Entscheidungen.',
     variant: 'demokratie'
   },
   {
     title: 'D/A/CH COMMUNITY',
     tagline: 'Wir sind D/A/CH',
-    description:
-      'Deutsche, Schweizer & Österreicher vereint unter einem Banner. Wir kommunizieren auf Deutsch.',
-    variant: 'dach'
+    variant: 'community'
   },
   {
-    title: 'ELITE OPERATIONEN',
-    tagline: 'Präzise Einsätze',
-    description:
-      'Präzise Kampfeinsätze & lukrative Handelsmissionen – unsere WarBandLeads sorgen für Erfolg.',
-    variant: 'elite'
+    title: 'Hauling',
+    tagline: 'Waren Transport und Handel',
+    variant: 'hauling'
   },
   {
-    title: 'SICHERHEITSES­KORTEN',
-    tagline: 'Wir schützen jede Handelsroute',
-    description:
-      'WarBand-Leads planen Eskorten mit abgestimmten Loadouts, Escape-Plänen und Echtzeit-Intel aus unserem Mobi-Glas-Netz.',
-    variant: 'security'
+    title: 'Industrial Gameplay',
+    tagline: 'Mining, Salvaging, Refining',
+    variant: 'industrial'
   },
   {
-    title: 'GALAXY LOGISTICS',
-    tagline: 'Hochprofitabler Handel',
-    description:
-      'Koordinierte Lieferketten von Prospektoren bis zu Großfrachtern. Produktion, Raffinerie und Verkauf laufen über unsere abgestimmten Playbooks.',
-    variant: 'logistics'
+    title: 'Exploring',
+    tagline: 'Erforschen des Verses',
+    variant: 'exploring'
   },
   {
-    title: 'RECON & EXPLORATION',
-    tagline: 'Wir finden Chancen zuerst',
-    description:
-      'Aufklärungseinheiten scannen sichere Routen, Wracks und seltene Claims. Daten landen verschlüsselt in unserem Datenraum.',
-    variant: 'recon'
+    title: 'Mission gameplay',
+    tagline: 'Missionen und Events',
+    variant: 'missions'
+  },
+  {
+    title: 'Fps Action',
+    tagline: 'Combat & Security',
+    variant: 'fps'
   }
 ];
 
@@ -236,7 +229,7 @@ export function PillarsSection() {
                 key={i}
                 type="button"
                 className={styles.dotBtn}
-                aria-pressed={i === activeIndex ? 'true' : 'false'}
+                aria-pressed={i === activeIndex}
                 aria-label={`Slide ${i + 1}`}
                 onClick={() => { setActiveIndex(i); scrollToIndex(i); }}
               />
