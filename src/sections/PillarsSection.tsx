@@ -1,61 +1,66 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 import { SectionHeading } from '@/components/SectionHeading';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { apply3DTilt } from '@/motion/interactions';
+import { animateScrollTo, highlightActiveCard, scheduleSnap } from '@/motion/carousel';
 
 import styles from './PillarsSection.module.css';
 
 // Alle 6 Karten in einem gemeinsamen Grid
+// (statisch außerhalb der Komponente definieren, damit keine Re-Renders Anime erneut triggern)
 const cards = [
   {
     title: 'MACHTVOLLE DEMOKRATIE',
-    description:
-      'Kein Alleinherrscher – jedes Mitglied hat eine Stimme. Unser Verwaltungsrat trifft demokratisch Entscheidungen.',
+    tagline: 'Gemeinsam entscheiden',
     variant: 'demokratie'
   },
   {
     title: 'D/A/CH COMMUNITY',
-    description:
-      'Deutsche, Schweizer & Österreicher vereint unter einem Banner. Wir kommunizieren auf Deutsch.',
-    variant: 'dach'
+    tagline: 'Wir sind D/A/CH',
+    variant: 'community'
   },
   {
-    title: 'ELITE OPERATIONEN',
-    description:
-      'Präzise Kampfeinsätze & lukrative Handelsmissionen – unsere WarBandLeads sorgen für Erfolg.',
-    variant: 'elite'
+    title: 'Hauling',
+    tagline: 'Waren Transport und Handel',
+    variant: 'hauling'
   },
   {
-    title: 'SICHERHEITSES­KORTEN',
-    tagline: 'Wir schützen jede Handelsroute',
-    description:
-      'WarBand-Leads planen Eskorten mit abgestimmten Loadouts, Escape-Plänen und Echtzeit-Intel aus unserem Mobi-Glas-Netz.',
-    variant: 'security'
+    title: 'Industrial Gameplay',
+    tagline: 'Mining, Salvaging, Refining',
+    variant: 'industrial'
   },
   {
-    title: 'GALAXY LOGISTICS',
-    tagline: 'Hochprofitabler Handel',
-    description:
-      'Koordinierte Lieferketten von Prospektoren bis zu Großfrachtern. Produktion, Raffinerie und Verkauf laufen über unsere abgestimmten Playbooks.',
-    variant: 'logistics'
+    title: 'Exploring',
+    tagline: 'Erforschen des Verses',
+    variant: 'exploring'
   },
   {
-    title: 'RECON & EXPLORATION',
-    tagline: 'Wir finden Chancen zuerst',
-    description:
-      'Aufklärungseinheiten scannen sichere Routen, Wracks und seltene Claims. Daten landen verschlüsselt in unserem Datenraum.',
-    variant: 'recon'
+    title: 'Mission gameplay',
+    tagline: 'Missionen und Events',
+    variant: 'missions'
+  },
+  {
+    title: 'Fps Action',
+    tagline: 'Combat & Security',
+    variant: 'fps'
   }
 ];
 
 export function PillarsSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const cardsRef = useRef<HTMLDivElement | null>(null);
+  const autoScrollTimer = useRef<number | null>(null);
+  const isUserInteracting = useRef(false);
   const prefersReducedMotion = usePrefersReducedMotion();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const snapState = useRef<{ timer: number | null }>({ timer: null });
 
-  useStaggerReveal(sectionRef, { rootMargin: '0px 0px -15%', delay: 110 });
+  // Derived list length
+  const total = cards.length;
+
+  useStaggerReveal(sectionRef, { rootMargin: '0px 0px -15%', delay: 110, once: true });
 
   useEffect(() => {
     if (prefersReducedMotion || !cardsRef.current) return;
@@ -70,15 +75,204 @@ export function PillarsSection() {
     return () => cleanups.forEach((cleanup) => cleanup());
   }, [prefersReducedMotion]);
 
+
+  // Update active index on scroll
+  useEffect(() => {
+    const el = cardsRef.current;
+    if (!el) return;
+    let rAF: number;
+    const handle = () => {
+      const children = Array.from(el.querySelectorAll('article')) as HTMLElement[];
+      if (!children.length) return;
+      const scrollLeft = el.scrollLeft;
+      const widths = children.map(c => c.offsetWidth + parseFloat(getComputedStyle(c).marginRight || '0'));
+      // compute approximate index
+      let acc = 0; let idx = 0;
+      for (let i=0;i<widths.length;i++){ if (acc + widths[i]/2 > scrollLeft){ idx = i; break;} acc += widths[i]; if (i===widths.length-1) idx=i; }
+      setActiveIndex(idx);
+    };
+    const onScroll = () => { cancelAnimationFrame(rAF); rAF = requestAnimationFrame(handle); };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    handle();
+    return () => { el.removeEventListener('scroll', onScroll); cancelAnimationFrame(rAF); };
+  }, []);
+
+  const scrollToIndex = useCallback((index: number) => {
+    const el = cardsRef.current; if (!el) return;
+    const children = el.querySelectorAll('article');
+    const target = children[index] as HTMLElement | null;
+    if (target) {
+      // Use anime for controlled timing (respect reduced motion)
+      if (prefersReducedMotion) {
+        el.scrollTo({ left: target.offsetLeft, behavior: 'auto' });
+      } else {
+        animateScrollTo(el, target.offsetLeft, { duration: 520, easing: 'easeOutCubic' });
+      }
+    }
+  }, [prefersReducedMotion]);
+
+  const next = useCallback(() => {
+    setActiveIndex((idx) => {
+      const nextIdx = (idx + 1) % total;
+      scrollToIndex(nextIdx);
+      return nextIdx;
+    });
+  }, [total, scrollToIndex]);
+
+  const prev = useCallback(() => {
+    setActiveIndex((idx) => {
+      const prevIdx = (idx - 1 + total) % total;
+      scrollToIndex(prevIdx);
+      return prevIdx;
+    });
+  }, [total, scrollToIndex]);
+
+  // Auto scroll: startet einmal und wird nach erster User-Interaktion permanent deaktiviert
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    let stoppedByUser = false;
+    const stop = () => { if (autoScrollTimer.current) { clearInterval(autoScrollTimer.current); autoScrollTimer.current = null; } };
+    autoScrollTimer.current = window.setInterval(() => {
+      if (isUserInteracting.current || stoppedByUser) return;
+      next();
+    }, 4000);
+    const markUser = () => { if (!stoppedByUser) { stoppedByUser = true; stop(); } };
+    const el = cardsRef.current;
+    if (el) {
+      el.addEventListener('wheel', markUser, { passive: true });
+      el.addEventListener('pointerdown', markUser, { passive: true });
+      el.addEventListener('click', markUser, { passive: true });
+      el.addEventListener('keydown', markUser, { passive: true });
+    }
+    return () => {
+      stop();
+      if (el) {
+        el.removeEventListener('wheel', markUser);
+        el.removeEventListener('pointerdown', markUser);
+        el.removeEventListener('click', markUser);
+        el.removeEventListener('keydown', markUser);
+      }
+    };
+  }, [next, prefersReducedMotion]);
+
+  // Pause on hover / focus
+  useEffect(() => {
+    const el = cardsRef.current; if (!el) return;
+    const enter = () => { isUserInteracting.current = true; };
+    const leave = () => { isUserInteracting.current = false; };
+    el.addEventListener('pointerenter', enter);
+    el.addEventListener('pointerleave', leave);
+    el.addEventListener('focusin', enter);
+    el.addEventListener('focusout', leave);
+    return () => {
+      el.removeEventListener('pointerenter', enter);
+      el.removeEventListener('pointerleave', leave);
+      el.removeEventListener('focusin', enter);
+      el.removeEventListener('focusout', leave);
+    };
+  }, []);
+
+  // Wheel vertical -> horizontal
+  useEffect(() => {
+    const el = cardsRef.current; if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      // Ignore if horizontal intent is stronger (native horizontal scroll / shift+wheel etc.)
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+      // Nothing to do if content not scrollable horizontally
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (maxScroll <= 0) return;
+
+      // If at boundaries and user keeps scrolling further outward, allow default page scroll
+      if ((e.deltaY < 0 && el.scrollLeft <= 0) || (e.deltaY > 0 && el.scrollLeft >= maxScroll)) {
+        return;
+      }
+
+      // Normalize delta across deltaModes (0=pixel,1=line,2=page)
+      let delta = e.deltaY;
+      if (e.deltaMode === 1) delta *= 16; // approx line height
+      else if (e.deltaMode === 2) delta *= el.clientHeight;
+
+      // Apply a small multiplier for a bit more responsive feel on standard wheels
+      const factor = 1.05;
+      // Disable snap while user actively scrolls wheel
+      if (el.style.scrollSnapType !== 'none') {
+        el.style.scrollSnapType = 'none';
+      }
+      el.scrollBy({ left: delta * factor, behavior: 'auto' });
+      // schedule snap after user stops scrolling
+      scheduleSnap(el, snapState.current, 160, { reducedMotion: prefersReducedMotion });
+      e.preventDefault();
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => { el.removeEventListener('wheel', onWheel); };
+  }, [prefersReducedMotion]);
+
+  // Drag / swipe
+  useEffect(() => {
+    const el = cardsRef.current; if (!el) return;
+    let startX = 0; let scrollStart = 0; let dragging = false; let moved = false; let lastX = 0; let lastTime = 0; let velocity = 0;
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return; // left only
+      dragging = true; moved = false; startX = e.clientX; scrollStart = el.scrollLeft; el.setPointerCapture(e.pointerId); isUserInteracting.current = true; lastX = e.clientX; lastTime = performance.now(); velocity = 0;
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX; if (Math.abs(dx) > 3) moved = true; el.scrollLeft = scrollStart - dx;
+      const now = performance.now();
+      const dt = now - lastTime;
+      if (dt > 0) {
+        velocity = (lastX - e.clientX) / dt; // px per ms (negative means moving right)
+        lastX = e.clientX; lastTime = now;
+      }
+    };
+    const onUp = (e: PointerEvent) => {
+      if (!dragging) return; dragging = false; el.releasePointerCapture(e.pointerId);
+      // momentum effect
+      if (!prefersReducedMotion && Math.abs(velocity) > 0.02) {
+        const momentum = velocity * 3200; // scale to pixels
+        let target = el.scrollLeft + momentum;
+        if (target < 0) target = 0; else if (target > el.scrollWidth - el.clientWidth) target = el.scrollWidth - el.clientWidth;
+        animateScrollTo(el, target, { duration: 650, easing: 'easeOutCubic', onComplete: () => scheduleSnap(el, snapState.current, 0, { reducedMotion: prefersReducedMotion }) });
+      } else {
+        scheduleSnap(el, snapState.current, 60, { reducedMotion: prefersReducedMotion });
+      }
+      setTimeout(()=>{isUserInteracting.current=false;}, 800);
+    };
+    el.addEventListener('pointerdown', onDown);
+    el.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    return () => { el.removeEventListener('pointerdown', onDown); el.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
+  }, [prefersReducedMotion]);
+
+  // Highlight active card
+  useEffect(() => {
+    if (prefersReducedMotion) return; // still highlight in next effect below
+    const el = cardsRef.current; if (!el) return;
+    const children = Array.from(el.querySelectorAll<HTMLElement>('article'));
+    highlightActiveCard(children, activeIndex, { reducedMotion: prefersReducedMotion });
+  }, [activeIndex, prefersReducedMotion]);
+
+  // Ensure reduced motion still updates styles (no animation path)
+  useEffect(() => {
+    if (!prefersReducedMotion) return; const el = cardsRef.current; if (!el) return;
+    const children = Array.from(el.querySelectorAll<HTMLElement>('article'));
+    highlightActiveCard(children, activeIndex, { reducedMotion: true });
+  }, [prefersReducedMotion, activeIndex]);
+
   return (
     <section ref={sectionRef} className={`section ${styles.section}`} id="mission">
       <div className="container">
         <SectionHeading
           eyebrow="Mission"
-            title="Warum HSTC anders ist"
-          description="Unsere Grundwerte verbinden professionelle Strukturen mit einer freundschaftlichen Community."
+          title="Unser Portfolio"
         />
-        <div ref={cardsRef} className={styles.cards}>
+        <div
+          ref={cardsRef}
+          className={styles.cards}
+          role="group"
+          aria-label="HSTC Mission Carousel"
+        >
           {cards.map((card) => (
             <article
               key={card.title}
@@ -87,9 +281,28 @@ export function PillarsSection() {
             >
               {card.tagline && <span className={styles.tagline}>{card.tagline}</span>}
               <h3>{card.title}</h3>
-              <p>{card.description}</p>
             </article>
           ))}
+        </div>
+        <div className={styles.carouselControls} aria-hidden="false">
+          <button type="button" className={styles.navBtn} onClick={prev} aria-label="Vorherige">
+            ‹
+          </button>
+          <div className={styles.dotNav} role="group" aria-label="Slides">
+            {cards.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={styles.dotBtn}
+                aria-pressed={i === activeIndex}
+                aria-label={`Slide ${i + 1}`}
+                onClick={() => { setActiveIndex(i); scrollToIndex(i); }}
+              />
+            ))}
+          </div>
+          <button type="button" className={styles.navBtn} onClick={next} aria-label="Nächste">
+            ›
+          </button>
         </div>
       </div>
     </section>

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
-const YEAR_OFFSET = 930;
-const FOUNDATION_YEAR = 2947;
+const YEAR_OFFSET = 0;
+const FOUNDATION_YEAR = 2017;
 
 export function useVerseYear() {
   return useMemo(() => {

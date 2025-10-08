@@ -92,13 +92,16 @@ export function useStaggerReveal<T extends HTMLElement>(
         return;
       }
 
+      const fresh = targets.filter(t => !t.dataset.revealed);
+      if (fresh.length === 0) return;
       anime({
-        targets,
+        targets: fresh,
         opacity,
         translateY: [translateY, 0],
         delay: anime.stagger(delay),
         duration,
-        easing: 'easeOutCubic'
+        easing: 'easeOutCubic',
+        complete: () => { fresh.forEach(f => { f.dataset.revealed = 'true'; }); }
       });
     },
     [delay, duration, opacity, targetsSelector, translateY]

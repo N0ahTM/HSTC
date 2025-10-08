@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import anime, { type AnimeInstance } from 'animejs';
 import { NavigationBar } from '@/components/NavigationBar';
-import { ScrollProgress } from '@/components/ScrollProgress';
 import { HeroSection } from '@/sections/HeroSection';
 import { PillarsSection } from '@/sections/PillarsSection';
 import { CommunitySection } from '@/sections/CommunitySection';
@@ -79,7 +78,6 @@ function SiteShell() {
 
   return (
     <>
-      <ScrollProgress />
       <div className="background-space" aria-hidden="true" />
       <div className="background-grid" aria-hidden="true" />
       <NavigationBar onJoin={openRecruitment} onDiscord={openDiscord} />

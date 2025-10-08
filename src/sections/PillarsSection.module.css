@@ -3,19 +3,40 @@
 }
 
 .cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden; /* prevent vertical scrollbar flash */
+  padding: 0 0 0.75rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--color-accent) transparent;
 }
+
+.cards::-webkit-scrollbar { height: 6px; }
+.cards::-webkit-scrollbar-track { background: transparent; }
+.cards::-webkit-scrollbar-thumb { background: linear-gradient(90deg,var(--color-accent),var(--color-accent-soft,#b8953a)); border-radius: 4px; }
+.cards::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
+
+.carouselControls { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
+.dotNav { display: flex; gap: 0.4rem; }
+.dotBtn { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; padding: 0; cursor: pointer; transition: background .25s ease, transform .25s ease; }
+.dotBtn[aria-pressed='true'] { background: var(--color-accent); transform: scale(1.25); }
+.navBtn { background: rgba(255,255,255,0.07); color: var(--color-text); border: 1px solid rgba(255,255,255,0.15); width: 34px; height: 34px; display: grid; place-items: center; border-radius: 6px; cursor: pointer; backdrop-filter: blur(4px); transition: border-color .25s ease, background .25s ease; }
+.navBtn:hover { border-color: var(--color-accent); background: rgba(255,255,255,0.15); }
+.navBtn:active { transform: translateY(1px); }
 
 .card {
   overflow: hidden;
   position: relative;
-  min-height: 260px;
+  min-height: 220px;
+  width: 260px;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 2.2rem 2rem;
+  padding: 1.8rem 1.6rem 1.6rem;
   color: var(--color-text);
   isolation: isolate;
   box-shadow: var(--shadow-md);
@@ -23,6 +44,7 @@
   transform-style: preserve-3d;
   transition: transform 0.4s ease;
   background: center/cover no-repeat;
+  scroll-snap-align: start;
 }
 
 .card::before {
@@ -35,10 +57,10 @@
 
 .card h3 {
   font-family: var(--font-heading);
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   letter-spacing: 1.6px;
   text-transform: uppercase;
-  margin-bottom: 0.65rem;
+  margin: 0; /* remove bottom margin since no description */
 }
 
 .card p {
@@ -46,20 +68,34 @@
 }
 
 /* Card background variants */
+/* Legacy variants kept (can be removed once unused in code):
+  .card--dach, .card--elite, .card--security, .card--logistics, .card--recon */
+/* New dedicated variants for each card */
 .card--demokratie { background-image: url('/images/ships/Ship.webp'); }
-.card--dach { background-image: url('/images/backgrounds/Jumpgate.webp'); }
-.card--elite { background-image: url('/images/backgrounds/Explosion.webp'); }
-.card--security { background-image: url('/images/backgrounds/Space.webp'); }
-.card--logistics { background-image: url('/images/backgrounds/Starlancer.webp'); }
-.card--recon { background-image: url('/images/backgrounds/Pyro.webp'); }
+.card--community { background-image: url('/images/backgrounds/Jumpgate.webp'); }
+.card--hauling { background-image: url('/images/backgrounds/Starlancer.webp'); }
+.card--industrial { background-image: url('/images/backgrounds/Space.webp'); }
+.card--exploring { background-image: url('/images/backgrounds/Pyro.webp'); }
+.card--missions { background-image: url('/images/backgrounds/Explosion.webp'); }
+.card--fps { background-image: url('/images/ships/Hornet.webp'); }
+
+/* Optional: remove obsolete ones later */
 
 
 .tagline {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   letter-spacing: 1.4px;
   text-transform: uppercase;
   font-weight: 600;
   color: var(--color-accent);
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.4rem;
   opacity: 0.95;
+  white-space: nowrap;
+}
+
+@media (min-width: 900px) {
+  .cards { gap: 1.25rem; }
+  .card { width: 280px; min-height: 240px; }
+  .card h3 { font-size: 1.2rem; }
+  .tagline { font-size: 0.65rem; }
 }

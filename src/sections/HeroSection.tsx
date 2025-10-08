@@ -93,9 +93,6 @@ export function HeroSection({ onJoin, onDiscord }: HeroSectionProps) {
         <h2 ref={subtitleRef} className={styles.subtitle}>
           Helvetic Security &amp; Transport Corporation
         </h2>
-        <p ref={taglineRef} className={styles.tagline}>
-          D/A/CH-Elite im Verse <span className={styles.salute}>o7</span>
-        </p>
         <div ref={dividerRef} className={styles.divider} aria-hidden="true" />
         <div ref={actionsRef} className={styles.actions}>
           <button className="btn" type="button" onClick={onJoin}>
