@@ -26,6 +26,8 @@
 .navBtn { background: rgba(255,255,255,0.07); color: var(--color-text); border: 1px solid rgba(255,255,255,0.15); width: 34px; height: 34px; display: grid; place-items: center; border-radius: 6px; cursor: pointer; backdrop-filter: blur(4px); transition: border-color .25s ease, background .25s ease; }
 .navBtn:hover { border-color: var(--color-accent); background: rgba(255,255,255,0.15); }
 .navBtn:active { transform: translateY(1px); }
+.navBtn[disabled], .navBtn[aria-disabled='true'] { opacity: 0.35; cursor: not-allowed; filter: grayscale(30%); }
+.navBtn[disabled]:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); }
 
 .card {
   overflow: hidden;
