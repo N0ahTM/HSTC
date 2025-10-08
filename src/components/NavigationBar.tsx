@@ -104,12 +104,10 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
             </nav>
 
             <div className={styles.actions}>
-              <button className="btn" type="button" onClick={onJoin}>Jetzt beitreten</button>
-              <button className="btn btn-outline" type="button" onClick={onDiscord}>Discord</button>
               <button
                 className={styles.menuToggle}
                 aria-label={mobileOpen ? 'Menü schließen' : 'Menü öffnen'}
-                aria-expanded={mobileOpen ? 'true' : 'false'}
+                aria-expanded={mobileOpen}
                 onClick={() => setMobileOpen((prev) => !prev)}
               >
                 {mobileOpen ? '×' : '☰'}
@@ -129,8 +127,6 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
                 {link.label}
               </a>
             ))}
-            <button className="btn" type="button" onClick={() => { setMobileOpen(false); onJoin(); }}>Jetzt beitreten</button>
-            <button className="btn btn-outline" type="button" onClick={() => { setMobileOpen(false); onDiscord(); }}>Discord</button>
           </nav>
         )}
       </header>
