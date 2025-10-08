@@ -4,14 +4,6 @@
   text-align: center;
 }
 
-.section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, rgba(4, 5, 6, 0.55), rgba(4, 5, 6, 0.92));
-  z-index: -1;
-}
-
 .wrapper {
   display: flex;
   justify-content: center;
@@ -62,3 +54,39 @@
   font-size: 0.85rem;
   color: var(--color-text-muted);
 }
+
+/* Stats badges */
+.stats {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.statBadge {
+  --online-glow: rgba(74, 222, 128, 0.45);
+  --voice-glow: rgba(147, 197, 253, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem 0.4rem;
+  font-size: 0.65rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  background: rgba(12,14,16,0.55);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.statBadge[data-type="online"] {
+  box-shadow: 0 0 0 1px rgba(74,222,128,0.25), 0 0 12px -2px var(--online-glow);
+}
+
+.statBadge[data-type="voice"] {
+  box-shadow: 0 0 0 1px rgba(147,197,253,0.25), 0 0 12px -2px var(--voice-glow);
+}
+
+.statLabel { opacity: 0.7; }
+.statValue { font-weight: 600; }

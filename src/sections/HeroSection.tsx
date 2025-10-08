@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { YearBadge } from '@/components/YearBadge';
 import { StatsBadge } from '@/components/StatsBadge';
+import { ScrollIndicator } from '@/components/ScrollIndicator';
 import { useDiscordStats } from '@/hooks/useDiscordStats';
 import { useVerseYear } from '@/hooks/useVerseYear';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
@@ -105,6 +106,7 @@ export function HeroSection({ onJoin, onDiscord }: HeroSectionProps) {
           </button>
         </div>
       </div>
+      <ScrollIndicator targetId="mission" label="Scroll für mehr" />
     </section>
   );
 }

@@ -7,21 +7,46 @@ import { apply3DTilt } from '@/motion/interactions';
 
 import styles from './PillarsSection.module.css';
 
-const pillars = [
+// Alle 6 Karten in einem gemeinsamen Grid
+const cards = [
   {
     title: 'MACHTVOLLE DEMOKRATIE',
     description:
-      'Kein Alleinherrscher – jedes Mitglied hat eine Stimme. Unser Verwaltungsrat trifft demokratisch Entscheidungen.'
+      'Kein Alleinherrscher – jedes Mitglied hat eine Stimme. Unser Verwaltungsrat trifft demokratisch Entscheidungen.',
+    variant: 'demokratie'
   },
   {
     title: 'D/A/CH COMMUNITY',
     description:
-      'Deutsche, Schweizer & Österreicher vereint unter einem Banner. Wir kommunizieren auf Deutsch.'
+      'Deutsche, Schweizer & Österreicher vereint unter einem Banner. Wir kommunizieren auf Deutsch.',
+    variant: 'dach'
   },
   {
     title: 'ELITE OPERATIONEN',
     description:
-      'Präzise Kampfeinsätze & lukrative Handelsmissionen – unsere WarBandLeads sorgen für Erfolg.'
+      'Präzise Kampfeinsätze & lukrative Handelsmissionen – unsere WarBandLeads sorgen für Erfolg.',
+    variant: 'elite'
+  },
+  {
+    title: 'SICHERHEITSES­KORTEN',
+    tagline: 'Wir schützen jede Handelsroute',
+    description:
+      'WarBand-Leads planen Eskorten mit abgestimmten Loadouts, Escape-Plänen und Echtzeit-Intel aus unserem Mobi-Glas-Netz.',
+    variant: 'security'
+  },
+  {
+    title: 'GALAXY LOGISTICS',
+    tagline: 'Hochprofitabler Handel',
+    description:
+      'Koordinierte Lieferketten von Prospektoren bis zu Großfrachtern. Produktion, Raffinerie und Verkauf laufen über unsere abgestimmten Playbooks.',
+    variant: 'logistics'
+  },
+  {
+    title: 'RECON & EXPLORATION',
+    tagline: 'Wir finden Chancen zuerst',
+    description:
+      'Aufklärungseinheiten scannen sichere Routen, Wracks und seltene Claims. Daten landen verschlüsselt in unserem Datenraum.',
+    variant: 'recon'
   }
 ];
 
@@ -50,14 +75,19 @@ export function PillarsSection() {
       <div className="container">
         <SectionHeading
           eyebrow="Mission"
-          title="Warum HSTC anders ist"
+            title="Warum HSTC anders ist"
           description="Unsere Grundwerte verbinden professionelle Strukturen mit einer freundschaftlichen Community."
         />
         <div ref={cardsRef} className={styles.cards}>
-          {pillars.map((pillar) => (
-            <article key={pillar.title} className={styles.card} data-reveal-item>
-              <h3>{pillar.title}</h3>
-              <p>{pillar.description}</p>
+          {cards.map((card) => (
+            <article
+              key={card.title}
+              className={`${styles.card} ${styles[`card--${card.variant}`]}`}
+              data-reveal-item
+            >
+              {card.tagline && <span className={styles.tagline}>{card.tagline}</span>}
+              <h3>{card.title}</h3>
+              <p>{card.description}</p>
             </article>
           ))}
         </div>

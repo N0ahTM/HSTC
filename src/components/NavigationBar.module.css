@@ -71,7 +71,6 @@
 .actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
 }
 
 .mobileMenu {
@@ -100,9 +99,7 @@
     display: block;
   }
 
-  .actions button:not(.menuToggle) {
-    display: none;
-  }
+  /* no extra action buttons now */
 }
 
 /* --- Added for hidden + reveal behaviour --- */
