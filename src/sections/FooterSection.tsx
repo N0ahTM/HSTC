@@ -17,7 +17,7 @@ export function FooterSection() {
         <div className={styles.logo}>HSTC</div>
         <p className={styles.text}>
           © {foundationYear}
-          {showRange ? ` – ${verseYear}` : ''} Helvetic Security &amp; Transport Corporation · Die Elite im Verse
+          {showRange ? ` – ${verseYear}` : ''} Helvetic Security &amp; Transport Corporation
         </p>
       </div>
     </footer>
