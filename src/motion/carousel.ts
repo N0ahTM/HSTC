@@ -89,6 +89,12 @@ export function nearestSnapLeft(container: HTMLElement): number | null {
   const children = Array.from(container.querySelectorAll<HTMLElement>('article'));
   if (!children.length) return null;
   const current = container.scrollLeft;
+  // Bias: If close to first (within 38% of first card width) always snap to first
+  const first = children[0];
+  if (first) {
+    const firstWidth = first.offsetWidth + parseFloat(getComputedStyle(first).marginRight || '0');
+    if (current < firstWidth * 0.38) return 0; // snap to first
+  }
   let best: { left: number; dist: number } | null = null;
   for (const child of children) {
     const left = child.offsetLeft;

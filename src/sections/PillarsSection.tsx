@@ -76,20 +76,41 @@ export function PillarsSection() {
   }, [prefersReducedMotion]);
 
 
-  // Update active index on scroll
+  // Update active index on scroll (with tolerant first-card threshold + hysteresis)
   useEffect(() => {
     const el = cardsRef.current;
     if (!el) return;
     let rAF: number;
+    let lastIdx = 0; // store to apply hysteresis
     const handle = () => {
       const children = Array.from(el.querySelectorAll('article')) as HTMLElement[];
       if (!children.length) return;
       const scrollLeft = el.scrollLeft;
       const widths = children.map(c => c.offsetWidth + parseFloat(getComputedStyle(c).marginRight || '0'));
-      // compute approximate index
+      // compute approximate index (stay longer on first)
       let acc = 0; let idx = 0;
-      for (let i=0;i<widths.length;i++){ if (acc + widths[i]/2 > scrollLeft){ idx = i; break;} acc += widths[i]; if (i===widths.length-1) idx=i; }
-      setActiveIndex(idx);
+      for (let i=0;i<widths.length;i++) {
+        const baseThreshold = widths[i] / 2;
+        // For first: larger threshold forward so it does not leave too early
+        // For transitions back to previous: require a bit more movement forward (hysteresis)
+        let threshold = baseThreshold;
+        if (i === 0) {
+          threshold = widths[i] * 0.8; // 80% forward before switching to 2
+        } else if (i === lastIdx + 1) {
+          // moving forward; require a little more than half to commit
+          threshold = baseThreshold * 0.72;
+        } else if (i === lastIdx - 1) {
+          // moving backward; allow earlier switch
+          threshold = baseThreshold * 0.42;
+        }
+        if (acc + threshold > scrollLeft) { idx = i; break; }
+        acc += widths[i];
+        if (i === widths.length - 1) idx = i;
+      }
+      if (idx !== lastIdx) {
+        lastIdx = idx;
+        setActiveIndex(idx);
+      }
     };
     const onScroll = () => { cancelAnimationFrame(rAF); rAF = requestAnimationFrame(handle); };
     el.addEventListener('scroll', onScroll, { passive: true });
@@ -112,20 +133,22 @@ export function PillarsSection() {
   }, [prefersReducedMotion]);
 
   const next = useCallback(() => {
-    setActiveIndex((idx) => {
-      const nextIdx = (idx + 1) % total;
+    setActiveIndex(idx => {
+      if (idx >= total - 1) return idx; // clamp at end
+      const nextIdx = idx + 1;
       scrollToIndex(nextIdx);
       return nextIdx;
     });
   }, [total, scrollToIndex]);
 
   const prev = useCallback(() => {
-    setActiveIndex((idx) => {
-      const prevIdx = (idx - 1 + total) % total;
+    setActiveIndex(idx => {
+      if (idx <= 0) return idx; // clamp at start
+      const prevIdx = idx - 1;
       scrollToIndex(prevIdx);
       return prevIdx;
     });
-  }, [total, scrollToIndex]);
+  }, [scrollToIndex]);
 
   // Auto scroll: startet einmal und wird nach erster User-Interaktion permanent deaktiviert
   useEffect(() => {
@@ -285,7 +308,7 @@ export function PillarsSection() {
           ))}
         </div>
         <div className={styles.carouselControls} aria-hidden="false">
-          <button type="button" className={styles.navBtn} onClick={prev} aria-label="Vorherige">
+          <button type="button" className={styles.navBtn} onClick={prev} aria-label="Vorherige" disabled={activeIndex === 0} aria-disabled={activeIndex === 0 ? 'true' : 'false'}>
             ‹
           </button>
           <div className={styles.dotNav} role="group" aria-label="Slides">
@@ -294,13 +317,14 @@ export function PillarsSection() {
                 key={i}
                 type="button"
                 className={styles.dotBtn}
-                aria-pressed={i === activeIndex}
+                aria-current={i === activeIndex ? 'true' : undefined}
                 aria-label={`Slide ${i + 1}`}
-                onClick={() => { setActiveIndex(i); scrollToIndex(i); }}
+                disabled={i === activeIndex}
+                onClick={() => { if (i !== activeIndex) { setActiveIndex(i); scrollToIndex(i); } }}
               />
             ))}
           </div>
-          <button type="button" className={styles.navBtn} onClick={next} aria-label="Nächste">
+          <button type="button" className={styles.navBtn} onClick={next} aria-label="Nächste" disabled={activeIndex === total - 1} aria-disabled={activeIndex === total - 1 ? 'true' : 'false'}>
             ›
           </button>
         </div>
