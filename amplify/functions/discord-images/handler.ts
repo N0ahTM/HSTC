@@ -262,27 +262,25 @@ function normalizeMessages(messages: DiscordMessage[]): DiscordImageItem[] {
       continue;
     }
 
-    const attachment = message.attachments.find(isImageAttachment);
-    if (!attachment) {
-      continue;
-    }
-
-    results.push({
-      id: message.id,
-      attachmentId: attachment.id,
-      imageUrl: attachment.url ?? attachment.proxy_url ?? '',
-      width: attachment.width ?? undefined,
-      height: attachment.height ?? undefined,
-      uploadedAt: message.timestamp,
-      author: {
-        id: message.author.id,
-        name: resolveAuthorName(message.author),
-        avatarUrl: buildAvatarUrl(message.author)
+    for (const attachment of message.attachments) {
+      if (!isImageAttachment(attachment)) {
+        continue;
       }
-    });
 
-    // To include multiple attachments per message, iterate over message.attachments
-    // and push a new entry for each image file.
+      results.push({
+        id: message.id,
+        attachmentId: attachment.id,
+        imageUrl: attachment.url ?? attachment.proxy_url ?? '',
+        width: attachment.width ?? undefined,
+        height: attachment.height ?? undefined,
+        uploadedAt: message.timestamp,
+        author: {
+          id: message.author.id,
+          name: resolveAuthorName(message.author),
+          avatarUrl: buildAvatarUrl(message.author)
+        }
+      });
+    }
   }
 
   return results;

@@ -231,16 +231,16 @@ export function CommunityImagesSection() {
           onClick={handleCloseLightbox}
         >
           <div className={styles.lightboxShell} onClick={(event) => event.stopPropagation()}>
-            <button
-              ref={closeButtonRef}
-              type="button"
-              className={styles.lightboxClose}
-              onClick={handleCloseLightbox}
-              aria-label="Ansicht schliessen"
-            >
-              X
-            </button>
             <figure className={styles.lightboxFigure}>
+              <button
+                ref={closeButtonRef}
+                type="button"
+                className={styles.lightboxClose}
+                onClick={handleCloseLightbox}
+                aria-label="Ansicht schliessen"
+              >
+                &times;
+              </button>
               <img className={styles.lightboxImage} src={selectedImage.imageUrl} alt={`Bild von ${selectedImage.author.name}`} />
               <figcaption className={styles.lightboxMeta}>
                 <div className={styles.lightboxMetaPrimary}>
