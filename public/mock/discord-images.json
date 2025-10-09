@@ -1,0 +1,50 @@
+{
+  "data": [
+    {
+      "id": "120000000000000001",
+      "attachmentId": "100",
+      "imageUrl": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+      "width": 1600,
+      "height": 900,
+      "uploadedAt": "2025-05-16T18:24:00.000Z",
+      "author": {
+        "id": "4200",
+        "name": "Star Runner",
+        "avatarUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80"
+      }
+    },
+    {
+      "id": "120000000000000002",
+      "attachmentId": "101",
+      "imageUrl": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80",
+      "width": 1600,
+      "height": 900,
+      "uploadedAt": "2025-05-15T20:11:00.000Z",
+      "author": {
+        "id": "4201",
+        "name": "Aurora Captain"
+      }
+    },
+    {
+      "id": "120000000000000003",
+      "attachmentId": "102",
+      "imageUrl": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=80",
+      "width": 1600,
+      "height": 900,
+      "uploadedAt": "2025-05-14T09:02:00.000Z",
+      "author": {
+        "id": "4202",
+        "name": "Galaxy Scout",
+        "avatarUrl": "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80"
+      }
+    }
+  ],
+  "page": {
+    "nextBefore": "119999999999999999",
+    "hasMore": true
+  },
+  "meta": {
+    "fetchedAt": "2025-05-16T18:24:00.000Z",
+    "cache": "MISS"
+  }
+}
