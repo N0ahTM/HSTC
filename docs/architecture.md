@@ -73,3 +73,8 @@ Additional environment variables (prefixed with `VITE_`) can be injected via Amp
 - Amplify Hosting deploys behind Amazon CloudFront for global caching.
 - Images are served from the `public/images` directory with lazy loading and modern formats.
 - Optional S3 image pipeline can further reduce load times with responsive image variants.
+
+## Discord Media Ingestion
+- The Discord images API is implemented as an Amplify Gen 2 function exposed at `/api/discord-images`.
+- Frontend consumption lives in the `CommunityImagesSection`, which pulls paginated image batches through `useDiscordChannelImages`.
+- Follow the detailed setup & testing instructions in [`docs/discord-images-function-setup.md`](./discord-images-function-setup.md) when provisioning or validating the feature locally.

@@ -15,6 +15,7 @@ const navLinks: Array<{ href: string; label: string }> = [
   { href: '#top', label: 'Start' },
   { href: '#mission', label: 'Portfolio' },
   { href: '#community', label: 'Community' },
+  { href: '#community-images', label: 'Bilder' },
   { href: '#join', label: 'Beitreten' }
 ];
 

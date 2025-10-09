@@ -26,8 +26,12 @@ export const YearBadge = forwardRef(function YearBadge(
   // Keep external ref (forwarded) in sync with internal badge ref.
   function setBadgeRef(node: HTMLElement | null) {
     internalBadgeRef.current = node;
-    if (typeof ref === 'function') ref(node);
-    else if (ref) (ref as any).current = node;
+    if (typeof ref === 'function') {
+      ref(node);
+    } else if (ref && 'current' in (ref as object)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (ref as any).current = node;
+    }
   }
 
   useLayoutEffect(() => {
