@@ -11,7 +11,8 @@ const discordImagesApi = (): Plugin => ({
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     server.middlewares.use('/api/discord-images', async (req, res) => {
       try {
-  const { handler } = await import('./amplify/functions/discord-images/handler.ts');
+        const mod = await server.ssrLoadModule('/amplify/functions/discord-images/handler.ts');
+        const { handler } = mod as { handler: (event: unknown) => Promise<{ statusCode: number; headers: Record<string, string>; body: string }> };
         const method = req.method ?? 'GET';
         const url = new URL(req.url ?? '', 'http://localhost');
         const query: Record<string, string | undefined> = {};

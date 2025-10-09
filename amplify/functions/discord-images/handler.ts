@@ -41,11 +41,26 @@ interface DiscordAttachment {
   height?: number | null;
 }
 
+interface DiscordEmbedImage {
+  url?: string;
+  proxy_url?: string;
+  width?: number | null;
+  height?: number | null;
+}
+
+interface DiscordEmbed {
+  type?: string;
+  url?: string;
+  image?: DiscordEmbedImage;
+  thumbnail?: DiscordEmbedImage;
+}
+
 interface DiscordMessage {
   id: string;
   author: DiscordAuthor;
   timestamp: string;
-  attachments: DiscordAttachment[];
+  attachments?: DiscordAttachment[];
+  embeds?: DiscordEmbed[];
 }
 
 export interface DiscordImageItem {
@@ -259,20 +274,25 @@ function normalizeMessages(messages: DiscordMessage[]): DiscordImageItem[] {
 
   for (const message of messages) {
     if (!Array.isArray(message.attachments) || message.attachments.length === 0) {
-      continue;
+      // keep processing embeds even if no attachments
     }
 
-    for (const attachment of message.attachments) {
-      if (!isImageAttachment(attachment)) {
-        continue;
+    const seenUrls = new Set<string>();
+    const pushImage = (sourceId: string, image: { url?: string; proxy_url?: string; width?: number | null; height?: number | null }) => {
+      if (!image) {
+        return;
       }
-
+      const url = image.url ?? image.proxy_url;
+      if (!url || seenUrls.has(url)) {
+        return;
+      }
+      seenUrls.add(url);
       results.push({
         id: message.id,
-        attachmentId: attachment.id,
-        imageUrl: attachment.url ?? attachment.proxy_url ?? '',
-        width: attachment.width ?? undefined,
-        height: attachment.height ?? undefined,
+        attachmentId: sourceId,
+        imageUrl: url,
+        width: image.width ?? undefined,
+        height: image.height ?? undefined,
         uploadedAt: message.timestamp,
         author: {
           id: message.author.id,
@@ -280,6 +300,39 @@ function normalizeMessages(messages: DiscordMessage[]): DiscordImageItem[] {
           avatarUrl: buildAvatarUrl(message.author)
         }
       });
+    };
+
+    for (const attachment of message.attachments ?? []) {
+      if (!isImageAttachment(attachment)) {
+        continue;
+      }
+
+      pushImage(attachment.id, {
+        url: attachment.url ?? undefined,
+        proxy_url: attachment.proxy_url,
+        width: attachment.width,
+        height: attachment.height
+      });
+    }
+
+    if (Array.isArray(message.embeds) && message.embeds.length > 0) {
+      for (const embed of message.embeds) {
+        if (embed.type && embed.type !== 'image' && embed.type !== 'rich') {
+          continue;
+        }
+
+        const imageSource = embed.image ?? embed.thumbnail ?? (embed.url ? { url: embed.url } : undefined);
+        if (!imageSource) {
+          continue;
+        }
+
+        const sourceId = imageSource.url ?? imageSource.proxy_url;
+        if (!sourceId) {
+          continue;
+        }
+
+        pushImage(sourceId, imageSource);
+      }
     }
   }
 
