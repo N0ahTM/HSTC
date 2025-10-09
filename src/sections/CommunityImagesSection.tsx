@@ -13,14 +13,28 @@ interface ScrollControlsState {
   canScrollNext: boolean;
 }
 
+function formatUploadedAt(value: string): string {
+  try {
+    return new Intl.DateTimeFormat('de-CH', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
+}
+
 export function CommunityImagesSection() {
-  const { images, loading, error, hasMore, isFetchingMore, fetchNext, retry } = useDiscordChannelImages();
+  const { images, loading, error, hasMore, isFetchingMore, fetchNext, retry } = useDiscordChannelImages(20);
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const sectionRef = useRef<HTMLElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [controlsState, setControlsState] = useState<ScrollControlsState>({ canScrollPrev: false, canScrollNext: false });
+  const [selectedImage, setSelectedImage] = useState<DiscordChannelImage | null>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useStaggerReveal(sectionRef, { rootMargin: '0px 0px -12%' });
 
@@ -97,6 +111,50 @@ export function CommunityImagesSection() {
     [prefersReducedMotion]
   );
 
+  const handleCardOpen = useCallback((image: DiscordChannelImage) => {
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      lastFocusedRef.current = document.activeElement;
+    } else {
+      lastFocusedRef.current = null;
+    }
+    setSelectedImage(image);
+  }, []);
+
+  const handleCloseLightbox = useCallback(() => {
+    setSelectedImage(null);
+    if (lastFocusedRef.current) {
+      lastFocusedRef.current.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!selectedImage || typeof document === 'undefined') {
+      return;
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        handleCloseLightbox();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+
+    const bodyStyle = document.body.style;
+    const previousOverflow = bodyStyle.overflow;
+    bodyStyle.overflow = 'hidden';
+
+    requestAnimationFrame(() => {
+      closeButtonRef.current?.focus();
+    });
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      bodyStyle.overflow = previousOverflow;
+    };
+  }, [handleCloseLightbox, selectedImage]);
+
   const showLoadingSkeletons = loading && images.length === 0;
   const showEmptyState = !loading && images.length === 0 && !error;
 
@@ -107,7 +165,7 @@ export function CommunityImagesSection() {
           <SectionHeading
             eyebrow="Community"
             title="Community Bilder"
-            description="Automatisch kuratierte Uploads aus dem Discord Media-Channel – immer die neuesten Eindrücke der Crew."
+            description="Automatisch kuratierte Uploads aus dem Discord Media-Channel - immer die neuesten Eindruecke der Crew."
           />
 
           {error && (
@@ -119,7 +177,7 @@ export function CommunityImagesSection() {
             </div>
           )}
 
-          {showEmptyState && <p className={styles.empty}>Im Moment liegen noch keine Bilder vor. Schau später wieder vorbei!</p>}
+          {showEmptyState && <p className={styles.empty}>Im Moment liegen noch keine Bilder vor. Schau spaeter wieder vorbei!</p>}
 
           <div className={styles.carousel}>
             <div ref={trackRef} className={styles.track} role="list" aria-label="Discord Bilder">
@@ -128,7 +186,7 @@ export function CommunityImagesSection() {
               ) : (
                 images.map((image) => (
                   <div key={`${image.id}:${image.attachmentId}`} className={styles.gridItem} role="listitem">
-                    <ImageCard image={image} animate={!prefersReducedMotion} />
+                    <ImageCard image={image} animate={!prefersReducedMotion} onOpen={handleCardOpen} />
                   </div>
                 ))
               )}
@@ -142,27 +200,64 @@ export function CommunityImagesSection() {
                 disabled={!controlsState.canScrollPrev}
                 aria-label="Vorherige Bilder"
               >
-                ‹
+                {'\u2039'}
               </button>
               <button
                 type="button"
                 className={styles.controlButton}
                 onClick={() => handleScroll('next')}
                 disabled={!controlsState.canScrollNext && !hasMore}
-                aria-label="Nächste Bilder"
+                aria-label="Naechste Bilder"
               >
-                ›
+                {'\u203A'}
               </button>
             </div>
           </div>
 
           {!showLoadingSkeletons && (loading || isFetchingMore) && (
             <p className={styles.status} role="status">
-              Weitere Bilder werden geladen …
+              Weitere Bilder werden geladen ...
             </p>
           )}
         </div>
       </div>
+
+      {selectedImage && (
+        <div
+          className={styles.lightboxOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Vergroesserte Ansicht von ${selectedImage.author.name}`}
+          onClick={handleCloseLightbox}
+        >
+          <div className={styles.lightboxShell} onClick={(event) => event.stopPropagation()}>
+            <button
+              ref={closeButtonRef}
+              type="button"
+              className={styles.lightboxClose}
+              onClick={handleCloseLightbox}
+              aria-label="Ansicht schliessen"
+            >
+              X
+            </button>
+            <figure className={styles.lightboxFigure}>
+              <img className={styles.lightboxImage} src={selectedImage.imageUrl} alt={`Bild von ${selectedImage.author.name}`} />
+              <figcaption className={styles.lightboxMeta}>
+                <div className={styles.lightboxMetaPrimary}>
+                  <span className={styles.lightboxCaptionLabel}>Autor</span>
+                  <span className={styles.lightboxCaptionValue}>{selectedImage.author.name}</span>
+                </div>
+                <div className={styles.lightboxMetaPrimary}>
+                  <span className={styles.lightboxCaptionLabel}>Hochgeladen</span>
+                  <time className={styles.lightboxCaptionValue} dateTime={selectedImage.uploadedAt}>
+                    {formatUploadedAt(selectedImage.uploadedAt)}
+                  </time>
+                </div>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -170,26 +265,31 @@ export function CommunityImagesSection() {
 interface ImageCardProps {
   image: DiscordChannelImage;
   animate: boolean;
+  onOpen: (image: DiscordChannelImage) => void;
 }
 
-function ImageCard({ image, animate }: ImageCardProps) {
+function ImageCard({ image, animate, onOpen }: ImageCardProps) {
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const formattedDate = useMemo(() => {
-    try {
-      return new Intl.DateTimeFormat('de-CH', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-      }).format(new Date(image.uploadedAt));
-    } catch {
-      return image.uploadedAt;
-    }
-  }, [image.uploadedAt]);
-
+  const formattedDate = useMemo(() => formatUploadedAt(image.uploadedAt), [image.uploadedAt]);
   const initials = useMemo(() => image.author.name.trim().slice(0, 2).toUpperCase(), [image.author.name]);
 
   return (
-    <article className={styles.card} data-animate={animate ? 'on' : 'off'}>
+    <article
+      className={styles.card}
+      data-animate={animate ? 'on' : 'off'}
+      role="button"
+      tabIndex={0}
+      aria-haspopup="dialog"
+      aria-label={`Bild von ${image.author.name} vergroessern`}
+      onClick={() => onOpen(image)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onOpen(image);
+        }
+      }}
+    >
       <div className={styles.imageWrapper}>
         {!isLoaded && <div className={styles.skeleton} aria-hidden="true" />}
         <img

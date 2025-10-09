@@ -46,8 +46,8 @@ interface UseDiscordChannelImagesResult {
   retry: () => Promise<void>;
 }
 
-const DEFAULT_LIMIT = 10;
-const PREFETCH_THRESHOLD = 4;
+const DEFAULT_LIMIT = 20;
+const PREFETCH_THRESHOLD = 20;
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 220;
 
@@ -170,28 +170,38 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
 
     const promise = (async () => {
       try {
-        const controller = new AbortController();
-        abortRef.current = controller;
-        const result = await fetchImages({ before: cursorRef.current, signal: controller.signal });
-        if (!isMountedRef.current) {
-          return;
-        }
-
-        cursorRef.current = result.page.nextBefore ?? null;
-        hasMoreRef.current = result.page.hasMore;
-        setHasMore(result.page.hasMore);
-
-        const nextItems = result.data.filter((item) => {
-          const key = makeItemKey(item);
-          if (seenKeysRef.current.has(key) || bufferKeysRef.current.has(key)) {
-            return false;
+        while (hasMoreRef.current && bufferRef.current.length < PREFETCH_THRESHOLD) {
+          const controller = new AbortController();
+          abortRef.current = controller;
+          const result = await fetchImages({ before: cursorRef.current, signal: controller.signal });
+          if (!isMountedRef.current) {
+            return;
           }
-          bufferKeysRef.current.add(key);
-          return true;
-        });
 
-        if (nextItems.length > 0) {
-          bufferRef.current = [...bufferRef.current, ...nextItems];
+          cursorRef.current = result.page.nextBefore ?? null;
+          hasMoreRef.current = result.page.hasMore;
+          setHasMore(result.page.hasMore);
+
+          if (result.data.length === 0) {
+            break;
+          }
+
+          const nextItems = result.data.filter((item) => {
+            const key = makeItemKey(item);
+            if (seenKeysRef.current.has(key) || bufferKeysRef.current.has(key)) {
+              return false;
+            }
+            bufferKeysRef.current.add(key);
+            return true;
+          });
+
+          if (nextItems.length > 0) {
+            bufferRef.current = [...bufferRef.current, ...nextItems];
+          }
+
+          if (!result.page.hasMore) {
+            break;
+          }
         }
       } catch (err) {
         console.error('Prefetch failed', err);
@@ -201,7 +211,7 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
     })();
 
     prefetchPromiseRef.current = promise;
-    await promise;
+    return promise;
   }, [fetchImages]);
 
   const ensurePrefetchBuffer = useCallback(() => {
