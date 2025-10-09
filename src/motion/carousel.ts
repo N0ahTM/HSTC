@@ -1,4 +1,5 @@
 import anime from 'animejs';
+const highlightedInit = new WeakSet<HTMLElement>();
 
 /**
  * Smoothly animate horizontal scrollLeft to a target.
@@ -25,7 +26,9 @@ export function animateScrollTo(
       } else {
         el.style.removeProperty('scroll-snap-type');
       }
-      onComplete && onComplete();
+      if (onComplete) {
+        onComplete();
+      }
     }
   });
 }
@@ -47,12 +50,12 @@ export function highlightActiveCard(
   if (!active) return;
 
   // Prepare base styles if first run
-  if (!(active as any).__hstcHighlightInit) {
+  if (!highlightedInit.has(active)) {
     cards.forEach((c) => {
       c.style.transition = 'filter .4s ease, box-shadow .5s ease';
       c.style.filter ||= 'brightness(.82)';
     });
-    (active as any).__hstcHighlightInit = true;
+    highlightedInit.add(active);
   }
 
   if (reducedMotion) {

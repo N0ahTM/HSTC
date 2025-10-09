@@ -1,5 +1,5 @@
 ﻿import { useMemo, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+// import type { CSSProperties } from 'react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
@@ -117,11 +117,9 @@ export function CommunitySection() {
   }, [activeFilter]);
 
   const animationEnabled = !prefersReducedMotion;
-
   // Trigger stagger reveal so that the heading fades in; without this the CSS keeps it at opacity:0
-  if (animationEnabled) {
-    useStaggerReveal(containerRef);
-  }
+  // Keep hook rules: call inside effect rather than conditionally in render.
+  useStaggerReveal(containerRef);
 
   return (
     <section className="section" id="community" data-animate={animationEnabled ? 'on' : 'off'}>
@@ -140,7 +138,7 @@ export function CommunitySection() {
                 key={filter.key}
                 type="button"
                 className={isActive ? `${styles.filterBtn} ${styles.isActive}` : styles.filterBtn}
-                aria-pressed={isActive}
+                aria-pressed={isActive ? 'true' : 'false'}
                 onClick={() => setActiveFilter(filter.key)}
               >
                 {filter.label}
@@ -207,11 +205,9 @@ function EventCard({ event, index, animate }: EventCardProps) {
     { label: 'Ort', value: event.location }
   ].filter((detail): detail is { label: string; value: string } => Boolean(detail.value));
 
-  const style: CSSProperties | undefined = animate
-    ? ({ '--card-delay': (index * 0.08).toFixed(2) + 's' } as CSSProperties)
-    : undefined;
+  const dataDelay = animate ? (index * 0.08).toFixed(2) + 's' : undefined;
   return (
-    <article className={styles.card} data-status={event.status} style={style}>
+    <article className={styles.card} data-status={event.status} data-delay={dataDelay}>
       <div className={styles.thumb} aria-hidden="true">
         <img src={event.image ?? '/images/HSTC-Logo.webp'} alt="" loading="lazy" />
       </div>
