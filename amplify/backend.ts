@@ -1,4 +1,4 @@
-import { defineBackend } from '@aws-amplify/backend';
+import { defineBackend, secret } from '@aws-amplify/backend';
 import { auth } from './auth/resource';
 import { data } from './data/resource';
 import { storage } from './storage/resource';
@@ -34,5 +34,5 @@ if (channelId) {
 if (botToken) {
   backend.discordImages.addEnvironment('DISCORD_BOT_TOKEN', botToken);
 } else {
-  console.warn('discordImages: DISCORD_BOT_TOKEN is not set; function invocations will fail until configured.');
+  backend.discordImages.addEnvironment('DISCORD_BOT_TOKEN', secret('DISCORD_BOT_TOKEN'));
 }

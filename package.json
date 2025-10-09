@@ -8,7 +8,7 @@
   "dev:function": "cross-env FUNCTION_PORT=3000 tsx ./scripts/local-function-server.ts",
   "test:function": "tsx ./scripts/test-discord-function.ts",
     "dev:full": "concurrently \"npm:dev:function\" \"npm:dev\"",
-    "build": "tsc -b && vite build",
+    "build": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.json --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
