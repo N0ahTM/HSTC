@@ -14,22 +14,26 @@ The repository already contains the Discord ingestion function under `amplify/fu
 If you are adding the function to a brand-new Amplify backend, copy the entire `amplify/functions/discord-images` folder and the `amplify/backend.ts` file into your project. The backend definition wires the function to the `/api/discord-images` path when deployed.
 
 ## 2. Configure Secrets & Environment
-1. Store the Discord credentials. With the Amplify Gen 2 CLI (`ampx`) you can set them per environment:
-   ```bash
-   ampx sandbox secret set DISCORD_BOT_TOKEN
-   ampx sandbox env set DISCORD_CHANNEL_ID=<channel-id>
+1. Store the Discord credentials as Secrets (empfohlen, auch in Gen 2 Best Practices). Für lokale Sandboxes per CLI:
+   ```powershell
+   npx ampx sandbox secret set DISCORD_BOT_TOKEN
+   npx ampx sandbox secret set DISCORD_CHANNEL_ID
    ```
-   On Amplify-hosted branches you can set the same keys in the console under **Build settings → Environment variables**.
-2. (Optional) If you later extend the handler with the S3 cache layer, add `DISCORD_CACHE_BUCKET` as another environment variable or secret.
+   Für gehostete Branches in der Amplify Console: Hosting → Secrets → "Secrets verwalten" und die beiden Keys
+   `DISCORD_BOT_TOKEN` und `DISCORD_CHANNEL_ID` anlegen. Unser Backend (`amplify/backend.ts`) liest beide Werte
+   bevorzugt aus Umgebungsvariablen und fällt automatisch auf `secret('<KEY>')` zurück, d. h. Secrets funktionieren
+   ohne zusätzliche Build-Schritte.
+2. (Optional) Wenn du später eine S3‑Cache‑Schicht ergänzen willst, füge `DISCORD_CACHE_BUCKET` als Environment Variable
+   (nicht geheim) oder als Secret (wenn Bucket-Name nicht öffentlich sein soll) hinzu.
 
 ## 3. Local Testing
-1. Run the function locally:
-   ```bash
-   ampx sandbox function invoke discord-images
+1. Run the function locally (Sandbox):
+   ```powershell
+   npx ampx sandbox function invoke discord-images
    ```
    (For the legacy CLI use `amplify mock function discord-images`.)
 2. Trigger the function from another terminal while the sandbox is running:
-   ```bash
+   ```powershell
    curl "http://localhost:3000/api/discord-images?limit=10"
    ```
    - Verify the response contains `data`, `page`, and `meta` sections.

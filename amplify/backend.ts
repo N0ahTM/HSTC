@@ -25,14 +25,6 @@ const backend = defineBackend({
 const channelId = process.env.DISCORD_CHANNEL_ID;
 const botToken = process.env.DISCORD_BOT_TOKEN;
 
-if (channelId) {
-  backend.discordImages.addEnvironment('DISCORD_CHANNEL_ID', channelId);
-} else {
-  console.warn('discordImages: DISCORD_CHANNEL_ID is not set; function invocations will fail until configured.');
-}
+backend.discordImages.addEnvironment('DISCORD_CHANNEL_ID', channelId ?? secret('DISCORD_CHANNEL_ID'));
 
-if (botToken) {
-  backend.discordImages.addEnvironment('DISCORD_BOT_TOKEN', botToken);
-} else {
-  backend.discordImages.addEnvironment('DISCORD_BOT_TOKEN', secret('DISCORD_BOT_TOKEN'));
-}
+backend.discordImages.addEnvironment('DISCORD_BOT_TOKEN', botToken ?? secret('DISCORD_BOT_TOKEN'));
