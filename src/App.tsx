@@ -4,6 +4,7 @@ import { NavigationBar } from '@/components/NavigationBar';
 import { HeroSection } from '@/sections/HeroSection';
 import { PillarsSection } from '@/sections/PillarsSection';
 import { CommunitySection } from '@/sections/CommunitySection';
+import { CommunityImagesSection } from '@/sections/CommunityImagesSection';
 import { JoinSection } from '@/sections/JoinSection';
 import { FooterSection } from '@/sections/FooterSection';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
@@ -83,9 +84,10 @@ function SiteShell() {
       <NavigationBar onJoin={openRecruitment} onDiscord={openDiscord} />
       <main>
         <HeroSection onJoin={openRecruitment} onDiscord={openDiscord} />
-  <PillarsSection />
-  <CommunitySection />
-  <JoinSection onJoin={openRecruitment} onDiscord={openDiscord} />
+        <PillarsSection />
+        <CommunitySection />
+        <CommunityImagesSection />
+        <JoinSection onJoin={openRecruitment} onDiscord={openDiscord} />
       </main>
       <FooterSection />
     </>
