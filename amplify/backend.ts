@@ -22,14 +22,17 @@ const backend = defineBackend({
 //   },
 // };
 
-// Allow providing the channel ID via plain env for local sandbox/dev.
-if (process.env.DISCORD_CHANNEL_ID) {
-  backend.discordImages.addEnvironment('DISCORD_CHANNEL_ID', process.env.DISCORD_CHANNEL_ID);
+const channelId = process.env.DISCORD_CHANNEL_ID;
+const botToken = process.env.DISCORD_BOT_TOKEN;
+
+if (channelId) {
+  backend.discordImages.addEnvironment('DISCORD_CHANNEL_ID', channelId);
+} else {
+  console.warn('discordImages: DISCORD_CHANNEL_ID is not set; function invocations will fail until configured.');
 }
 
-// Prefer a plain env var when present (local dev), otherwise use Amplify Secret.
-if (process.env.DISCORD_BOT_TOKEN) {
-  backend.discordImages.addEnvironment('DISCORD_BOT_TOKEN', process.env.DISCORD_BOT_TOKEN);
+if (botToken) {
+  backend.discordImages.addEnvironment('DISCORD_BOT_TOKEN', botToken);
 } else {
   backend.discordImages.addEnvironment('DISCORD_BOT_TOKEN', secret('DISCORD_BOT_TOKEN'));
 }
