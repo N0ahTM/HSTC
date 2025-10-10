@@ -72,7 +72,19 @@
 
 @media (max-width: 768px) {
   .badgeContainer {
-    position: static;
-    margin-bottom: 1.5rem;
+    top: 1rem;
+    left: 1rem;
+    transform: scale(0.85);
+    transform-origin: top left;
+  }
+
+  .flag {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+  }
+
+  .year {
+    font-size: 0.72rem;
   }
 }

@@ -109,6 +109,7 @@ This project has been updated to be **100% compatible with Amplify Gen 2**. Key 
 - [Architecture](./docs/architecture.md) - System architecture and design
 - [Animations](./docs/animations.md) - Animation system documentation
 - [Backend Setup](./amplify/README.md) - Amplify Gen 2 backend guide
+- [AWS CLI + Sandbox (DE)](./docs/aws-cli-und-sandbox-setup.md) - Schritt-für-Schritt Anleitung für SSO, Profile und Sandbox unter Windows
 
 ## License
 

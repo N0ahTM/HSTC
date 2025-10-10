@@ -6,10 +6,8 @@ import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 
 import styles from './NavigationBar.module.css';
 
-interface NavigationBarProps {
-  onJoin: () => void;
-  onDiscord: () => void;
-}
+// Navigation bar no longer shows CTA buttons; therefore no props are required
+interface NavigationBarProps {}
 
 const navLinks: Array<{ href: string; label: string }> = [
   { href: '#top', label: 'Start' },
@@ -19,29 +17,51 @@ const navLinks: Array<{ href: string; label: string }> = [
   { href: '#join', label: 'Beitreten' }
 ];
 
-export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
+export function NavigationBar({}: NavigationBarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [visible, setVisible] = useState(false); // sichtbar sobald man scrollt
+  const [visible, setVisible] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const navRef = useRef<HTMLElement | null>(null);
   const mobileMenuRef = useRef<HTMLElement | null>(null);
 
+  const closeMobileMenu = () => setMobileOpen(false);
+  const toggleMobileMenu = () => setMobileOpen((prev) => !prev);
+  // No CTA handlers needed anymore
+
   useEffect(() => {
-    const threshold = 600; // Pixel ab wann sichtbar
+    const threshold = 600;
     const handleScroll = () => {
       setVisible(window.scrollY > threshold);
     };
-    handleScroll(); // Initialzustand
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Escape schließt das mobile Menü
+  // Keep a CSS variable in sync with the nav height for spacer sizing
   useEffect(() => {
-    if (!mobileOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    const updateNavHeight = () => {
+      const nav = navRef.current;
+      if (!nav) return;
+      const height = nav.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--nav-height', `${height}px`);
+    };
+    updateNavHeight();
+    window.addEventListener('resize', updateNavHeight);
+    return () => window.removeEventListener('resize', updateNavHeight);
+  }, []);
+
+  useEffect(() => {
+    if (!mobileOpen) {
+      return;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, [mobileOpen]);
 
   useEffect(() => {
@@ -87,17 +107,17 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
 
   return (
     <>
-  <header ref={navRef} className={clsx(styles.navBar, !visible && styles.isHidden)}>
+      <header ref={navRef} className={clsx(styles.navBar, !visible && styles.isHidden)}>
         <div className="container">
           <div className={styles.inner}>
-            <a href="#top" className={styles.logo} onClick={() => setMobileOpen(false)}>
+            <a href="#top" className={styles.logo} onClick={closeMobileMenu}>
               <img src="/images/HSTC-Logo.webp" alt="HSTC" loading="lazy" />
               <span>HSTC</span>
             </a>
 
             <nav className={styles.navLinks} aria-label="Hauptnavigation">
               {navLinks.map((link) => (
-                <a key={link.href} href={link.href} onClick={() => setMobileOpen(false)}>
+                <a key={link.href} href={link.href} onClick={closeMobileMenu}>
                   {link.label}
                 </a>
               ))}
@@ -106,12 +126,12 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
             <div className={styles.actions}>
               <button
                 className={styles.menuToggle}
-                aria-label={mobileOpen ? 'Menü schließen' : 'Menü öffnen'}
-                aria-expanded={mobileOpen}
+                type="button"
+                aria-label={mobileOpen ? 'Menü schliessen' : 'Menü öffnen'}
                 aria-controls="primary-navigation"
-                onClick={() => setMobileOpen((prev) => !prev)}
+                onClick={toggleMobileMenu}
               >
-                {mobileOpen ? '×' : '☰'}
+                <span aria-hidden="true">{mobileOpen ? '\u00D7' : '\u2261'}</span>
               </button>
             </div>
           </div>
@@ -125,7 +145,7 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
             aria-label="Mobiles Hauptmenü"
           >
             {navLinks.map((link) => (
-              <a key={link.href} href={link.href} onClick={() => setMobileOpen(false)}>
+              <a key={link.href} href={link.href} onClick={closeMobileMenu}>
                 {link.label}
               </a>
             ))}

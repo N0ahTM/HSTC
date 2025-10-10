@@ -23,9 +23,7 @@
   margin: 0;
   scroll-snap-type: x mandatory;
   scroll-padding: 1.4rem;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
-  -webkit-overflow-scrolling: touch;
+  /* Custom scrollbars handled via ::-webkit-scrollbar below */
 }
 
 .track::-webkit-scrollbar {
@@ -107,6 +105,7 @@
   isolation: isolate;
   overflow: hidden;
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
   transition: transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease;
 }
@@ -196,8 +195,8 @@
   border-radius: 0;
   background: rgba(5, 8, 15, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -339,8 +338,8 @@
   place-items: center;
   padding: 2.5rem 1.5rem;
   background: rgba(4, 7, 12, 0.82);
-  backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(22px);
   z-index: 90;
 }
 

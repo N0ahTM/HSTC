@@ -26,6 +26,7 @@ function formatUploadedAt(value: string): string {
 
 export function CommunityImagesSection() {
   const { images, loading, error, hasMore, isFetchingMore, fetchNext, retry } = useDiscordChannelImages(20);
+  console.info('[discord-images] hook state', { items: images.length, loading, error, hasMore, isFetchingMore });
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -165,7 +166,7 @@ export function CommunityImagesSection() {
           <SectionHeading
             eyebrow="Community"
             title="Community Bilder"
-            description="Automatisch kuratierte Uploads aus dem Discord Media-Channel - immer die neuesten Eindruecke der Crew."
+            description="Uploads aus dem Discord #📷screenshots📷 Channel"
           />
 
           {error && (
@@ -207,7 +208,7 @@ export function CommunityImagesSection() {
                 className={styles.controlButton}
                 onClick={() => handleScroll('next')}
                 disabled={!controlsState.canScrollNext && !hasMore}
-                aria-label="Naechste Bilder"
+                aria-label="Nächste Bilder"
               >
                 {'\u203A'}
               </button>
@@ -227,7 +228,7 @@ export function CommunityImagesSection() {
           className={styles.lightboxOverlay}
           role="dialog"
           aria-modal="true"
-          aria-label={`Vergroesserte Ansicht von ${selectedImage.author.name}`}
+          aria-label={`Vergrösserte Ansicht von ${selectedImage.author.name}`}
           onClick={handleCloseLightbox}
         >
           <div className={styles.lightboxShell} onClick={(event) => event.stopPropagation()}>
@@ -281,7 +282,7 @@ function ImageCard({ image, animate, onOpen }: ImageCardProps) {
       role="button"
       tabIndex={0}
       aria-haspopup="dialog"
-      aria-label={`Bild von ${image.author.name} vergroessern`}
+  aria-label={`Bild von ${image.author.name} vergrössern`}
       onClick={() => onOpen(image)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -332,3 +333,4 @@ function LoadingSkeletonRow() {
     </div>
   );
 }
+

@@ -36,7 +36,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const url = new URL(req.url, `http://localhost:${PORT}`);
+  const url = new URL(req.url, `https://dwvzp4itkvcxlfpqv7elwljq6u.appsync-api.eu-central-1.amazonaws.com/graphql`);
 
   // Only handle our API route; return 404 for others
   if (url.pathname !== '/api/discord-images') {

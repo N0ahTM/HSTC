@@ -81,7 +81,7 @@ function SiteShell() {
     <>
       <div className="background-space" aria-hidden="true" />
       <div className="background-grid" aria-hidden="true" />
-      <NavigationBar onJoin={openRecruitment} onDiscord={openDiscord} />
+  <NavigationBar />
       <main>
         <HeroSection onJoin={openRecruitment} onDiscord={openDiscord} />
         <PillarsSection />

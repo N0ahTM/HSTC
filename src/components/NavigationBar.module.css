@@ -12,8 +12,9 @@
   transition: transform 0.5s ease, box-shadow 0.4s ease;
   will-change: transform;
 }
+
 .navSpacer {
-  height: var(--nav-height, 86px); /* approximated; adjust if needed */
+  height: var(--nav-height, 86px);
 }
 
 .inner {
@@ -21,7 +22,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  padding: 1.2rem 0;
+  padding: 1rem 0;
 }
 
 .logo {
@@ -36,7 +37,7 @@
 
 .logo img {
   width: 42px;
-  height: 42px
+  height: 42px;
 }
 
 .navLinks {
@@ -71,6 +72,13 @@
 .actions {
   display: flex;
   align-items: center;
+  gap: 1rem;
+}
+
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .mobileMenu {
@@ -80,6 +88,13 @@
   padding: 1rem 1.5rem 1.5rem;
   background: rgba(6, 7, 8, 0.96);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mobileActions {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
 
 .menuToggle {
@@ -95,14 +110,26 @@
     display: none;
   }
 
-  .menuToggle {
-    display: block;
+  /* Ensure the mobile menu stays visible even though .navLinks is hidden on mobile */
+  .navLinks.mobileMenu {
+    display: flex;
   }
 
-  /* no extra action buttons now */
+  .menuToggle {
+    display: block;
+    padding: 0.4rem 0.6rem;
+    font-size: 1.6rem;
+  }
+
+  .actionButtons {
+    display: none;
+  }
+
+  .mobileActions {
+    display: flex;
+  }
 }
 
-/* --- Added for hidden + reveal behaviour --- */
 .navBar:not(.isHidden) {
   transform: translateY(0);
 }
@@ -111,20 +138,26 @@
   box-shadow: none;
 }
 
-/* Mobile menu overlay improvements */
 @media (max-width: 880px) {
   .mobileMenu {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    background: rgba(5,6,7,0.96);
+    background: rgba(5, 6, 7, 0.96);
     border-bottom: 1px solid rgba(255, 119, 51, 0.2);
     animation: fadeSlide 0.45s ease;
+    padding-bottom: 1rem;
   }
 }
 
 @keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

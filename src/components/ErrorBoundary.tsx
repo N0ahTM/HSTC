@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './ErrorBoundary.module.css';
 
 type Props = { children: React.ReactNode };
 type State = { hasError: boolean; error?: Error };
@@ -11,7 +12,6 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // eslint-disable-next-line no-console
     console.error('ErrorBoundary caught', error, errorInfo);
   }
 
@@ -23,21 +23,21 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (!this.state.hasError) return this.props.children;
 
     return (
-      <div style={{ minHeight: '100vh' }}>
+      <div className={styles.root}>
         <div className="background-space" aria-hidden="true" />
         <div className="background-grid" aria-hidden="true" />
-        <div style={{ position: 'relative', zIndex: 1, display: 'grid', placeItems: 'center', padding: '4rem 1rem' }}>
-          <div className="glass-panel" style={{ width: 'min(860px,92vw)', padding: '3rem 2.2rem' }}>
-            <header style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '.75rem' }}>
-              <img src="/images/HSTC-Logo.webp" alt="HSTC" width={56} height={56} style={{ filter: 'drop-shadow(0 0 24px rgba(255,119,51,.45))' }} />
-              <h1 style={{ fontSize: 'clamp(2.3rem,5vw,3.2rem)', textTransform: 'uppercase', letterSpacing: '3px' }}>Fehler aufgetreten</h1>
+        <div className={styles.shell}>
+          <div className={`glass-panel ${styles.panel}`}>
+            <header className={styles.header}>
+              <img className={styles.logo} src="/images/HSTC-Logo.webp" alt="HSTC" width={56} height={56} />
+              <h1 className={styles.title}>Fehler aufgetreten</h1>
             </header>
-            <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
+            <p className={styles.text}>
               Es ist ein unerwarteter Fehler aufgetreten. Bitte lade die Seite neu.
             </p>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <div className={styles.actions}>
               <button className="btn" onClick={this.handleReload}>Zur Startseite</button>
-              <a className="btn btn-outline" href="https://discord.gg/jV8rByuJ4G" target="_blank" rel="noopener">Support auf Discord</a>
+              <a className="btn btn-outline" href="https://discord.gg/jV8rByuJ4G" target="_blank" rel="noreferrer noopener">Support auf Discord</a>
             </div>
           </div>
         </div>

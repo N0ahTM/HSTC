@@ -3,38 +3,27 @@
 }
 
 .cards {
-  display: flex;
-  gap: 1rem;
-  overflow-x: auto;
-  overflow-y: hidden; /* prevent vertical scrollbar flash */
-  padding: 0 0 0.75rem;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: var(--color-accent) transparent;
+  display: grid;
+  /* Small: 2 Spalten (2x3) */
+  grid-template-columns: repeat(2, 1fr);
+  --gap: 0.9rem;
+  --cols: 2;
+  --card-target: 280px; /* bevorzugte Breite pro Karte im 2x3 Layout */
+  gap: var(--gap);
+  padding: 0;
+  /* Grid zentrieren und eine Zielbreite vorgeben, damit Karten nicht zu schmal wirken */
+  max-width: calc(var(--cols) * var(--card-target) + (var(--cols) - 1) * var(--gap));
+  margin-inline: auto;
 }
 
-.cards::-webkit-scrollbar { height: 6px; }
-.cards::-webkit-scrollbar-track { background: transparent; }
-.cards::-webkit-scrollbar-thumb { background: linear-gradient(90deg,var(--color-accent),var(--color-accent-soft,#b8953a)); border-radius: 4px; }
-.cards::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
-
-.carouselControls { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; }
-.dotNav { display: flex; gap: 0.4rem; }
-.dotBtn { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.25); border: none; padding: 0; cursor: pointer; transition: background .25s ease, transform .25s ease; }
-.dotBtn[aria-pressed='true'] { background: var(--color-accent); transform: scale(1.25); }
-.navBtn { background: rgba(255,255,255,0.07); color: var(--color-text); border: 1px solid rgba(255,255,255,0.15); width: 34px; height: 34px; display: grid; place-items: center; border-radius: 6px; cursor: pointer; backdrop-filter: blur(4px); transition: border-color .25s ease, background .25s ease; }
-.navBtn:hover { border-color: var(--color-accent); background: rgba(255,255,255,0.15); }
-.navBtn:active { transform: translateY(1px); }
-.navBtn[disabled], .navBtn[aria-disabled='true'] { opacity: 0.35; cursor: not-allowed; filter: grayscale(30%); }
-.navBtn[disabled]:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.15); }
+/* Entfernte Carousel-Controls (nicht mehr benötigt) */
 
 .card {
   overflow: hidden;
   position: relative;
-  min-height: 220px;
-  width: 260px;
-  flex: 0 0 auto;
+  aspect-ratio: 16 / 9; /* sorgt für gleichmäßige Höhe bei responsiver Breite */
+  min-height: 170px; /* verhindert zu flache Karten beim 6x1-Layout */
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -46,7 +35,6 @@
   transform-style: preserve-3d;
   transition: transform 0.4s ease;
   background: center/cover no-repeat;
-  scroll-snap-align: start;
 }
 
 .card::before {
@@ -59,10 +47,19 @@
 
 .card h3 {
   font-family: var(--font-heading);
-  font-size: 1.1rem;
-  letter-spacing: 1.6px;
+  /* responsiv, konservativer als zuvor, damit nichts überläuft */
+  font-size: clamp(0.95rem, calc(0.8rem + 0.7vw), 1.2rem);
+  letter-spacing: clamp(0.8px, 0.15vw, 1.4px);
   text-transform: uppercase;
   margin: 0; /* remove bottom margin since no description */
+  line-height: 1.15;
+  word-break: break-word;
+  /* Auf zwei Zeilen begrenzen, sauber umbrechen */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .card p {
@@ -73,8 +70,7 @@
 /* Legacy variants kept (can be removed once unused in code):
   .card--dach, .card--elite, .card--security, .card--logistics, .card--recon */
 /* New dedicated variants for each card */
-.card--demokratie { background-image: url('/images/ships/Ship.webp'); }
-.card--community { background-image: url('/images/backgrounds/Jumpgate.webp'); }
+.card--escort { background-image: url('/images/ships/Ship.webp'); }
 .card--hauling { background-image: url('/images/backgrounds/Starlancer.webp'); }
 .card--industrial { background-image: url('/images/backgrounds/Space.webp'); }
 .card--exploring { background-image: url('/images/backgrounds/Pyro.webp'); }
@@ -85,19 +81,42 @@
 
 
 .tagline {
-  font-size: 0.6rem;
-  letter-spacing: 1.4px;
+  font-size: clamp(0.55rem, 0.8vw, 0.68rem);
+  letter-spacing: clamp(1px, 0.12vw, 1.4px);
   text-transform: uppercase;
   font-weight: 600;
   color: var(--color-accent);
   margin-bottom: 0.4rem;
   opacity: 0.95;
-  white-space: nowrap;
+  /* 2-zeilige, saubere Umbrüche für längere Eyebrow-Texte */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
+/* Medium: 3 Spalten (3x2) */
 @media (min-width: 900px) {
-  .cards { gap: 1.25rem; }
-  .card { width: 280px; min-height: 240px; }
-  .card h3 { font-size: 1.2rem; }
-  .tagline { font-size: 0.65rem; }
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+    --cols: 3;
+    --gap: 1.25rem;
+    --card-target: 360px; /* Zielbreite pro Karte im 3x2 Layout */
+    gap: var(--gap);
+    max-width: calc(var(--cols) * var(--card-target) + (var(--cols) - 1) * var(--gap));
+  }
+  .card { min-height: 190px; }
+}
+
+/* Ab sehr breiten Viewports: 6 Spalten (6x1) */
+/* Large/XL: 6 Spalten (6x1) */
+@media (min-width: 1700px) {
+  .cards {
+    grid-template-columns: repeat(6, 1fr);
+    --cols: 6;
+    --card-target: 360px; /* Zielbreite pro Karte im 6x1 Layout */
+    max-width: calc(var(--cols) * var(--card-target) + (var(--cols) - 1) * var(--gap));
+  }
+  .card { min-height: 230px; }
 }

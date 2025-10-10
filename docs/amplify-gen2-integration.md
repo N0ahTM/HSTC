@@ -20,6 +20,8 @@ amplify/
 
 ## Activating the Backend
 
+If you are working on Windows and need a full step-by-step guide (German) for AWS CLI SSO and Amplify Sandbox, see: [AWS CLI + Sandbox (DE)](./aws-cli-und-sandbox-setup.md).
+
 ### Step 1: Deploy the Backend
 
 The backend will automatically deploy when you push to a branch connected to Amplify Hosting, or you can deploy manually:

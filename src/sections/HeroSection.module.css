@@ -77,3 +77,16 @@
     min-height: 80vh;
   }
 }
+
+/* Small phones: keep actions in one row but make buttons a bit more compact */
+@media (max-width: 520px) {
+  .actions {
+    flex-wrap: nowrap;
+    gap: 0.6rem;
+  }
+
+  .actions :global(.btn) {
+    padding: 0.7rem 1.4rem;
+    letter-spacing: 1.4px;
+  }
+}

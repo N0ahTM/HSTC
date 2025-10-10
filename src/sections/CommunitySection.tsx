@@ -64,32 +64,29 @@ const EVENTS: EventItem[] = [
     description:
       'Erlebe die CitizenCon Direct Watch Party live im Kinosaal mit Chris Roberts und Sandy Gardiner vor Ort! Cinematic Atmosphäre, Community-Vibes und Rahmenprogramm.',
     links: [
-      { label: 'Website', href: 'https://example.com' },
-      { label: 'Tickets', href: 'https://example.com/tickets' },
-      { label: 'Spectrum', href: 'https://example.com/spectrum' },
-      { label: 'Discord', href: 'https://discord.gg/jV8rByuJ4G' }
+      { label: 'Discord', href: 'https://discord.gg/wg7UY59T' }
     ]
-  },
-  {
-    id: 'op-ghost-run',
-    title: 'OP: Ghost Run (Cargo & Escort)',
-    category: 'ingame',
-    status: 'past',
-    date: '14.05.2955',
-    image: '/images/ships/Ship.webp',
-    description:
-      'Lukrative Multi-Stop-Cargo-Route mit bewaffneter Eskorte. SOP-konformes Funk- und Formationsfliegen – WarBandLeads führten Squad & Logistik.'
-  },
-  {
-    id: 'op-red-shield',
-    title: 'OP: Red Shield (Combat Patrol)',
-    category: 'ingame',
-    status: 'upcoming',
-    date: 'Nächste Woche',
-    image: '/images/backgrounds/Jumpgate.webp',
-    description:
-      'Combat-Patrol in feindlichen Sektoren, ROE nach SOP. Slots für Recon, Fighter, Gunner und Logistik verfügbar.'
   }
+  // {
+  //   id: 'op-ghost-run',
+  //   title: 'OP: Ghost Run (Cargo & Escort)',
+  //   category: 'ingame',
+  //   status: 'past',
+  //   date: '14.05.2955',
+  //   image: '/images/ships/Ship.webp',
+  //   description:
+  //     'Lukrative Multi-Stop-Cargo-Route mit bewaffneter Eskorte. SOP-konformes Funk- und Formationsfliegen – WarBandLeads führten Squad & Logistik.'
+  // },
+  // {
+  //   id: 'op-red-shield',
+  //   title: 'OP: Red Shield (Combat Patrol)',
+  //   category: 'ingame',
+  //   status: 'upcoming',
+  //   date: 'Nächste Woche',
+  //   image: '/images/backgrounds/Jumpgate.webp',
+  //   description:
+  //     'Combat-Patrol in feindlichen Sektoren, ROE nach SOP. Slots für Recon, Fighter, Gunner und Logistik verfügbar.'
+  // }
 ];
 
 function bucketEvents(events: EventItem[]): EventBuckets {
@@ -126,8 +123,8 @@ export function CommunitySection() {
   <div className="container" ref={containerRef}>
         <SectionHeading
           eyebrow="Events"
-          title="Bevorstehende & vergangene Events"
-          description="Echte Treffen & Ingame-Operationen. Füge Bilder, Beschreibungen und Links hinzu – hier bleibt die Historie lebendig."
+          title="Events"
+          description="Ingame und Real-Life"
         />
 
         <div role="group" aria-label="Event-Kategorien" className={styles.filters}>
@@ -138,7 +135,6 @@ export function CommunitySection() {
                 key={filter.key}
                 type="button"
                 className={isActive ? `${styles.filterBtn} ${styles.isActive}` : styles.filterBtn}
-                aria-pressed={isActive ? 'true' : 'false'}
                 onClick={() => setActiveFilter(filter.key)}
               >
                 {filter.label}
