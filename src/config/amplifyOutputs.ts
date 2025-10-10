@@ -68,6 +68,14 @@ export async function getDiscordImagesEndpoint(): Promise<string> {
       return cachedEndpoint;
     }
 
+    // Optional: in Vite dev, allow opting into the local middleware to avoid cross-origin headaches
+    const useLocalDev = import.meta.env.DEV && String(import.meta.env.VITE_USE_LOCAL_DISCORD_API ?? '').toLowerCase() === 'true';
+    if (useLocalDev) {
+      cachedEndpoint = '/api/discord-images';
+      console.info('[discord-images] Using local dev endpoint /api/discord-images');
+      return cachedEndpoint;
+    }
+
     const buildOutputs = resolveFromBuildArtifacts();
     const buildCandidate = buildOutputs?.custom?.discordImagesUrl;
     if (typeof buildCandidate === 'string' && buildCandidate.length > 0) {
@@ -76,7 +84,7 @@ export async function getDiscordImagesEndpoint(): Promise<string> {
       return cachedEndpoint;
     }
 
-    const runtimeOutputs = await fetchAmplifyOutputs();
+  const runtimeOutputs = await fetchAmplifyOutputs();
     const runtimeCandidate = runtimeOutputs?.custom?.discordImagesUrl;
     if (typeof runtimeCandidate === 'string' && runtimeCandidate.length > 0) {
       cachedEndpoint = runtimeCandidate;

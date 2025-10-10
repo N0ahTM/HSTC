@@ -5,10 +5,14 @@ const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 25;
 const CACHE_TTL_MS = 300_000;
 
+// Important: Do NOT set Access-Control-Allow-Origin here because Lambda Function URL
+// can inject it based on its own CORS configuration. Having two values results in
+// the browser error: "The 'Access-Control-Allow-Origin' header contains multiple values".
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type'
+  'Access-Control-Allow-Headers': 'Accept, Accept-Language, Content-Type, Origin, Referer, User-Agent',
+  'Access-Control-Expose-Headers': 'Content-Type, Content-Length',
+  Vary: 'Origin'
 };
 
 type CacheState = 'MISS' | 'HIT' | 'STALE';
@@ -98,6 +102,7 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
     return {
       statusCode: 204,
       headers: corsHeaders,
+      // Explicit empty body to satisfy some proxies
       body: ''
     };
   }

@@ -91,12 +91,13 @@ async function fetchWithRetry(url: URL, signal?: AbortSignal): Promise<DiscordIm
       }
 
       try {
-        const response = await fetch(url, {
+        const response = await fetch(url.toString(), {
           method: 'GET',
-          signal: controller.signal,
-          headers: {
-            Accept: 'application/json'
-          }
+          // CORS fetch from browser to lambda-url
+          mode: 'cors',
+          // Avoid cached opaque responses when debugging and reduce stale 200/opaque mixups
+          cache: 'no-store',
+          signal: controller.signal
         });
 
         if (response.status === 204) {
