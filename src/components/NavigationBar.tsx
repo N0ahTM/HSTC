@@ -6,10 +6,8 @@ import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 
 import styles from './NavigationBar.module.css';
 
-interface NavigationBarProps {
-  onJoin: () => void;
-  onDiscord: () => void;
-}
+// Navigation bar no longer shows CTA buttons; therefore no props are required
+interface NavigationBarProps {}
 
 const navLinks: Array<{ href: string; label: string }> = [
   { href: '#top', label: 'Start' },
@@ -19,7 +17,7 @@ const navLinks: Array<{ href: string; label: string }> = [
   { href: '#join', label: 'Beitreten' }
 ];
 
-export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
+export function NavigationBar({}: NavigationBarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [visible, setVisible] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -28,14 +26,7 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
 
   const closeMobileMenu = () => setMobileOpen(false);
   const toggleMobileMenu = () => setMobileOpen((prev) => !prev);
-  const handleJoin = () => {
-    closeMobileMenu();
-    onJoin();
-  };
-  const handleDiscord = () => {
-    closeMobileMenu();
-    onDiscord();
-  };
+  // No CTA handlers needed anymore
 
   useEffect(() => {
     const threshold = 600;
@@ -45,6 +36,19 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Keep a CSS variable in sync with the nav height for spacer sizing
+  useEffect(() => {
+    const updateNavHeight = () => {
+      const nav = navRef.current;
+      if (!nav) return;
+      const height = nav.getBoundingClientRect().height;
+      document.documentElement.style.setProperty('--nav-height', `${height}px`);
+    };
+    updateNavHeight();
+    window.addEventListener('resize', updateNavHeight);
+    return () => window.removeEventListener('resize', updateNavHeight);
   }, []);
 
   useEffect(() => {
@@ -120,19 +124,11 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
             </nav>
 
             <div className={styles.actions}>
-              <div className={styles.actionButtons}>
-                <button type="button" className="btn btn-sm" onClick={handleJoin}>
-                  Beitreten
-                </button>
-                <button type="button" className="btn btn-outline btn-sm" onClick={handleDiscord}>
-                  Discord
-                </button>
-              </div>
               <button
                 className={styles.menuToggle}
                 type="button"
                 aria-label={mobileOpen ? 'Menue schliessen' : 'Menue oeffnen'}
-                aria-expanded={mobileOpen}
+                aria-expanded={mobileOpen ? 'true' : 'false'}
                 aria-controls="primary-navigation"
                 onClick={toggleMobileMenu}
               >
@@ -154,14 +150,6 @@ export function NavigationBar({ onJoin, onDiscord }: NavigationBarProps) {
                 {link.label}
               </a>
             ))}
-            <div className={styles.mobileActions}>
-              <button type="button" className="btn" onClick={handleJoin}>
-                Beitreten
-              </button>
-              <button type="button" className="btn btn-outline" onClick={handleDiscord}>
-                Discord
-              </button>
-            </div>
           </nav>
         )}
       </header>

@@ -39,8 +39,11 @@
 
 @media (max-width: 768px) {
   .badge {
-    position: static;
-    margin-bottom: 1.5rem;
-    justify-self: center;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.8rem 1rem;
+    min-width: 180px;
+    transform: scale(0.9);
+    transform-origin: top right;
   }
 }
