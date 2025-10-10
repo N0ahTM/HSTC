@@ -1,9 +1,11 @@
+import { GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 const DISCORD_API_BASE = 'https://discord.com/api/v10';
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 25;
 const CACHE_TTL_MS = 300_000;
+const CACHE_BUCKET_NAME = process.env.CACHE_BUCKET_NAME;
 
 // Important: Do NOT set Access-Control-Allow-Origin here because Lambda Function URL
 // can inject it based on its own CORS configuration. Having two values results in
@@ -97,6 +99,8 @@ interface CacheEntry {
   readonly expiresAt: number;
 }
 
+const s3Client = CACHE_BUCKET_NAME ? new S3Client({}) : undefined;
+
 export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
   if (event.requestContext.http.method === 'OPTIONS') {
     return {
@@ -123,7 +127,23 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
   const before = sanitizeSnowflake(event.queryStringParameters?.before);
 
   const cacheKey = `${limit}:${before ?? 'latest'}`;
-  const cached = memoryCache.get(cacheKey);
+  let cached = memoryCache.get(cacheKey);
+
+  if (!cached && CACHE_BUCKET_NAME && s3Client) {
+    try {
+      const persistentEntry = await loadPersistentCache(CACHE_BUCKET_NAME, cacheKey);
+      if (persistentEntry) {
+        cached = persistentEntry;
+        memoryCache.set(cacheKey, persistentEntry);
+      }
+    } catch (err) {
+      console.warn('Failed to hydrate cache from S3', {
+        cacheKey,
+        error: asErrorMessage(err)
+      });
+    }
+  }
+
   const now = Date.now();
 
   console.info('discord-images invoked', {
@@ -151,11 +171,17 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
     fetchedAt = new Date().toISOString();
     cacheState = 'MISS';
 
-    memoryCache.set(cacheKey, {
+    const entry: CacheEntry = {
       payload,
       fetchedAt,
-      expiresAt: now + CACHE_TTL_MS
-    });
+      expiresAt: Date.now() + CACHE_TTL_MS
+    };
+
+    memoryCache.set(cacheKey, entry);
+
+    if (CACHE_BUCKET_NAME && s3Client) {
+      await persistCacheEntry(CACHE_BUCKET_NAME, cacheKey, entry);
+    }
 
     console.info('Fetched Discord images from API', {
       cacheKey,
@@ -397,4 +423,116 @@ function buildAvatarUrl(author: DiscordAuthor): string | undefined {
   const isAnimated = author.avatar.startsWith('a_');
   const extension = isAnimated ? 'gif' : 'png';
   return `https://cdn.discordapp.com/avatars/${author.id}/${author.avatar}.${extension}`;
+}
+
+async function loadPersistentCache(bucketName: string, cacheKey: string): Promise<CacheEntry | undefined> {
+  try {
+    const response = await s3Client!.send(
+      new GetObjectCommand({
+        Bucket: bucketName,
+        Key: toCacheObjectKey(cacheKey)
+      })
+    );
+
+    if (!response.Body) {
+      return undefined;
+    }
+
+    const raw = await response.Body.transformToString();
+    if (!raw) {
+      return undefined;
+    }
+
+    const parsed = parseCacheEntry(raw);
+    if (!parsed) {
+      console.warn('Persistent cache entry malformed, ignoring', { cacheKey });
+      return undefined;
+    }
+
+    return parsed;
+  } catch (error) {
+    if (isCacheMissError(error)) {
+      return undefined;
+    }
+
+    console.warn('Unexpected error reading cache from S3', {
+      bucketName,
+      cacheKey,
+      error: asErrorMessage(error)
+    });
+    return undefined;
+  }
+}
+
+async function persistCacheEntry(bucketName: string, cacheKey: string, entry: CacheEntry): Promise<void> {
+  try {
+    await s3Client!.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: toCacheObjectKey(cacheKey),
+        Body: JSON.stringify(entry),
+        ContentType: 'application/json',
+        CacheControl: `max-age=${Math.floor(CACHE_TTL_MS / 1000)}`,
+        Metadata: {
+          fetchedAt: entry.fetchedAt
+        }
+      })
+    );
+  } catch (error) {
+    console.warn('Unable to persist Discord cache entry to S3', {
+      bucketName,
+      cacheKey,
+      error: asErrorMessage(error)
+    });
+  }
+}
+
+function parseCacheEntry(raw: string): CacheEntry | undefined {
+  try {
+    const parsed = JSON.parse(raw) as Partial<CacheEntry>;
+    if (!parsed || typeof parsed !== 'object') {
+      return undefined;
+    }
+
+    if (!parsed.payload || typeof parsed.fetchedAt !== 'string' || typeof parsed.expiresAt !== 'number') {
+      return undefined;
+    }
+
+    return {
+      payload: parsed.payload,
+      fetchedAt: parsed.fetchedAt,
+      expiresAt: parsed.expiresAt
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+function toCacheObjectKey(cacheKey: string): string {
+  return `cache/${cacheKey}.json`;
+}
+
+function isCacheMissError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const err = error as { name?: string; $metadata?: { httpStatusCode?: number } };
+  if (err.name === 'NoSuchKey' || err.name === 'NotFound') {
+    return true;
+  }
+
+  return err.$metadata?.httpStatusCode === 404;
+}
+
+function asErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
 }

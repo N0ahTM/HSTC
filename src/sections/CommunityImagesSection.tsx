@@ -166,7 +166,7 @@ export function CommunityImagesSection() {
           <SectionHeading
             eyebrow="Community"
             title="Community Bilder"
-            description="Automatisch kuratierte Uploads aus dem Discord Media-Channel - immer die neuesten Eindruecke der Crew."
+            description="Uploads aus dem Discord #📷screenshots📷 Channel"
           />
 
           {error && (

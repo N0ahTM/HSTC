@@ -1,10 +1,30 @@
 import { defineBackend, secret } from '@aws-amplify/backend';
+import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { FunctionUrlAuthType, HttpMethod } from 'aws-cdk-lib/aws-lambda';
+import { Bucket, BlockPublicAccess, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { discordImages } from './functions/discord-images/resource.js';
 
 const backend = defineBackend({
   discordImages
 });
+
+const cacheBucket = new Bucket(backend.stack, 'DiscordImagesCache', {
+  blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+  encryption: BucketEncryption.S3_MANAGED,
+  enforceSSL: true,
+  removalPolicy: RemovalPolicy.RETAIN,
+  autoDeleteObjects: false,
+  lifecycleRules: [
+    {
+      id: 'ExpireDiscordCache',
+      prefix: 'cache/',
+      expiration: Duration.days(7)
+    }
+  ]
+});
+
+cacheBucket.grantReadWrite(backend.discordImages.resources.lambda);
+backend.discordImages.addEnvironment('CACHE_BUCKET_NAME', cacheBucket.bucketName);
 
 // Allow providing the channel ID via plain env for local sandbox/dev.
 if (process.env.DISCORD_CHANNEL_ID) {
