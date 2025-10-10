@@ -1,4 +1,5 @@
 import { defineBackend, secret } from '@aws-amplify/backend';
+import { FunctionUrlAuthType, HttpMethod } from 'aws-cdk-lib/aws-lambda';
 import { discordImages } from './functions/discord-images/resource.js';
 
 const backend = defineBackend({
@@ -18,3 +19,19 @@ if (process.env.DISCORD_BOT_TOKEN) {
 } else {
   backend.discordImages.addEnvironment('DISCORD_BOT_TOKEN', secret('DISCORD_BOT_TOKEN'));
 }
+
+const discordImagesUrl = backend.discordImages.resources.lambda.addFunctionUrl({
+  authType: FunctionUrlAuthType.NONE,
+  cors: {
+    allowedMethods: [HttpMethod.GET],
+    allowedOrigins: ['*'],
+    allowedHeaders: ['*'],
+    allowCredentials: false
+  }
+}).url;
+
+backend.addOutput({
+  custom: {
+    discordImagesUrl
+  }
+});

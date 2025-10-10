@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { getDiscordImagesEndpoint } from '@/config/amplifyOutputs';
+
 export interface DiscordChannelImageAuthor {
   id: string;
   name: string;
@@ -51,7 +53,7 @@ const PREFETCH_THRESHOLD = 20;
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 220;
 
-const API_ENDPOINT = 'https://dwvzp4itkvcxlfpqv7elwljq6u.appsync-api.eu-central-1.amazonaws.com/graphql/api/discord-images';
+const API_ENDPOINT = getDiscordImagesEndpoint();
 
 function createRequestUrl(limit: number, before?: string | null): URL {
   const base = API_ENDPOINT.startsWith('http')
