@@ -1,0 +1,32 @@
+diff --git a/node_modules/@aws-amplify/backend-function/lib/factory.js b/node_modules/@aws-amplify/backend-function/lib/factory.js
+index 52e11b7..daf0cec 100644
+--- a/node_modules/@aws-amplify/backend-function/lib/factory.js
++++ b/node_modules/@aws-amplify/backend-function/lib/factory.js
+@@ -258,6 +258,16 @@ class AmplifyFunction extends AmplifyFunctionBase {
+         functionEnvironmentTypeGenerator.generateProcessEnvShim();
+         let functionLambda;
+         const cdkLoggingOptions = convertLoggingOptionsToCDK(props.logging);
++        const loggingProps = {};
++        if (cdkLoggingOptions.retention !== undefined) {
++            loggingProps.logRetention = cdkLoggingOptions.retention;
++        }
++        if (cdkLoggingOptions.level !== undefined) {
++            loggingProps.applicationLogLevelV2 = cdkLoggingOptions.level;
++        }
++        if (cdkLoggingOptions.format !== undefined) {
++            loggingProps.loggingFormat = cdkLoggingOptions.format;
++        }
+         try {
+             functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
+                 entry: props.entry,
+@@ -274,9 +284,7 @@ class AmplifyFunction extends AmplifyFunctionBase {
+                     externalModules: Object.keys(props.layers),
+                     logLevel: EsBuildLogLevel.ERROR,
+                 },
+-                logRetention: cdkLoggingOptions.retention,
+-                applicationLogLevelV2: cdkLoggingOptions.level,
+-                loggingFormat: cdkLoggingOptions.format,
++                ...loggingProps,
+             });
+         }
+         catch (error) {
