@@ -1,5 +1,5 @@
 import { defineBackend, secret } from '@aws-amplify/backend';
-import { discordImages } from './functions/discord-images/resource';
+import { discordImages } from './functions/discord-images/resource.js';
 
 const backend = defineBackend({
   discordImages
