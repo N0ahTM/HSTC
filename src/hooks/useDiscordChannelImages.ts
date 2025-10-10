@@ -65,6 +65,7 @@ async function createRequestUrl(limit: number, before?: string | null): Promise<
   if (before) {
     url.searchParams.set('before', before);
   }
+  console.info('[discord-images] createRequestUrl', { endpoint: base, limit, before });
   return url;
 }
 
@@ -72,12 +73,13 @@ function makeItemKey(item: DiscordChannelImage): string {
   return `${item.id}:${item.attachmentId}`;
 }
 
-async function fetchWithRetry(url: URL, signal?: AbortSignal): Promise<DiscordImagesEnvelope> {
+async function fetchWithRetry(url: URL, signal?: AbortSignal): Promise<DiscordImagesEnvelope | null> {
   let attempt = 0;
   let lastError: unknown;
 
   while (attempt <= MAX_RETRIES) {
     try {
+      console.info('[discord-images] fetchWithRetry attempt', { attempt, url: url.toString() });
       const controller = new AbortController();
       const abortListener = () => controller.abort();
 
@@ -97,17 +99,36 @@ async function fetchWithRetry(url: URL, signal?: AbortSignal): Promise<DiscordIm
           }
         });
 
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
+        if (response.status === 204) {
+          console.info('[discord-images] fetchWithRetry received 204 (No Content)');
+          return null;
         }
 
-        return (await response.json()) as DiscordImagesEnvelope;
+        if (!response.ok) {
+          const bodyText = await response.text();
+          throw new Error(`Request failed with status ${response.status}: ${bodyText}`);
+        }
+
+        const json = (await response.json()) as DiscordImagesEnvelope;
+        console.info('[discord-images] fetchWithRetry success', {
+          attempt,
+          count: json.data.length,
+          hasMore: json.page.hasMore,
+          nextBefore: json.page.nextBefore,
+          cache: json.meta?.cache
+        });
+        return json;
       } finally {
         if (signal) {
           signal.removeEventListener('abort', abortListener);
         }
       }
     } catch (error) {
+      const errorDetails =
+        error instanceof Error
+          ? { name: error.name, message: error.message, stack: error.stack }
+          : { value: error };
+      console.info('[discord-images] fetchWithRetry error', { attempt, error: errorDetails });
       if (signal && signal.aborted) {
         throw error;
       }
@@ -118,6 +139,7 @@ async function fetchWithRetry(url: URL, signal?: AbortSignal): Promise<DiscordIm
       }
 
       const delay = RETRY_BASE_DELAY_MS * 2 ** attempt;
+      console.info('[discord-images] fetchWithRetry retrying', { nextAttempt: attempt + 1, delay });
       await new Promise((resolve) => {
         setTimeout(resolve, delay);
       });
@@ -154,7 +176,7 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
   }, []);
 
   const fetchImages = useCallback(
-    async ({ before, signal }: FetchOptions): Promise<DiscordImagesResponse> => {
+    async ({ before, signal }: FetchOptions): Promise<DiscordImagesResponse | null> => {
       const url = await createRequestUrl(limit, before);
       const response = await fetchWithRetry(url, signal);
       return response;
@@ -180,13 +202,16 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
             return;
           }
 
+          if (!result) {
+            console.info('[discord-images] Prefetch returned no result (null/204).');
+            hasMoreRef.current = false;
+            setHasMore(false);
+            break;
+          }
+
           cursorRef.current = result.page.nextBefore ?? null;
           hasMoreRef.current = result.page.hasMore;
           setHasMore(result.page.hasMore);
-
-          if (result.data.length === 0) {
-            break;
-          }
 
           const nextItems = result.data.filter((item) => {
             const key = makeItemKey(item);
@@ -218,16 +243,20 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
 
   const ensurePrefetchBuffer = useCallback(() => {
     if (!hasMoreRef.current) {
+      console.info('[discord-images] ensurePrefetchBuffer skipped, no more items');
       return;
     }
     if (bufferRef.current.length >= PREFETCH_THRESHOLD) {
+      console.info('[discord-images] Prefetch buffer already filled', bufferRef.current.length);
       return;
     }
+    console.info('[discord-images] Triggering prefetch to fill buffer');
     void prefetch();
   }, [prefetch]);
 
   const flushBuffer = useCallback(() => {
     if (bufferRef.current.length === 0) {
+      console.info('[discord-images] flushBuffer skipped, empty buffer');
       return;
     }
 
@@ -238,6 +267,10 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
       }
       bufferRef.current = [];
       bufferKeysRef.current.clear();
+      console.info('[discord-images] flushBuffer merged items', {
+        mergedCount: merged.length,
+        added: merged.length - current.length
+      });
       return merged;
     });
   }, []);
@@ -261,6 +294,20 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
         return;
       }
 
+      if (!result) {
+        console.info('[discord-images] loadInitial success (no data returned)');
+        cursorRef.current = null;
+        hasMoreRef.current = false;
+        setHasMore(false);
+        setImages([]);
+        return;
+      }
+
+      console.info('[discord-images] loadInitial success', {
+        items: result.data.length,
+        hasMore: result.page.hasMore,
+        nextBefore: result.page.nextBefore
+      });
       cursorRef.current = result.page.nextBefore ?? null;
       hasMoreRef.current = result.page.hasMore;
       setHasMore(result.page.hasMore);
@@ -278,6 +325,7 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
       ensurePrefetchBuffer();
     } catch (err) {
       if ((err as Error).name === 'AbortError') {
+        console.info('[discord-images] loadInitial aborted');
         return;
       }
       console.error('Initial Discord images load failed', err);
@@ -301,11 +349,13 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
 
     if (bufferRef.current.length === 0) {
       if (!hasMoreRef.current) {
+        console.info('[discord-images] fetchNext aborted, hasMore=false');
         return;
       }
       setIsFetchingMore(true);
       try {
         await prefetch();
+        console.info('[discord-images] fetchNext prefetch completed');
       } finally {
         setIsFetchingMore(false);
       }
@@ -316,6 +366,7 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
   }, [ensurePrefetchBuffer, flushBuffer, isFetchingMore, loading, prefetch]);
 
   const retry = useCallback(async () => {
+    console.info('[discord-images] manual retry triggered');
     await loadInitial();
   }, [loadInitial]);
 
@@ -334,3 +385,6 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
     [error, fetchNext, hasMore, images, isFetchingMore, loading, retry]
   );
 }
+
+
+

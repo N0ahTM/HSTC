@@ -14,7 +14,6 @@ const FALLBACK_REMOTE =
   typeof import.meta.env.VITE_DISCORD_IMAGES_FALLBACK === 'string'
     ? import.meta.env.VITE_DISCORD_IMAGES_FALLBACK.trim()
     : '';
-const FALLBACK_LOCAL = '/api/discord-images';
 
 async function fetchAmplifyOutputs(): Promise<AmplifyOutputs | null> {
   if (typeof window === 'undefined') {
@@ -27,7 +26,9 @@ async function fetchAmplifyOutputs(): Promise<AmplifyOutputs | null> {
       console.warn('[discord-images] amplify_outputs.json not available', response.status);
       return null;
     }
-    return (await response.json()) as AmplifyOutputs;
+    const json = (await response.json()) as AmplifyOutputs;
+    console.info('[discord-images] Loaded amplify_outputs.json at runtime', json);
+    return json;
   } catch (error) {
     console.warn('[discord-images] Failed to fetch amplify_outputs.json', error);
     return null;
@@ -41,6 +42,9 @@ function resolveFromBuildArtifacts(): AmplifyOutputs | null {
       import: 'default'
     });
     const value = Object.values(modules)[0];
+    if (value) {
+      console.info('[discord-images] Resolved amplify_outputs.json from build artifacts', value);
+    }
     return value ?? null;
   } catch {
     return null;
@@ -60,6 +64,7 @@ export async function getDiscordImagesEndpoint(): Promise<string> {
     const envValue = typeof import.meta.env.VITE_DISCORD_IMAGES_ENDPOINT === 'string' ? import.meta.env.VITE_DISCORD_IMAGES_ENDPOINT.trim() : '';
     if (envValue) {
       cachedEndpoint = envValue;
+      console.info('[discord-images] Using endpoint from VITE_DISCORD_IMAGES_ENDPOINT', cachedEndpoint);
       return cachedEndpoint;
     }
 
@@ -67,6 +72,7 @@ export async function getDiscordImagesEndpoint(): Promise<string> {
     const buildCandidate = buildOutputs?.custom?.discordImagesUrl;
     if (typeof buildCandidate === 'string' && buildCandidate.length > 0) {
       cachedEndpoint = buildCandidate;
+      console.info('[discord-images] Using endpoint from build amplify_outputs.json', cachedEndpoint);
       return cachedEndpoint;
     }
 
@@ -74,12 +80,7 @@ export async function getDiscordImagesEndpoint(): Promise<string> {
     const runtimeCandidate = runtimeOutputs?.custom?.discordImagesUrl;
     if (typeof runtimeCandidate === 'string' && runtimeCandidate.length > 0) {
       cachedEndpoint = runtimeCandidate;
-      return cachedEndpoint;
-    }
-
-    if (import.meta.env.DEV) {
-      cachedEndpoint = FALLBACK_LOCAL;
-      console.warn('[discord-images] Using local dev proxy endpoint:', cachedEndpoint);
+      console.info('[discord-images] Using endpoint from runtime amplify_outputs.json', cachedEndpoint);
       return cachedEndpoint;
     }
 
@@ -89,6 +90,7 @@ export async function getDiscordImagesEndpoint(): Promise<string> {
       return cachedEndpoint;
     }
 
+    console.error('[discord-images] No endpoint could be resolved. Check amplify_outputs.json or environment configuration.');
     throw new Error('Kein Discord Images Endpoint konfiguriert.');
   })();
 
@@ -98,3 +100,5 @@ export async function getDiscordImagesEndpoint(): Promise<string> {
     inFlightEndpoint = null;
   }
 }
+
+

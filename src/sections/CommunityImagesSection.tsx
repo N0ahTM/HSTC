@@ -26,6 +26,7 @@ function formatUploadedAt(value: string): string {
 
 export function CommunityImagesSection() {
   const { images, loading, error, hasMore, isFetchingMore, fetchNext, retry } = useDiscordChannelImages(20);
+  console.info('[discord-images] hook state', { items: images.length, loading, error, hasMore, isFetchingMore });
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -332,3 +333,4 @@ function LoadingSkeletonRow() {
     </div>
   );
 }
+
