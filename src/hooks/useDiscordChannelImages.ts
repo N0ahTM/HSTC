@@ -53,12 +53,12 @@ const PREFETCH_THRESHOLD = 20;
 const MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 220;
 
-const API_ENDPOINT = getDiscordImagesEndpoint();
-
-function createRequestUrl(limit: number, before?: string | null): URL {
-  const base = API_ENDPOINT.startsWith('http')
-    ? API_ENDPOINT
-    : `${window.location.origin.replace(/\/$/, '')}${API_ENDPOINT}`;
+async function createRequestUrl(limit: number, before?: string | null): Promise<URL> {
+  const endpoint = await getDiscordImagesEndpoint();
+  const base =
+    endpoint.startsWith('http') || typeof window === 'undefined'
+      ? endpoint
+      : `${window.location.origin.replace(/\/$/, '')}${endpoint}`;
 
   const url = new URL(base);
   url.searchParams.set('limit', String(limit));
@@ -155,7 +155,7 @@ export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDisco
 
   const fetchImages = useCallback(
     async ({ before, signal }: FetchOptions): Promise<DiscordImagesResponse> => {
-      const url = createRequestUrl(limit, before);
+      const url = await createRequestUrl(limit, before);
       const response = await fetchWithRetry(url, signal);
       return response;
     },
