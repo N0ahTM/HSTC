@@ -9,12 +9,12 @@ import styles from './PillarsSection.module.css';
 
 // Statisches Set der 6 Karten
 const cards = [
-  { title: 'Hauling', tagline: 'Waren Transport und Handel', variant: 'hauling' },
+  { title: 'Hauling', tagline: 'Warentransport & Handel', variant: 'hauling' },
   { title: 'Industrial Gameplay', tagline: 'Mining, Salvaging, Refining', variant: 'industrial' },
-  { title: 'Exploring', tagline: 'Erforschen des Verses', variant: 'exploring' },
-  { title: 'Mission gameplay', tagline: 'Missionen und Events', variant: 'missions' },
+  { title: 'Exploring', tagline: 'Erforschen des Verse', variant: 'exploring' },
+  { title: 'Mission Gameplay', tagline: 'Missionen & Events', variant: 'missions' },
   { title: 'Escort Gameplay', tagline: 'Escort & Security', variant: 'escort' },
-  { title: 'Fps Action', tagline: 'Combat & Security', variant: 'fps' }
+  { title: 'FPS Action', tagline: 'Combat & Security', variant: 'fps' }
 ];
 
 export function PillarsSection() {

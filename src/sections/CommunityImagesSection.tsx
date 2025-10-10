@@ -208,7 +208,7 @@ export function CommunityImagesSection() {
                 className={styles.controlButton}
                 onClick={() => handleScroll('next')}
                 disabled={!controlsState.canScrollNext && !hasMore}
-                aria-label="Naechste Bilder"
+                aria-label="Nächste Bilder"
               >
                 {'\u203A'}
               </button>
@@ -228,7 +228,7 @@ export function CommunityImagesSection() {
           className={styles.lightboxOverlay}
           role="dialog"
           aria-modal="true"
-          aria-label={`Vergroesserte Ansicht von ${selectedImage.author.name}`}
+          aria-label={`Vergrösserte Ansicht von ${selectedImage.author.name}`}
           onClick={handleCloseLightbox}
         >
           <div className={styles.lightboxShell} onClick={(event) => event.stopPropagation()}>
@@ -282,7 +282,7 @@ function ImageCard({ image, animate, onOpen }: ImageCardProps) {
       role="button"
       tabIndex={0}
       aria-haspopup="dialog"
-      aria-label={`Bild von ${image.author.name} vergroessern`}
+  aria-label={`Bild von ${image.author.name} vergrössern`}
       onClick={() => onOpen(image)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {

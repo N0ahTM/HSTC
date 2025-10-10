@@ -127,7 +127,7 @@ export function NavigationBar({}: NavigationBarProps) {
               <button
                 className={styles.menuToggle}
                 type="button"
-                aria-label={mobileOpen ? 'Menue schliessen' : 'Menue oeffnen'}
+                aria-label={mobileOpen ? 'Menü schliessen' : 'Menü öffnen'}
                 aria-expanded={mobileOpen ? 'true' : 'false'}
                 aria-controls="primary-navigation"
                 onClick={toggleMobileMenu}
@@ -143,7 +143,7 @@ export function NavigationBar({}: NavigationBarProps) {
             ref={mobileMenuRef}
             id="primary-navigation"
             className={clsx(styles.navLinks, styles.mobileMenu)}
-            aria-label="Mobiles Hauptmenue"
+            aria-label="Mobiles Hauptmenü"
           >
             {navLinks.map((link) => (
               <a key={link.href} href={link.href} onClick={closeMobileMenu}>
