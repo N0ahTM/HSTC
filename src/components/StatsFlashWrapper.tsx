@@ -4,8 +4,6 @@ import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import { flashValue } from '@/motion/interactions';
 
-import { useDiscordStats } from '@/hooks/useDiscordStats';
-
 interface StatsFlashWrapperProps {
   value: number | null;
   children: (ref: React.RefObject<HTMLSpanElement>) => React.ReactNode;

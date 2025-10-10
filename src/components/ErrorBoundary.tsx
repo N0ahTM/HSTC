@@ -11,7 +11,6 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // eslint-disable-next-line no-console
     console.error('ErrorBoundary caught', error, errorInfo);
   }
 
@@ -37,7 +36,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             </p>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <button className="btn" onClick={this.handleReload}>Zur Startseite</button>
-              <a className="btn btn-outline" href="https://discord.gg/jV8rByuJ4G" target="_blank" rel="noopener">Support auf Discord</a>
+              <a className="btn btn-outline" href="https://discord.gg/jV8rByuJ4G" target="_blank" rel="noreferrer noopener">Support auf Discord</a>
             </div>
           </div>
         </div>

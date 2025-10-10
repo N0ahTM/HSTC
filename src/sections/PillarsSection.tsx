@@ -234,14 +234,14 @@ export function PillarsSection() {
   // Drag / swipe
   useEffect(() => {
     const el = cardsRef.current; if (!el) return;
-    let startX = 0; let scrollStart = 0; let dragging = false; let moved = false; let lastX = 0; let lastTime = 0; let velocity = 0;
+    let startX = 0; let scrollStart = 0; let dragging = false; let lastX = 0; let lastTime = 0; let velocity = 0;
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return; // left only
-      dragging = true; moved = false; startX = e.clientX; scrollStart = el.scrollLeft; el.setPointerCapture(e.pointerId); isUserInteracting.current = true; lastX = e.clientX; lastTime = performance.now(); velocity = 0;
+      dragging = true; startX = e.clientX; scrollStart = el.scrollLeft; el.setPointerCapture(e.pointerId); isUserInteracting.current = true; lastX = e.clientX; lastTime = performance.now(); velocity = 0;
     };
     const onMove = (e: PointerEvent) => {
       if (!dragging) return;
-      const dx = e.clientX - startX; if (Math.abs(dx) > 3) moved = true; el.scrollLeft = scrollStart - dx;
+      const dx = e.clientX - startX; el.scrollLeft = scrollStart - dx;
       const now = performance.now();
       const dt = now - lastTime;
       if (dt > 0) {

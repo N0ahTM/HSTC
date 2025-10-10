@@ -121,7 +121,19 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
   const cached = memoryCache.get(cacheKey);
   const now = Date.now();
 
+  console.info('discord-images invoked', {
+    limit,
+    before,
+    cacheKey,
+    cacheStatus: cached ? (cached.expiresAt > now ? 'fresh' : 'stale') : 'miss'
+  });
+
   if (cached && cached.expiresAt > now) {
+    console.info('Serving Discord images from cache', {
+      cacheKey,
+      fetchedAt: cached.fetchedAt,
+      itemCount: cached.payload.data.length
+    });
     return successResponse(cached.payload, cached.fetchedAt, 'HIT');
   }
 
@@ -139,6 +151,13 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
       fetchedAt,
       expiresAt: now + CACHE_TTL_MS
     });
+
+    console.info('Fetched Discord images from API', {
+      cacheKey,
+      itemCount: payload.data.length,
+      nextBefore: payload.page.nextBefore,
+      rateLimited: false
+    });
   } catch (err) {
     console.error('Discord fetch failed', err);
 
@@ -146,6 +165,11 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
       payload = cached.payload;
       fetchedAt = cached.fetchedAt;
       cacheState = 'STALE';
+      console.warn('Returning stale Discord images cache entry', {
+        cacheKey,
+        fetchedAt,
+        itemCount: payload.data.length
+      });
     } else {
       return errorResponse(502, 'Failed to load Discord images.');
     }
