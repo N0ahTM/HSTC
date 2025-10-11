@@ -135,7 +135,6 @@ export function CommunitySection() {
                 key={filter.key}
                 type="button"
                 className={isActive ? `${styles.filterBtn} ${styles.isActive}` : styles.filterBtn}
-                aria-pressed={isActive ? 'true' : 'false'}
                 onClick={() => setActiveFilter(filter.key)}
               >
                 {filter.label}

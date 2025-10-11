@@ -128,7 +128,6 @@ export function NavigationBar({}: NavigationBarProps) {
                 className={styles.menuToggle}
                 type="button"
                 aria-label={mobileOpen ? 'Menü schliessen' : 'Menü öffnen'}
-                aria-expanded={mobileOpen ? 'true' : 'false'}
                 aria-controls="primary-navigation"
                 onClick={toggleMobileMenu}
               >

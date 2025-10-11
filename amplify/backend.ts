@@ -1,12 +1,16 @@
 import { defineBackend, secret } from '@aws-amplify/backend';
+import { auth } from './auth/resource.js';
+import { data } from './data/resource.js';
+import { storage } from './storage/resource.js';
 import { Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { FunctionUrlAuthType, HttpMethod } from 'aws-cdk-lib/aws-lambda';
 import { Bucket, BlockPublicAccess, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { discordImages } from './functions/discord-images/resource.js';
 
-const backend = defineBackend({
-  discordImages
-});
+/**
+ * @see https://docs.amplify.aws/gen2/build-a-backend/ to add storage, functions, and more
+ */
+const backend = defineBackend({ auth, data, storage, discordImages });
 
 const cacheBucket = new Bucket(backend.stack, 'DiscordImagesCache', {
   blockPublicAccess: BlockPublicAccess.BLOCK_ALL,

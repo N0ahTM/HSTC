@@ -1,0 +1,44 @@
+.root {
+  min-height: 100vh;
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 4rem 1rem;
+}
+
+.panel {
+  width: min(860px, 92vw);
+  padding: 3rem 2.2rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.logo {
+  filter: drop-shadow(0 0 24px rgba(255,119,51,.45));
+}
+
+.title {
+  font-size: clamp(2.3rem, 5vw, 3.2rem);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.text {
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
