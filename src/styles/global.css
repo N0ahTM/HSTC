@@ -79,7 +79,7 @@ main {
       rgba(0, 0, 0, 0.01) 78%,
       rgba(0, 0, 0, 0) 90%
     ),
-    url('/images/backgrounds/Planet.webp') center/cover no-repeat;
+    url('/images/backgrounds/Planet_3.webp') center/cover no-repeat;
   background-color: #1a1a1f;
   z-index: -2;
 }

@@ -75,6 +75,15 @@
 @media (max-width: 768px) {
   .hero {
     min-height: 80vh;
+    /* Align grid content to the top; badges remain absolutely positioned at the very top */
+    place-items: start center;
+    /* Remove top padding so badges are truly near the top edge on mobile */
+    padding-top: 0;
+  }
+
+  /* Push only the center content down using a configurable variable */
+  .content {
+    margin-top: var(--hero-mobile-content-offset);
   }
 }
 

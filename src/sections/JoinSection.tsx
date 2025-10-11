@@ -84,7 +84,7 @@ export function JoinSection({ onJoin, onDiscord }: JoinSectionProps) {
         <SectionHeading
           eyebrow="Beitreten"
           title="Bereit?"
-          description="Starte über unser RSI-Profil und sichere dir deinen Platz im Discord"
+          description=""
         />
         <div className={styles.wrapper}>
           <article className={`${styles.card} glass-panel`} data-reveal-item>
