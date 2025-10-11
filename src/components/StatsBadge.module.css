@@ -47,3 +47,14 @@
     transform-origin: top right;
   }
 }
+
+/* Further reduce footprint on very small phones */
+@media (max-width: 520px) {
+  .badge {
+    top: 0.75rem;
+    right: 0.75rem;
+    min-width: 125px;
+    padding: 0.7rem 0.9rem;
+    transform: scale(0.86);
+  }
+}
