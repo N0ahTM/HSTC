@@ -50,7 +50,10 @@ const EVENTS: EventItem[] = [
     location: 'ManaBar Basel, Schweiz',
     image: '/images/Barcitizen_Basel_2025/Manabar.webp',
     description:
-      'Wir haben einen Abend vor dem Event 125 Anmeldungen für das Bar Citizen Basel erreicht!'
+      '',
+    links: [
+      { label: 'Event Discord', href: 'https://discord.gg/wg7UY59T' }
+    ]
   },
   {
     id: 'citizencon-ebikon-2025',
@@ -62,9 +65,9 @@ const EVENTS: EventItem[] = [
     location: 'Pathé Cinema Mall of Switzerland, Ebikon',
     image: '/images/CitizenCon_2025/Citizencon.webp',
     description:
-      'Erlebe die CitizenCon Direct Watch Party live im Kinosaal mit Chris Roberts und Sandy Gardiner vor Ort! Cinematic Atmosphäre, Community-Vibes und Rahmenprogramm.',
+      '',
     links: [
-      { label: 'Discord', href: 'https://discord.gg/wg7UY59T' }
+      { label: 'Event Discord', href: 'https://discord.gg/wg7UY59T' }
     ]
   }
   // {
