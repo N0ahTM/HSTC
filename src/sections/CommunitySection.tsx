@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
@@ -39,6 +39,11 @@ const FILTERS: Array<{ key: 'all' | EventCategory; label: string }> = [
   { key: 'irl', label: 'Real-Life' },
   { key: 'ingame', label: 'Ingame' }
 ];
+
+const PREVIEW_LIMIT: Record<EventStatus, number> = {
+  upcoming: 4,
+  past: 6
+};
 
 const EVENTS: EventItem[] = [
   {
@@ -144,7 +149,7 @@ const EVENTS: EventItem[] = [
     status: 'past',
     date: '11.10.2025',
     time: '20:30 - 23:00 (Bar Citizen 17:00 - 20:00)',
-    location: 'Pathe Cinema Mall of Switzerland, Ebikon',
+    location: 'Pathé Cinema Mall of Switzerland, Ebikon',
     image: '/images/CitizenCon_2025/Citizencon.webp',
     description:
       'Volle Kinoleinwand, Stimmungsfeuerwerk und Live-Kommentare der HSTC-Crew zu allen CitizenCon-Enthüllungen.',
@@ -255,16 +260,17 @@ function bucketEvents(events: EventItem[]): EventBuckets {
 
 export function CommunitySection() {
   const [activeFilter, setActiveFilter] = useState<'all' | EventCategory>('all');
+  const [isModalOpen, setModalOpen] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const buckets = useMemo(() => {
+  const { filteredEvents, buckets } = useMemo(() => {
     const filtered =
       activeFilter === 'all'
         ? EVENTS
         : EVENTS.filter((event) => event.category === activeFilter);
 
-    return bucketEvents(filtered);
+    return { filteredEvents: filtered, buckets: bucketEvents(filtered) };
   }, [activeFilter]);
 
   const featuredEvent = useMemo(() => {
@@ -284,10 +290,47 @@ export function CommunitySection() {
     return buckets.upcoming.slice(1);
   }, [buckets.upcoming, featuredEvent]);
 
-  const hasAnyEvents = buckets.upcoming.length > 0 || buckets.past.length > 0;
+  const pastPool = useMemo(() => {
+    if (featuredEvent?.status === 'past') {
+      return buckets.past.slice(1);
+    }
+    return buckets.past;
+  }, [buckets.past, featuredEvent]);
+
+  const upcomingPreview = upcomingTail.slice(0, PREVIEW_LIMIT.upcoming);
+  const pastPreview = pastPool.slice(0, PREVIEW_LIMIT.past);
+  const upcomingExtraCount = Math.max(upcomingTail.length - upcomingPreview.length, 0);
+  const pastExtraCount = Math.max(pastPool.length - pastPreview.length, 0);
+
+  const hasAnyEvents = filteredEvents.length > 0;
   const animationEnabled = !prefersReducedMotion;
 
   useStaggerReveal(containerRef);
+
+  useEffect(() => {
+    if (!isModalOpen || typeof document === 'undefined') {
+      return;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleKeypress = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setModalOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeypress);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.removeEventListener('keydown', handleKeypress);
+    };
+  }, [isModalOpen]);
+
+  const handleModalToggle = () => setModalOpen(true);
+  const handleModalClose = () => setModalOpen(false);
 
   return (
     <section className="section" id="community" data-animate={animationEnabled ? 'on' : 'off'}>
@@ -320,41 +363,68 @@ export function CommunitySection() {
               <section className={styles.featuredSection} aria-label="Highlight Event">
                 <h3 className={styles.sectionLabel}>Highlight</h3>
                 <FeaturedEventCard event={featuredEvent} animate={animationEnabled} />
+                {hasAnyEvents && (
+                  <div className={styles.featuredFooter}>
+                    <button type="button" className={styles.viewAllBtn} onClick={handleModalToggle}>
+                      Alle Events anzeigen
+                    </button>
+                  </div>
+                )}
               </section>
             )}
 
-            {featuredEvent?.status !== 'upcoming' && buckets.upcoming.length === 0 ? (
-              <p className={styles.empty}>Keine bevorstehenden Events für diesen Filter.</p>
-            ) : null}
+            <section className={styles.carouselSection} aria-label="Bevorstehende Events">
+              <header className={styles.sectionHeader}>
+                <h3 className={styles.subheading}>Bevorstehend</h3>
+                <p className={styles.sectionLead}>
+                  Kompakte Übersicht mit Fokus auf Slots, Startzeiten und Spots zum Mitmachen.
+                </p>
+              </header>
+              {upcomingPreview.length > 0 ? (
+                <EventCarousel
+                  events={upcomingPreview}
+                  animationEnabled={animationEnabled}
+                  variant="upcoming"
+                  totalCount={upcomingTail.length}
+                  limit={PREVIEW_LIMIT.upcoming}
+                />
+              ) : featuredEvent?.status !== 'upcoming' ? (
+                <p className={styles.empty}>Keine bevorstehenden Events für diesen Filter.</p>
+              ) : null}
+              {upcomingExtraCount > 0 && (
+                <p className={styles.moreHint}>+{upcomingExtraCount} weitere Events im Modal</p>
+              )}
+            </section>
 
-            {upcomingTail.length > 0 && (
-              <section className={styles.upcomingSection} aria-label="Bevorstehende Events">
-                <header className={styles.sectionHeader}>
-                  <h3 className={styles.subheading}>Bevorstehend</h3>
-                  <p className={styles.sectionLead}>
-                    Kompakte Übersicht mit Fokus auf Slots, Startzeiten und Spots zum Mitmachen.
-                  </p>
-                </header>
-                <EventRail events={upcomingTail} animationEnabled={animationEnabled} />
-              </section>
-            )}
-
-            {buckets.past.length > 0 ? (
-              <section className={styles.pastSection} aria-label="Vergangene Events">
-                <header className={styles.sectionHeader}>
-                  <h3 className={styles.subheading}>Vergangen</h3>
-                  <p className={styles.sectionLead}>
-                    Rückblick auf unsere letzten IRL-Treffen und Operationen im Verse.
-                  </p>
-                </header>
-                <EventGallery events={buckets.past} animationEnabled={animationEnabled} />
-              </section>
-            ) : (
-              <p className={styles.empty}>Noch keine vergangenen Events für diesen Filter.</p>
-            )}
+            <section className={styles.carouselSection} aria-label="Vergangene Events">
+              <header className={styles.sectionHeader}>
+                <h3 className={styles.subheading}>Vergangen</h3>
+                <p className={styles.sectionLead}>
+                  Rückblick auf unsere letzten IRL-Treffen und Operationen im Verse.
+                </p>
+              </header>
+              {pastPreview.length > 0 ? (
+                <EventCarousel
+                  events={pastPreview}
+                  animationEnabled={animationEnabled}
+                  variant="past"
+                  totalCount={pastPool.length}
+                  limit={PREVIEW_LIMIT.past}
+                />
+              ) : featuredEvent?.status === 'past' ? null : (
+                <p className={styles.empty}>Noch keine vergangenen Events für diesen Filter.</p>
+              )}
+              {pastExtraCount > 0 && (
+                <p className={styles.moreHint}>+{pastExtraCount} weitere Events im Modal</p>
+              )}
+            </section>
           </div>
         )}
       </div>
+
+      {isModalOpen && (
+        <EventModal events={filteredEvents} onClose={handleModalClose} animationEnabled={animationEnabled} />
+      )}
     </section>
   );
 }
@@ -423,37 +493,50 @@ function FeaturedEventCard({ event, animate }: FeaturedEventCardProps) {
   );
 }
 
-interface EventRailProps {
+interface EventCarouselProps {
   events: EventItem[];
   animationEnabled: boolean;
+  variant: EventStatus;
+  totalCount: number;
+  limit: number;
 }
 
-function EventRail({ events, animationEnabled }: EventRailProps) {
+function EventCarousel({ events, animationEnabled, variant, totalCount, limit }: EventCarouselProps) {
   if (events.length === 0) {
     return null;
   }
 
+  const hasOverflow = totalCount > limit;
+
   return (
-    <div className={styles.rail} role="list">
-      {events.map((event, index) => (
-        <UpcomingEventCard
-          key={event.id}
-          event={event}
-          index={index}
-          animate={animationEnabled}
-        />
-      ))}
+    <div
+      className={styles.carouselShell}
+      data-variant={variant}
+      data-overflow={hasOverflow ? 'true' : 'false'}
+    >
+      <div className={styles.carousel} role="list">
+        {events.map((event, index) => (
+          <CarouselCard
+            key={event.id}
+            event={event}
+            index={index}
+            animate={animationEnabled}
+            variant={variant}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
-interface UpcomingEventCardProps {
+interface CarouselCardProps {
   event: EventItem;
   index: number;
   animate: boolean;
+  variant: EventStatus;
 }
 
-function UpcomingEventCard({ event, index, animate }: UpcomingEventCardProps) {
+function CarouselCard({ event, index, animate, variant }: CarouselCardProps) {
   const details = [
     { label: 'Datum', value: event.date },
     { label: 'Zeit', value: event.time },
@@ -464,24 +547,29 @@ function UpcomingEventCard({ event, index, animate }: UpcomingEventCardProps) {
   const cardStyle = animate ? ({ '--card-delay': delay } as CSSProperties) : undefined;
 
   return (
-    <article className={styles.railCard} role="listitem" data-status={event.status} style={cardStyle}>
+    <article
+      className={styles.carouselCard}
+      role="listitem"
+      data-status={variant}
+      style={cardStyle}
+    >
       <div className={styles.meta}>
         <span className={styles.badge} data-kind={event.category}>
           {EVENT_CATEGORIES[event.category]}
         </span>
         <span className={styles.status} data-status={event.status}>
-          Bevorstehend
+          {event.status === 'upcoming' ? 'Bevorstehend' : 'Vergangen'}
         </span>
       </div>
-      <h4 className={styles.railTitle}>{event.title}</h4>
-      <div className={styles.railMeta}>
+      <h4 className={styles.carouselTitle}>{event.title}</h4>
+      <div className={styles.carouselMeta}>
         {details.map((detail) => (
           <span key={detail.label}>{detail.value}</span>
         ))}
       </div>
-      <p className={styles.railDesc}>{event.description}</p>
+      <p className={styles.carouselDesc}>{event.description}</p>
       {event.links && event.links.length > 0 && (
-        <div className={styles.railActions}>
+        <div className={styles.carouselActions}>
           {event.links.slice(0, 1).map((link) => (
             <a
               key={`${event.id}-${link.href}`}
@@ -499,16 +587,65 @@ function UpcomingEventCard({ event, index, animate }: UpcomingEventCardProps) {
   );
 }
 
-interface EventGalleryProps {
+interface EventModalProps {
+  events: EventItem[];
+  onClose: () => void;
+  animationEnabled: boolean;
+}
+
+function EventModal({ events, onClose, animationEnabled }: EventModalProps) {
+  if (events.length === 0) {
+    return null;
+  }
+
+  const modalBuckets = bucketEvents(events);
+
+  const handleBackdropClick = () => onClose();
+  const handleContentClick = (event: MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+  };
+
+  return (
+    <div className={styles.modalBackdrop} role="dialog" aria-modal="true" onClick={handleBackdropClick}>
+      <div className={styles.modalCard} onClick={handleContentClick}>
+        <header className={styles.modalHeader}>
+          <div>
+            <p className={styles.modalEyebrow}>Event Übersicht</p>
+            <h3 className={styles.modalTitle}>Alle Events im aktuellen Filter</h3>
+          </div>
+          <button type="button" className={styles.modalClose} onClick={onClose} aria-label="Modal schließen">
+            Schließen
+          </button>
+        </header>
+        <div className={styles.modalBody}>
+          {modalBuckets.upcoming.length > 0 && (
+            <div className={styles.modalSection}>
+              <h4 className={styles.modalSubheading}>Bevorstehend</h4>
+              <EventGrid events={modalBuckets.upcoming} animationEnabled={animationEnabled} />
+            </div>
+          )}
+          {modalBuckets.past.length > 0 && (
+            <div className={styles.modalSection}>
+              <h4 className={styles.modalSubheading}>Vergangen</h4>
+              <EventGrid events={modalBuckets.past} animationEnabled={animationEnabled} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface EventGridProps {
   events: EventItem[];
   animationEnabled: boolean;
 }
 
-function EventGallery({ events, animationEnabled }: EventGalleryProps) {
+function EventGrid({ events, animationEnabled }: EventGridProps) {
   return (
-    <ul className={styles.gallery} role="list">
+    <ul className={styles.modalGrid} role="list">
       {events.map((event, index) => (
-        <li key={event.id} className={styles.galleryItem}>
+        <li key={event.id} className={styles.modalGridItem}>
           <EventCard event={event} index={index} animate={animationEnabled} />
         </li>
       ))}
@@ -529,7 +666,7 @@ function EventCard({ event, index, animate }: EventCardProps) {
     { label: 'Ort', value: event.location }
   ].filter((detail): detail is { label: string; value: string } => Boolean(detail.value));
 
-  const delay = animate ? `${index * 0.06}s` : undefined;
+  const delay = animate ? `${index * 0.04}s` : undefined;
   const cardStyle = animate ? ({ '--card-delay': delay } as CSSProperties) : undefined;
 
   return (

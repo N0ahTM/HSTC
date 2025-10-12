@@ -13,7 +13,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 1.75rem;
+  margin: 0 auto 1.5rem;
+  width: 100%;
+  max-width: 1120px;
 }
 
 .filterBtn {
@@ -75,11 +77,14 @@
 
 .layout {
   display: grid;
-  gap: 3rem;
+  gap: 2.6rem;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
 }
 
 .sectionLabel {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 1.6px;
   color: var(--color-accent);
@@ -89,14 +94,14 @@
 .sectionHeader {
   display: grid;
   gap: 0.45rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
 }
 
 .subheading {
   font-family: var(--font-heading);
   text-transform: uppercase;
   letter-spacing: 2px;
-  font-size: 1.2rem;
+  font-size: 1.08rem;
   margin: 0;
   color: var(--color-accent);
 }
@@ -110,12 +115,12 @@
 
 .featuredSection {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
 .featuredCard {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   background: linear-gradient(
     135deg,
     rgba(12, 14, 16, 0.92) 0%,
@@ -124,8 +129,9 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   clip-path: polygon(0 0, 100% 0, 100% 94%, 96% 100%, 0 100%);
   overflow: hidden;
-  box-shadow: var(--shadow-lg, 0 20px 60px rgba(0, 0, 0, 0.4));
-  animation: cardEnter 0.5s ease forwards;
+  box-shadow: var(--shadow-lg, 0 18px 50px rgba(0, 0, 0, 0.42));
+  max-width: 100%;
+  animation: cardEnter 0.45s ease forwards;
   animation-delay: var(--card-delay, 0s);
 }
 
@@ -137,7 +143,7 @@
 
 .featuredMedia {
   position: relative;
-  min-height: 240px;
+  min-height: clamp(200px, 24vw, 320px);
   background: rgba(0, 0, 0, 0.5);
 }
 
@@ -161,39 +167,39 @@
 
 .featuredContent {
   position: relative;
-  padding: clamp(1.5rem, 2vw + 1rem, 2.25rem);
+  padding: clamp(1.3rem, 1.6vw + 1rem, 2rem);
   display: grid;
-  gap: 1.2rem;
+  gap: 1rem;
   background: linear-gradient(
     160deg,
     rgba(8, 10, 12, 0.95) 0%,
-    rgba(24, 16, 28, 0.75) 100%
+    rgba(24, 16, 28, 0.78) 100%
   );
 }
 
 .featuredTitle {
   font-family: var(--font-heading);
-  font-size: clamp(1.35rem, 2vw + 1rem, 2.1rem);
+  font-size: clamp(1.32rem, 2vw + 0.9rem, 2rem);
   margin: 0;
 }
 
 .featuredDesc {
   margin: 0;
   color: var(--color-text-muted);
-  line-height: 1.6;
+  line-height: 1.55;
 }
 
 .featuredDetails {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.6rem;
+  gap: 0.55rem;
 }
 
 .detailRow {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.55rem;
+  gap: 0.5rem;
   align-items: baseline;
   font-size: 0.95rem;
 }
@@ -214,25 +220,33 @@
   gap: 0.6rem;
 }
 
-.primaryLink {
-  border-color: rgba(255, 119, 51, 0.65);
-  background: rgba(255, 119, 51, 0.16);
-  color: #fff;
+.featuredFooter {
+  display: flex;
+  justify-content: flex-end;
 }
 
-.primaryLink:hover {
-  border-color: rgba(255, 119, 51, 0.85);
-  background: rgba(255, 119, 51, 0.26);
+.viewAllBtn {
+  border: 1px solid rgba(255, 180, 64, 0.65);
+  background: rgba(255, 180, 64, 0.14);
+  color: #ffe4a3;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.secondaryLink {
-  border-color: rgba(255, 255, 255, 0.18);
-  color: var(--color-text);
+.viewAllBtn:hover,
+.viewAllBtn:focus-visible {
+  border-color: rgba(255, 200, 96, 0.9);
+  background: rgba(255, 200, 96, 0.24);
+  color: #fff6d3;
 }
 
-.secondaryLink:hover {
-  border-color: rgba(255, 119, 51, 0.45);
-  color: #fff;
+.viewAllBtn:focus-visible {
+  outline: 2px solid rgba(255, 200, 96, 0.8);
+  outline-offset: 2px;
 }
 
 .meta {
@@ -270,91 +284,149 @@
   color: var(--color-accent);
 }
 
-.upcomingSection,
-.pastSection {
+.carouselSection {
   display: grid;
-  gap: 1.5rem;
+  gap: 1.2rem;
 }
 
-.rail {
+.carouselShell {
+  position: relative;
+  padding: 0.4rem 0 1rem;
+  overflow: hidden;
+}
+
+.carouselShell::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 204, 102, 0) 0%,
+    rgba(255, 204, 102, 0.85) 20%,
+    rgba(255, 204, 102, 0.85) 80%,
+    rgba(255, 204, 102, 0) 100%
+  );
+  pointer-events: none;
+  opacity: 0.65;
+  transition: opacity 0.2s ease;
+}
+
+.carouselShell[data-overflow='false']::after {
+  opacity: 0;
+}
+
+.carouselShell[data-overflow='true']::after {
+  opacity: 0.65;
+}
+
+.carousel {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(280px, 1fr);
+  grid-auto-columns: clamp(280px, 32vw, 320px);
   gap: 1.1rem;
   overflow-x: auto;
-  padding: 0.4rem 0 0.6rem;
+  padding: 0.3rem 0 0.45rem;
   margin: 0;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
 }
 
-.rail::-webkit-scrollbar {
+.carousel::-webkit-scrollbar {
   height: 6px;
 }
 
-.rail::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+.carousel::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
   border-radius: 999px;
 }
 
-.railCard {
+.carousel::before,
+.carousel::after {
+  content: '';
+  position: sticky;
+  top: 0;
+  bottom: 0;
+  width: clamp(36px, 6vw, 70px);
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.carousel::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(8, 10, 12, 0.95) 0%, rgba(8, 10, 12, 0) 100%);
+}
+
+.carousel::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(8, 10, 12, 0.95) 0%, rgba(8, 10, 12, 0) 100%);
+}
+
+.carouselShell[data-overflow='true'] .carousel::before,
+.carouselShell[data-overflow='true'] .carousel::after {
+  opacity: 1;
+}
+
+.carouselCard {
   background: rgba(10, 12, 14, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-left: 3px solid rgba(255, 119, 51, 0.7);
-  padding: 1.2rem;
+  border-left: 3px solid rgba(255, 180, 64, 0.7);
+  padding: 1.15rem 1.05rem;
   display: grid;
   gap: 0.75rem;
   min-height: 220px;
   scroll-snap-align: start;
   clip-path: polygon(0 0, 100% 0, 100% 94%, 96% 100%, 0 100%);
-  animation: cardEnter 0.45s ease forwards;
+  animation: cardEnter 0.4s ease forwards;
   animation-delay: var(--card-delay, 0s);
 }
 
-.railTitle {
-  margin: 0;
-  font-family: var(--font-heading);
-  font-size: 1.1rem;
+.carouselCard[data-status='past'] {
+  border-left-color: rgba(135, 160, 255, 0.5);
 }
 
-.railMeta {
+.carouselTitle {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.08rem;
+}
+
+.carouselMeta {
   display: grid;
   gap: 0.35rem;
   color: var(--color-text-muted);
   font-size: 0.9rem;
 }
 
-.railDesc {
+.carouselDesc {
   margin: 0;
   color: var(--color-text-muted);
   line-height: 1.5;
 }
 
-.railActions {
+.carouselActions {
   display: flex;
   gap: 0.6rem;
 }
 
 @media (max-width: 768px) {
-  .rail {
+  .carousel {
     grid-auto-columns: minmax(85vw, 1fr);
+  }
+
+  .layout,
+  .filters {
+    max-width: none;
   }
 }
 
-.gallery {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-
-.galleryItem {
-  list-style: none;
-}
-
 .card {
-  background: rgba(10, 12, 14, 0.82);
+  background: rgba(10, 12, 14, 0.86);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: var(--shadow-md);
   display: grid;
@@ -366,7 +438,7 @@
 }
 
 .cardMedia {
-  height: 180px;
+  height: 160px;
   background: rgba(0, 0, 0, 0.6);
 }
 
@@ -377,14 +449,14 @@
 }
 
 .cardBody {
-  padding: 1.2rem 1rem 1.4rem;
+  padding: 1.15rem 1rem 1.4rem;
   display: grid;
-  gap: 0.9rem;
+  gap: 0.85rem;
 }
 
 .cardTitle {
   font-family: var(--font-heading);
-  font-size: 1.15rem;
+  font-size: 1.08rem;
   margin: 0;
 }
 
@@ -407,6 +479,36 @@
   flex-wrap: wrap;
 }
 
+.moreHint {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: rgba(255, 200, 96, 0.7);
+  text-align: right;
+}
+
+.primaryLink {
+  border-color: rgba(255, 119, 51, 0.65);
+  background: rgba(255, 119, 51, 0.16);
+  color: #fff;
+}
+
+.primaryLink:hover {
+  border-color: rgba(255, 119, 51, 0.85);
+  background: rgba(255, 119, 51, 0.26);
+}
+
+.secondaryLink {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: var(--color-text);
+}
+
+.secondaryLink:hover {
+  border-color: rgba(255, 119, 51, 0.45);
+  color: #fff;
+}
+
 .emptyState,
 .empty {
   color: var(--color-text-muted);
@@ -414,8 +516,110 @@
   margin: 0;
 }
 
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 8, 10, 0.78);
+  backdrop-filter: blur(12px);
+  display: grid;
+  place-items: center;
+  padding: 2.5rem clamp(1rem, 2vw + 0.5rem, 3rem);
+  z-index: 80;
+}
+
+.modalCard {
+  background: rgba(12, 14, 18, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: var(--shadow-xl, 0 24px 80px rgba(0, 0, 0, 0.55));
+  width: min(100%, 1080px);
+  max-height: min(90vh, 860px);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.4rem clamp(1.4rem, 2vw + 1rem, 2.1rem);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modalEyebrow {
+  margin: 0;
+  font-size: 0.74rem;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.modalTitle {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-heading);
+  font-size: clamp(1.2rem, 2vw + 0.8rem, 1.6rem);
+}
+
+.modalClose {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text);
+  padding: 0.35rem 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.modalClose:hover,
+.modalClose:focus-visible {
+  border-color: rgba(255, 200, 96, 0.6);
+  background: rgba(255, 200, 96, 0.18);
+  color: #fff;
+}
+
+.modalClose:focus-visible {
+  outline: 2px solid rgba(255, 200, 96, 0.7);
+  outline-offset: 2px;
+}
+
+.modalBody {
+  overflow-y: auto;
+  padding: clamp(1.2rem, 2vw + 1rem, 2rem);
+  display: grid;
+  gap: 2rem;
+}
+
+.modalSection {
+  display: grid;
+  gap: 1rem;
+}
+
+.modalSubheading {
+  margin: 0;
+  font-size: 0.96rem;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(255, 200, 96, 0.9);
+}
+
+.modalGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.4rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.modalGridItem {
+  list-style: none;
+}
+
 [data-animate='off'] .featuredCard,
-[data-animate='off'] .railCard,
+[data-animate='off'] .carouselCard,
 [data-animate='off'] .card {
   animation: none;
 }
