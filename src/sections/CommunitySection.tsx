@@ -40,11 +40,6 @@ const FILTERS: Array<{ key: 'all' | EventCategory; label: string }> = [
   { key: 'ingame', label: 'Ingame' }
 ];
 
-const PREVIEW_LIMIT: Record<EventStatus, number> = {
-  upcoming: 4,
-  past: 6
-};
-
 const EVENTS: EventItem[] = [
   {
     id: 'bar-citizen-zurich-2026',
@@ -283,26 +278,12 @@ export function CommunitySection() {
     return undefined;
   }, [buckets]);
 
-  const upcomingTail = useMemo(() => {
-    if (!featuredEvent || featuredEvent.status !== 'upcoming') {
-      return buckets.upcoming;
-    }
-    return buckets.upcoming.slice(1);
-  }, [buckets.upcoming, featuredEvent]);
-
-  const pastPool = useMemo(() => {
-    if (featuredEvent?.status === 'past') {
-      return buckets.past.slice(1);
-    }
-    return buckets.past;
-  }, [buckets.past, featuredEvent]);
-
-  const upcomingPreview = upcomingTail.slice(0, PREVIEW_LIMIT.upcoming);
-  const pastPreview = pastPool.slice(0, PREVIEW_LIMIT.past);
-  const upcomingExtraCount = Math.max(upcomingTail.length - upcomingPreview.length, 0);
-  const pastExtraCount = Math.max(pastPool.length - pastPreview.length, 0);
-
   const hasAnyEvents = filteredEvents.length > 0;
+  const additionalEventsCount = Math.max(
+    filteredEvents.length - (featuredEvent ? 1 : 0),
+    0
+  );
+  const hasAdditionalEvents = additionalEventsCount > 0;
   const animationEnabled = !prefersReducedMotion;
 
   useStaggerReveal(containerRef);
@@ -373,51 +354,13 @@ export function CommunitySection() {
               </section>
             )}
 
-            <section className={styles.carouselSection} aria-label="Bevorstehende Events">
-              <header className={styles.sectionHeader}>
-                <h3 className={styles.subheading}>Bevorstehend</h3>
-                <p className={styles.sectionLead}>
-                  Kompakte Übersicht mit Fokus auf Slots, Startzeiten und Spots zum Mitmachen.
-                </p>
-              </header>
-              {upcomingPreview.length > 0 ? (
-                <EventCarousel
-                  events={upcomingPreview}
-                  animationEnabled={animationEnabled}
-                  variant="upcoming"
-                  totalCount={upcomingTail.length}
-                  limit={PREVIEW_LIMIT.upcoming}
-                />
-              ) : featuredEvent?.status !== 'upcoming' ? (
-                <p className={styles.empty}>Keine bevorstehenden Events für diesen Filter.</p>
-              ) : null}
-              {upcomingExtraCount > 0 && (
-                <p className={styles.moreHint}>+{upcomingExtraCount} weitere Events im Modal</p>
-              )}
-            </section>
-
-            <section className={styles.carouselSection} aria-label="Vergangene Events">
-              <header className={styles.sectionHeader}>
-                <h3 className={styles.subheading}>Vergangen</h3>
-                <p className={styles.sectionLead}>
-                  Rückblick auf unsere letzten IRL-Treffen und Operationen im Verse.
-                </p>
-              </header>
-              {pastPreview.length > 0 ? (
-                <EventCarousel
-                  events={pastPreview}
-                  animationEnabled={animationEnabled}
-                  variant="past"
-                  totalCount={pastPool.length}
-                  limit={PREVIEW_LIMIT.past}
-                />
-              ) : featuredEvent?.status === 'past' ? null : (
-                <p className={styles.empty}>Noch keine vergangenen Events für diesen Filter.</p>
-              )}
-              {pastExtraCount > 0 && (
-                <p className={styles.moreHint}>+{pastExtraCount} weitere Events im Modal</p>
-              )}
-            </section>
+            {hasAdditionalEvents && (
+              <p className={styles.modalHint}>
+                {additionalEventsCount > 1
+                  ? `${additionalEventsCount} weitere Events findest du im Modal.`
+                  : 'Ein weiteres Event findest du im Modal.'}
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -489,100 +432,6 @@ function FeaturedEventCard({ event, animate }: FeaturedEventCardProps) {
           </div>
         )}
       </div>
-    </article>
-  );
-}
-
-interface EventCarouselProps {
-  events: EventItem[];
-  animationEnabled: boolean;
-  variant: EventStatus;
-  totalCount: number;
-  limit: number;
-}
-
-function EventCarousel({ events, animationEnabled, variant, totalCount, limit }: EventCarouselProps) {
-  if (events.length === 0) {
-    return null;
-  }
-
-  const hasOverflow = totalCount > limit;
-
-  return (
-    <div
-      className={styles.carouselShell}
-      data-variant={variant}
-      data-overflow={hasOverflow ? 'true' : 'false'}
-    >
-      <div className={styles.carousel} role="list">
-        {events.map((event, index) => (
-          <CarouselCard
-            key={event.id}
-            event={event}
-            index={index}
-            animate={animationEnabled}
-            variant={variant}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-interface CarouselCardProps {
-  event: EventItem;
-  index: number;
-  animate: boolean;
-  variant: EventStatus;
-}
-
-function CarouselCard({ event, index, animate, variant }: CarouselCardProps) {
-  const details = [
-    { label: 'Datum', value: event.date },
-    { label: 'Zeit', value: event.time },
-    { label: 'Ort', value: event.location }
-  ].filter((detail): detail is { label: string; value: string } => Boolean(detail.value));
-
-  const delay = animate ? `${(index + 1) * 0.06}s` : undefined;
-  const cardStyle = animate ? ({ '--card-delay': delay } as CSSProperties) : undefined;
-
-  return (
-    <article
-      className={styles.carouselCard}
-      role="listitem"
-      data-status={variant}
-      style={cardStyle}
-    >
-      <div className={styles.meta}>
-        <span className={styles.badge} data-kind={event.category}>
-          {EVENT_CATEGORIES[event.category]}
-        </span>
-        <span className={styles.status} data-status={event.status}>
-          {event.status === 'upcoming' ? 'Bevorstehend' : 'Vergangen'}
-        </span>
-      </div>
-      <h4 className={styles.carouselTitle}>{event.title}</h4>
-      <div className={styles.carouselMeta}>
-        {details.map((detail) => (
-          <span key={detail.label}>{detail.value}</span>
-        ))}
-      </div>
-      <p className={styles.carouselDesc}>{event.description}</p>
-      {event.links && event.links.length > 0 && (
-        <div className={styles.carouselActions}>
-          {event.links.slice(0, 1).map((link) => (
-            <a
-              key={`${event.id}-${link.href}`}
-              href={link.href}
-              className={`${styles.primaryLink} btn btn-outline btn-sm`}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
-      )}
     </article>
   );
 }
