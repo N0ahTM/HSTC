@@ -7,16 +7,16 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const FUNCTION_NAME = 'discord-images';
+const FUNCTION_NAME = 'discord-events';
 
-export const discordImages = defineFunction((scope) => {
-  const lambda = new NodejsFunction(scope, 'DiscordImagesHandler', {
+export const discordEvents = defineFunction((scope) => {
+  const lambda = new NodejsFunction(scope, 'DiscordEventsHandler', {
     functionName: FUNCTION_NAME,
     entry: path.join(__dirname, 'handler.ts'),
     handler: 'handler',
     runtime: Runtime.NODEJS_20_X,
     memorySize: 512,
-    timeout: Duration.seconds(20),
+    timeout: Duration.seconds(15),
     bundling: {
       minify: true,
       target: 'node20',
