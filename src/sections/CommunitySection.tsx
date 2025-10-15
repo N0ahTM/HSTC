@@ -192,8 +192,7 @@ export function CommunitySection() {
         {!isInitialLoading && !loadedAny ? (
           <div className={styles.emptyState}>
             <p>
-              Derzeit sind keine Events geplant. Schau spaeter noch einmal vorbei oder tritt dem Discord bei, um
-              Benachrichtigungen zu erhalten.
+              Derzeit sind keine Events geplant. Schau später noch einmal vorbei.
             </p>
           </div>
         ) : (

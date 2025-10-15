@@ -178,7 +178,7 @@ export function CommunityImagesSection() {
             </div>
           )}
 
-          {showEmptyState && <p className={styles.empty}>Im Moment liegen noch keine Bilder vor. Schau spaeter wieder vorbei!</p>}
+          {showEmptyState && <p className={styles.empty}>Im Moment liegen noch keine Bilder vor. Schau später wieder vorbei!</p>}
 
           <div className={styles.carousel}>
             <div ref={trackRef} className={styles.track} role="list" aria-label="Discord Bilder">
