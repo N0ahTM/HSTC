@@ -31,10 +31,6 @@ const timeFormatter = new Intl.DateTimeFormat('de-DE', {
   hour: '2-digit',
   minute: '2-digit'
 });
-const stampFormatter = new Intl.DateTimeFormat('de-DE', {
-  dateStyle: 'medium',
-  timeStyle: 'short'
-});
 
 function mapStatus(event: DiscordCommunityEvent): DisplayStatus {
   if (event.isActive) {
@@ -149,17 +145,7 @@ function EventCard({ event }: { event: DisplayEvent }) {
 }
 
 export function CommunitySection() {
-  const {
-    active,
-    upcoming,
-    past,
-    loading,
-    error,
-    refresh,
-    metaCache,
-    generatedAt,
-    guildId
-  } = useDiscordEvents();
+  const { active, upcoming, past, loading, error, guildId } = useDiscordEvents();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useStaggerReveal(containerRef, { rootMargin: '0px 0px -15%' });
@@ -177,7 +163,6 @@ export function CommunitySection() {
   const allEvents = useMemo(() => [...upcomingEvents, ...pastEvents], [upcomingEvents, pastEvents]);
   const loadedAny = allEvents.length > 0;
   const isInitialLoading = loading && !loadedAny;
-  const generatedLabel = generatedAt ? stampFormatter.format(new Date(generatedAt)) : undefined;
 
   return (
     <section className={`section ${styles.section}`} id="community">
@@ -191,9 +176,7 @@ export function CommunitySection() {
 
         {!isInitialLoading && !loadedAny ? (
           <div className={styles.emptyState}>
-            <p>
-              Derzeit sind keine Events geplant. Schau später noch einmal vorbei.
-            </p>
+            <p>Derzeit sind keine Events geplant. Schau spaeter noch einmal vorbei.</p>
           </div>
         ) : (
           <div className={styles.list}>
