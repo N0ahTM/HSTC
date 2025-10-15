@@ -109,13 +109,20 @@ function EventCard({ event }: { event: DisplayEvent }) {
           <img src={event.imageUrl} alt="" loading="lazy" />
         </div>
       )}
-      <div className={styles.cardBody}>
-        <div className={styles.cardBadges}>
-          <span className={styles.badge} data-variant={event.status}>
-            {statusLabel}
-          </span>
-          <span className={styles.badgeSecondary}>{event.typeLabel}</span>
-        </div>
+      <div className={styles.cardContent}>
+        <header className={styles.cardHeader}>
+          <div className={styles.cardStatus}>
+            <span className={styles.badge} data-variant={event.status}>
+              {statusLabel}
+            </span>
+            <span className={styles.badgeSecondary}>{event.typeLabel}</span>
+          </div>
+          {event.url && (
+            <a className="btn btn-outline btn-sm" href={event.url} target="_blank" rel="noreferrer noopener">
+              Event im Discord
+            </a>
+          )}
+        </header>
         <h4 className={styles.cardTitle}>{event.title}</h4>
         <p className={styles.cardDescription}>{event.description}</p>
         <dl className={styles.cardMeta}>
@@ -136,18 +143,6 @@ function EventCard({ event }: { event: DisplayEvent }) {
             </div>
           )}
         </dl>
-        <div className={styles.cardActions}>
-          {event.url && (
-            <a
-              className="btn btn-outline btn-sm"
-              href={event.url}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              Event im Discord
-            </a>
-          )}
-        </div>
       </div>
     </article>
   );
@@ -163,8 +158,7 @@ export function CommunitySection() {
     refresh,
     metaCache,
     generatedAt,
-    guildId,
-    totalCount
+    guildId
   } = useDiscordEvents();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -180,7 +174,8 @@ export function CommunitySection() {
     return list.sort((a, b) => b.startTime - a.startTime);
   }, [past, guildId]);
 
-  const loadedAny = upcomingEvents.length > 0 || pastEvents.length > 0;
+  const allEvents = useMemo(() => [...upcomingEvents, ...pastEvents], [upcomingEvents, pastEvents]);
+  const loadedAny = allEvents.length > 0;
   const isInitialLoading = loading && !loadedAny;
   const generatedLabel = generatedAt ? stampFormatter.format(new Date(generatedAt)) : undefined;
 
@@ -188,22 +183,6 @@ export function CommunitySection() {
     <section className={`section ${styles.section}`} id="community">
       <div className="container" ref={containerRef}>
         <SectionHeading eyebrow="Events" title="Events" description="Ingame und Real-Life" />
-
-        <div className={styles.statusBar}>
-          <div className={styles.statusChips}>
-            <span className={styles.statusChip}>Aktive Events: {active.length}</span>
-            <span className={styles.statusChip}>Bevorstehend: {upcoming.length}</span>
-            <span className={styles.statusChip}>Vergangen: {past.length}</span>
-            {typeof totalCount === 'number' && (
-              <span className={styles.statusChip}>Gesamt: {totalCount}</span>
-            )}
-            {metaCache && <span className={styles.metaTag}>Cache: {metaCache}</span>}
-            {generatedLabel && <span className={styles.metaTag}>Stand: {generatedLabel}</span>}
-          </div>
-          <button type="button" className="btn btn-outline btn-sm" onClick={() => void refresh()}>
-            Aktualisieren
-          </button>
-        </div>
 
         {isInitialLoading && <p className={styles.notice}>Events werden geladen...</p>}
         {error && !isInitialLoading && (
@@ -218,35 +197,11 @@ export function CommunitySection() {
             </p>
           </div>
         ) : (
-          <>
-            {upcomingEvents.length > 0 && (
-              <section className={styles.group} aria-label="Aktive und kommende Events">
-                <header className={styles.groupHeader}>
-                  <h3 className={styles.groupTitle}>Aktiv und bevorstehend</h3>
-                  <span className={styles.groupCount}>{upcomingEvents.length}</span>
-                </header>
-                <div className={styles.grid}>
-                  {upcomingEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {pastEvents.length > 0 && (
-              <section className={styles.group} aria-label="Vergangene Events">
-                <header className={styles.groupHeader}>
-                  <h3 className={styles.groupTitle}>Vergangene Events</h3>
-                  <span className={styles.groupCount}>{pastEvents.length}</span>
-                </header>
-                <div className={`${styles.grid} ${styles.pastGrid}`}>
-                  {pastEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
-                </div>
-              </section>
-            )}
-          </>
+          <div className={styles.list}>
+            {allEvents.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
         )}
       </div>
     </section>
