@@ -1,4 +1,5 @@
 import { setTimeout as sleep } from 'node:timers/promises';
+import { GetParametersCommand, SSMClient } from '@aws-sdk/client-ssm';
 
 const DISCORD_API_BASE = 'https://discord.com/api/v10';
 const DEFAULT_LIMIT = 10;
@@ -91,6 +92,56 @@ interface DiscordImagesPayload {
 }
 
 const memoryCache = new Map<string, CacheEntry>();
+const ssmClient = new SSMClient({});
+const ssmConfig = (() => {
+  const raw = process.env.AMPLIFY_SSM_ENV_CONFIG;
+  if (!raw) return {} as Record<string, { path?: string; sharedPath?: string }>;
+  try {
+    return JSON.parse(raw) as Record<string, { path?: string; sharedPath?: string }>;
+  } catch (error) {
+    console.warn('discord-images failed to parse AMPLIFY_SSM_ENV_CONFIG', error);
+    return {} as Record<string, { path?: string; sharedPath?: string }>;
+  }
+})();
+const secretCache = new Map<string, string>();
+
+async function resolveSecret(key: string): Promise<string | undefined> {
+  const direct = process.env[key];
+  if (direct && !direct.includes('<value will be resolved during runtime>')) {
+    return direct.trim();
+  }
+
+  if (secretCache.has(key)) {
+    return secretCache.get(key);
+  }
+
+  const config = ssmConfig[key];
+  if (!config) {
+    return direct?.trim();
+  }
+
+  const candidates = [config.path, config.sharedPath].filter(Boolean) as string[];
+  if (candidates.length === 0) {
+    return direct?.trim();
+  }
+
+  try {
+    const command = new GetParametersCommand({
+      Names: candidates,
+      WithDecryption: true
+    });
+    const { Parameters } = await ssmClient.send(command);
+    const value = Parameters?.find((parameter) => parameter?.Value)?.Value?.trim();
+    if (value) {
+      secretCache.set(key, value);
+      return value;
+    }
+  } catch (error) {
+    console.error('discord-images failed to resolve secret from SSM', { key, error });
+  }
+
+  return direct?.trim();
+}
 
 interface CacheEntry {
   readonly payload: DiscordImagesPayload;
@@ -114,8 +165,8 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
     return errorResponse(405, 'Method Not Allowed');
   }
 
-  const token = process.env.DISCORD_BOT_TOKEN;
-  const channelId = process.env.DISCORD_CHANNEL_ID;
+  const token = await resolveSecret('DISCORD_BOT_TOKEN');
+  const channelId = await resolveSecret('DISCORD_CHANNEL_ID');
 
   if (!token || !channelId) {
     const missing: string[] = [];

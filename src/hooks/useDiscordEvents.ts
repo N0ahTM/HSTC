@@ -38,6 +38,8 @@ export interface UseDiscordEventsResult {
   refresh: () => Promise<void>;
   metaCache?: string;
   generatedAt?: string;
+  guildId?: string;
+  totalCount?: number;
 }
 
 export function useDiscordEvents(): UseDiscordEventsResult {
@@ -48,6 +50,8 @@ export function useDiscordEvents(): UseDiscordEventsResult {
   const [error, setError] = useState<string | undefined>();
   const [cacheState, setCacheState] = useState<string | undefined>();
   const [generatedAt, setGeneratedAt] = useState<string | undefined>();
+  const [guildId, setGuildId] = useState<string | undefined>();
+  const [totalCount, setTotalCount] = useState<number | undefined>();
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -70,6 +74,8 @@ export function useDiscordEvents(): UseDiscordEventsResult {
       setPast(json.payload.past);
       setCacheState(json.meta?.cache);
       setGeneratedAt(json.payload.generatedAt);
+      setGuildId(json.payload.guildId);
+      setTotalCount(json.payload.rawCount);
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
         setError('Events konnten nicht geladen werden.');
@@ -89,7 +95,18 @@ export function useDiscordEvents(): UseDiscordEventsResult {
   }, [fetchEvents]);
 
   return useMemo(
-    () => ({ upcoming, active, past, loading, error, refresh, metaCache: cacheState, generatedAt }),
-    [upcoming, active, past, loading, error, refresh, cacheState, generatedAt]
+    () => ({
+      upcoming,
+      active,
+      past,
+      loading,
+      error,
+      refresh,
+      metaCache: cacheState,
+      generatedAt,
+      guildId,
+      totalCount
+    }),
+    [upcoming, active, past, loading, error, refresh, cacheState, generatedAt, guildId, totalCount]
   );
 }

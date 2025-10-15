@@ -1,565 +1,254 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, MouseEvent } from 'react';
+import { useMemo, useRef } from 'react';
 import { SectionHeading } from '@/components/SectionHeading';
-import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { useDiscordEvents, type DiscordCommunityEvent } from '@/hooks/useDiscordEvents';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 
 import styles from './CommunitySection.module.css';
 
-type EventCategory = 'irl' | 'ingame';
-type EventStatus = 'upcoming' | 'past';
+type DisplayStatus = 'active' | 'upcoming' | 'past';
 
-interface EventLink {
-  label: string;
-  href: string;
-}
-
-interface EventItem {
+interface DisplayEvent {
   id: string;
   title: string;
-  category: EventCategory;
-  status: EventStatus;
-  date?: string;
-  time?: string;
-  location?: string;
-  image?: string;
   description: string;
-  links?: EventLink[];
+  dateLabel: string;
+  timeLabel?: string;
+  location?: string;
+  imageUrl?: string;
+  status: DisplayStatus;
+  typeLabel: string;
+  url?: string;
+  startTime: number;
 }
 
-type EventBuckets = Record<EventStatus, EventItem[]>;
+const FALLBACK_DESCRIPTION = 'Keine Beschreibung verfuegbar.';
+const dateFormatter = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric'
+});
+const timeFormatter = new Intl.DateTimeFormat('de-DE', {
+  hour: '2-digit',
+  minute: '2-digit'
+});
+const stampFormatter = new Intl.DateTimeFormat('de-DE', {
+  dateStyle: 'medium',
+  timeStyle: 'short'
+});
 
-const EVENT_CATEGORIES: Record<EventCategory, string> = {
-  irl: 'Real-Life',
-  ingame: 'Ingame'
-};
-
-const FILTERS: Array<{ key: 'all' | EventCategory; label: string }> = [
-  { key: 'all', label: 'Alle' },
-  { key: 'irl', label: 'Real-Life' },
-  { key: 'ingame', label: 'Ingame' }
-];
-
-const EVENTS: EventItem[] = [
-  {
-    id: 'bar-citizen-zurich-2026',
-    title: 'Bar Citizen Zurich',
-    category: 'irl',
-    status: 'upcoming',
-    date: '15.02.2026',
-    time: '18:30 - 23:30',
-    location: 'Karl der Grosse Kulturzentrum, Zurich, Switzerland',
-    image: '/images/backgrounds/Planet_3.webp',
-    description:
-      'After-work Meetup mit Entwickler-Talk, Holovideo-Recaps und Community-Spotlights in lockerer Lounge-Atmosphäre.',
-    links: [
-      { label: 'Event Discord', href: 'https://discord.gg/wg7UY59T' },
-      { label: 'Warteliste', href: 'https://example.com/rsvp-zurich' }
-    ]
-  },
-  {
-    id: 'bar-citizen-vienna-2026',
-    title: 'Bar Citizen Vienna',
-    category: 'irl',
-    status: 'upcoming',
-    date: '21.03.2026',
-    time: '17:00 - 23:00',
-    location: 'Roberto American Bar, Vienna, Austria',
-    image: '/images/backgrounds/Planet_2.webp',
-    description:
-      'Austrian Outpost Special: Tasting-Session, Merch Swap und gemeinsamer Livestream der jüngsten Spectrum-News.',
-    links: [{ label: 'Event Discord', href: 'https://discord.gg/wg7UY59T' }]
-  },
-  {
-    id: 'citizencon-watch-frankfurt-2956',
-    title: 'CitizenCon Watch Party Frankfurt',
-    category: 'irl',
-    status: 'upcoming',
-    date: '10.10.2956',
-    time: '18:00 - 01:00',
-    location: 'Astor Film Lounge, Frankfurt, Germany',
-    image: '/images/CitizenCon_2025/Citizencon.webp',
-    description:
-      'Kinosaal mit 4K-Projektion, Community-Panel, Giveaways und Late-Night-Snacks – alles rund um CitizenCon live.',
-    links: [
-      { label: 'Event Discord', href: 'https://discord.gg/wg7UY59T' },
-      { label: 'Ticket Anfrage', href: 'https://example.com/citizencon-frankfurt' }
-    ]
-  },
-  {
-    id: 'op-red-shield-2956',
-    title: 'OP: Red Shield (Combat Patrol)',
-    category: 'ingame',
-    status: 'upcoming',
-    date: '26.10.2956',
-    time: '20:00 UEE',
-    location: 'ArcCorp Orbit, Stanton',
-    image: '/images/backgrounds/Jumpgate.webp',
-    description:
-      'Staffel-Patrouille entlang der Lagrange-Points. Fokus auf Formationsflug, Zielübergaben und Live-Fire Drill.',
-    links: [{ label: 'Mission Briefing', href: 'https://example.com/op-red-shield' }]
-  },
-  {
-    id: 'op-ghost-run-2956',
-    title: 'OP: Ghost Run (Cargo & Escort)',
-    category: 'ingame',
-    status: 'upcoming',
-    date: '02.11.2956',
-    time: '19:30 UEE',
-    location: 'microTech Cargo Hub, Stanton',
-    image: '/images/ships/Hull_C.webp',
-    description:
-      'Multi-Stop-Lieferung mit gesicherten Handelsrouten. Bedarf an Haulern, Logistik-Koordination und E-Warfare Escort.',
-    links: [{ label: 'Flightplan', href: 'https://example.com/ghost-run' }]
-  },
-  {
-    id: 'rescue-scenario-drill-2956',
-    title: 'Rescue Scenario Drill',
-    category: 'ingame',
-    status: 'upcoming',
-    date: '09.11.2956',
-    time: '20:00 UEE',
-    location: 'Crusader Orbit, Stanton',
-    image: '/images/ships/Terrapin.webp',
-    description:
-      'Medical Response Simulation mit Search & Rescue Terrapins, Medrunner-Kooperation und koordinierter Funkdisziplin.',
-    links: [{ label: 'Teilnahme sichern', href: 'https://example.com/rescue-drill' }]
-  },
-  {
-    id: 'bar-citizen-basel-2025',
-    title: 'Bar Citizen Basel',
-    category: 'irl',
-    status: 'past',
-    date: '01.06.2025',
-    location: 'ManaBar Basel, Switzerland',
-    image: '/images/Barcitizen_Basel_2025/Manabar.webp',
-    description:
-      'Über 60 Citizens feierten bei Arcade-Games und Community-Panels – inklusive Live-Verlosung exklusiver Ship Paints.',
-    links: [{ label: 'Event Discord', href: 'https://discord.gg/wg7UY59T' }]
-  },
-  {
-    id: 'citizencon-ebikon-2025',
-    title: 'CitizenCon Direct Watch Party - Luzern/Ebikon',
-    category: 'irl',
-    status: 'past',
-    date: '11.10.2025',
-    time: '20:30 - 23:00 (Bar Citizen 17:00 - 20:00)',
-    location: 'Pathé Cinema Mall of Switzerland, Ebikon',
-    image: '/images/CitizenCon_2025/Citizencon.webp',
-    description:
-      'Volle Kinoleinwand, Stimmungsfeuerwerk und Live-Kommentare der HSTC-Crew zu allen CitizenCon-Enthüllungen.',
-    links: [{ label: 'Event Discord', href: 'https://discord.gg/wg7UY59T' }]
-  },
-  {
-    id: 'op-ghost-run-2955',
-    title: 'OP: Ghost Run (Cargo & Escort)',
-    category: 'ingame',
-    status: 'past',
-    date: '14.05.2955',
-    time: '20:00 UEE',
-    location: 'Orison Freight Yard, Crusader',
-    image: '/images/ships/Ship.webp',
-    description:
-      'Logistikroute mit Shadow-Freelancern, koordinierter Quantum-Break und aggressiver ECM-Eskorte im Stanton-Netz.',
-    links: [{ label: 'Debrief ansehen', href: 'https://example.com/debrief-ghost-run' }]
-  },
-  {
-    id: 'academy-flight-night-2955',
-    title: 'Academy Flight Night',
-    category: 'ingame',
-    status: 'past',
-    date: '22.06.2955',
-    time: '21:00 UEE',
-    location: 'Everus Harbor, Hurston',
-    image: '/images/ships/Carrack.webp',
-    description:
-      'Trainingsabend mit Fokus auf Landeanflüge, Staffelwechsel und Notfall-Prozeduren. Drei neue Flight Leads zertifiziert.',
-    links: [{ label: 'Briefing Slides', href: 'https://example.com/academy-flight-night' }]
-  },
-  {
-    id: 'cargo-convoy-aurora-2954',
-    title: 'Cargo Convoy Aurora',
-    category: 'ingame',
-    status: 'past',
-    date: '03.11.2954',
-    time: '19:45 UEE',
-    location: 'Port Tressler, microTech',
-    image: '/images/ships/Reclaimer.webp',
-    description:
-      'Mehrstufiger Frachter-Konvoi mit Live-Wetterauswertung und eingesetzter Reclaimer-Salvage-Unterstützung.',
-    links: [{ label: 'Event Discord', href: 'https://discord.gg/wg7UY59T' }]
-  },
-  {
-    id: 'rescue-response-sim-2955',
-    title: 'Rescue Response Simulation',
-    category: 'ingame',
-    status: 'past',
-    date: '18.08.2955',
-    time: '20:15 UEE',
-    location: 'Ambulance Grid, Area18',
-    image: '/images/ships/Terrapin.webp',
-    description:
-      'Kooperative Rettungsmission mit Medrunner-Teams, koordinierter Drop-Pod Landung und Evakuierung unter Zeitdruck.',
-    links: [{ label: 'Mission Log', href: 'https://example.com/rescue-sim' }]
-  },
-  {
-    id: 'fleet-week-meetup-2955',
-    title: 'Fleet Week Meetup',
-    category: 'irl',
-    status: 'past',
-    date: '27.05.2025',
-    time: '14:00 - 20:00',
-    location: 'Imperial War Museum, Manchester, UK',
-    image: '/images/backgrounds/Pyro.webp',
-    description:
-      'Guided Tour, Lore-Quiz und Community-Fotoshooting zum Launch der Fleet Week. Abschluss im Museumscafé.',
-    links: [{ label: 'Galerie', href: 'https://example.com/fleet-week-gallery' }]
-  },
-  {
-    id: 'pyro-expedition-2955',
-    title: 'Pyro Expedition Recon',
-    category: 'ingame',
-    status: 'past',
-    date: '12.09.2955',
-    time: '19:00 UEE',
-    location: 'Pyro Jump Point, Stanton',
-    image: '/images/backgrounds/Explosion.webp',
-    description:
-      'Langstreckenaufklärung in Pyro mit Zollpunkt-Scans, Fuel Chain und Expeditionstagebuch. Drei neue Jump Data Sets.',
-    links: [{ label: 'Missionsvideo', href: 'https://example.com/pyro-expedition' }]
-  },
-  {
-    id: 'bar-citizen-linz-2025',
-    title: 'Bar Citizen Linz',
-    category: 'irl',
-    status: 'past',
-    date: '19.07.2025',
-    time: '19:00 - 23:00',
-    location: 'Sky Garden, Linz, Austria',
-    image: '/images/backgrounds/Planet.webp',
-    description:
-      'Sommerlicher Rooftop-Hangout mit Sunset-BBQ, Ship-Paint-Tauschbörse und spontanen Spectrum-Live-Podcasts.',
-    links: [{ label: 'Event Discord', href: 'https://discord.gg/wg7UY59T' }]
+function mapStatus(event: DiscordCommunityEvent): DisplayStatus {
+  if (event.isActive) {
+    return 'active';
   }
-];
+  return event.isPast ? 'past' : 'upcoming';
+}
 
-function bucketEvents(events: EventItem[]): EventBuckets {
-  return events.reduce<EventBuckets>(
-    (acc, event) => {
-      acc[event.status].push(event);
-      return acc;
-    },
-    { upcoming: [], past: [] }
+function mapTypeLabel(event: DiscordCommunityEvent): string {
+  switch (event.type) {
+    case 'EXTERNAL':
+      return 'Community';
+    case 'VOICE':
+      return 'Voice';
+    case 'STAGE':
+      return 'Stage';
+    default:
+      return 'Ingame';
+  }
+}
+
+function formatDateLabel(iso: string): string {
+  try {
+    return dateFormatter.format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
+function formatTimeRange(startIso: string, endIso?: string): string | undefined {
+  try {
+    const start = timeFormatter.format(new Date(startIso));
+    if (!endIso) {
+      return start;
+    }
+    const end = timeFormatter.format(new Date(endIso));
+    return `${start} - ${end}`;
+  } catch {
+    return undefined;
+  }
+}
+
+function createDisplayEvent(event: DiscordCommunityEvent, guildId?: string): DisplayEvent {
+  const status = mapStatus(event);
+  const typeLabel = mapTypeLabel(event);
+  const dateLabel = formatDateLabel(event.startsAt);
+  const timeLabel = formatTimeRange(event.startsAt, event.endsAt);
+  const url = guildId ? `https://discord.com/events/${guildId}/${event.id}` : undefined;
+
+  return {
+    id: event.id,
+    title: event.name,
+    description: event.description?.trim() || FALLBACK_DESCRIPTION,
+    dateLabel,
+    timeLabel,
+    location: event.location,
+    imageUrl: event.imageUrl,
+    status,
+    typeLabel,
+    url,
+    startTime: Date.parse(event.startsAt)
+  };
+}
+
+function EventCard({ event }: { event: DisplayEvent }) {
+  const statusLabel = event.status === 'active' ? 'Aktiv' : event.status === 'upcoming' ? 'Bevorstehend' : 'Vergangen';
+
+  return (
+    <article className={styles.card} data-status={event.status}>
+      {event.imageUrl && (
+        <div className={styles.cardMedia} aria-hidden="true">
+          <img src={event.imageUrl} alt="" loading="lazy" />
+        </div>
+      )}
+      <div className={styles.cardBody}>
+        <div className={styles.cardBadges}>
+          <span className={styles.badge} data-variant={event.status}>
+            {statusLabel}
+          </span>
+          <span className={styles.badgeSecondary}>{event.typeLabel}</span>
+        </div>
+        <h4 className={styles.cardTitle}>{event.title}</h4>
+        <p className={styles.cardDescription}>{event.description}</p>
+        <dl className={styles.cardMeta}>
+          <div>
+            <dt>Datum</dt>
+            <dd>{event.dateLabel}</dd>
+          </div>
+          {event.timeLabel && (
+            <div>
+              <dt>Zeit</dt>
+              <dd>{event.timeLabel}</dd>
+            </div>
+          )}
+          {event.location && (
+            <div>
+              <dt>Ort</dt>
+              <dd>{event.location}</dd>
+            </div>
+          )}
+        </dl>
+        <div className={styles.cardActions}>
+          {event.url && (
+            <a
+              className="btn btn-outline btn-sm"
+              href={event.url}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              Event im Discord
+            </a>
+          )}
+        </div>
+      </div>
+    </article>
   );
 }
 
 export function CommunitySection() {
-  const [activeFilter, setActiveFilter] = useState<'all' | EventCategory>('all');
-  const [isModalOpen, setModalOpen] = useState(false);
-  const prefersReducedMotion = usePrefersReducedMotion();
+  const {
+    active,
+    upcoming,
+    past,
+    loading,
+    error,
+    refresh,
+    metaCache,
+    generatedAt,
+    guildId,
+    totalCount
+  } = useDiscordEvents();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const { filteredEvents, buckets } = useMemo(() => {
-    const filtered =
-      activeFilter === 'all'
-        ? EVENTS
-        : EVENTS.filter((event) => event.category === activeFilter);
+  useStaggerReveal(containerRef, { rootMargin: '0px 0px -15%' });
 
-    return { filteredEvents: filtered, buckets: bucketEvents(filtered) };
-  }, [activeFilter]);
+  const upcomingEvents = useMemo(() => {
+    const list = [...active, ...upcoming].map((event) => createDisplayEvent(event, guildId));
+    return list.sort((a, b) => a.startTime - b.startTime);
+  }, [active, upcoming, guildId]);
 
-  const featuredEvent = useMemo(() => {
-    if (buckets.upcoming.length > 0) {
-      return buckets.upcoming[0];
-    }
-    if (buckets.past.length > 0) {
-      return buckets.past[0];
-    }
-    return undefined;
-  }, [buckets]);
+  const pastEvents = useMemo(() => {
+    const list = past.map((event) => createDisplayEvent(event, guildId));
+    return list.sort((a, b) => b.startTime - a.startTime);
+  }, [past, guildId]);
 
-  const hasAnyEvents = filteredEvents.length > 0;
-  const additionalEventsCount = Math.max(
-    filteredEvents.length - (featuredEvent ? 1 : 0),
-    0
-  );
-  const hasAdditionalEvents = additionalEventsCount > 0;
-  const animationEnabled = !prefersReducedMotion;
-
-  useStaggerReveal(containerRef);
-
-  useEffect(() => {
-    if (!isModalOpen || typeof document === 'undefined') {
-      return;
-    }
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    const handleKeypress = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setModalOpen(false);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeypress);
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.removeEventListener('keydown', handleKeypress);
-    };
-  }, [isModalOpen]);
-
-  const handleModalToggle = () => setModalOpen(true);
-  const handleModalClose = () => setModalOpen(false);
+  const loadedAny = upcomingEvents.length > 0 || pastEvents.length > 0;
+  const isInitialLoading = loading && !loadedAny;
+  const generatedLabel = generatedAt ? stampFormatter.format(new Date(generatedAt)) : undefined;
 
   return (
-    <section className="section" id="community" data-animate={animationEnabled ? 'on' : 'off'}>
+    <section className={`section ${styles.section}`} id="community">
       <div className="container" ref={containerRef}>
         <SectionHeading eyebrow="Events" title="Events" description="Ingame und Real-Life" />
 
-        <div role="group" aria-label="Event-Kategorien" className={styles.filters}>
-          {FILTERS.map((filter) => {
-            const isActive = filter.key === activeFilter;
-            return (
-              <button
-                key={filter.key}
-                type="button"
-                className={isActive ? `${styles.filterBtn} ${styles.isActive}` : styles.filterBtn}
-                onClick={() => setActiveFilter(filter.key)}
-              >
-                {filter.label}
-              </button>
-            );
-          })}
+        <div className={styles.statusBar}>
+          <div className={styles.statusChips}>
+            <span className={styles.statusChip}>Aktive Events: {active.length}</span>
+            <span className={styles.statusChip}>Bevorstehend: {upcoming.length}</span>
+            <span className={styles.statusChip}>Vergangen: {past.length}</span>
+            {typeof totalCount === 'number' && (
+              <span className={styles.statusChip}>Gesamt: {totalCount}</span>
+            )}
+            {metaCache && <span className={styles.metaTag}>Cache: {metaCache}</span>}
+            {generatedLabel && <span className={styles.metaTag}>Stand: {generatedLabel}</span>}
+          </div>
+          <button type="button" className="btn btn-outline btn-sm" onClick={() => void refresh()}>
+            Aktualisieren
+          </button>
         </div>
 
-        {!hasAnyEvents ? (
-          <p className={styles.emptyState}>
-            Derzeit sind keine Events im ausgewählten Filter hinterlegt.
-          </p>
+        {isInitialLoading && <p className={styles.notice}>Events werden geladen...</p>}
+        {error && !isInitialLoading && (
+          <p className={`${styles.notice} ${styles.errorNotice}`}>{error}</p>
+        )}
+
+        {!isInitialLoading && !loadedAny ? (
+          <div className={styles.emptyState}>
+            <p>
+              Derzeit sind keine Events geplant. Schau spaeter noch einmal vorbei oder tritt dem Discord bei, um
+              Benachrichtigungen zu erhalten.
+            </p>
+          </div>
         ) : (
-          <div className={styles.layout}>
-            {featuredEvent && (
-              <section className={styles.featuredSection} aria-label="Highlight Event">
-                <h3 className={styles.sectionLabel}>Highlight</h3>
-                <FeaturedEventCard event={featuredEvent} animate={animationEnabled} />
-                {hasAnyEvents && (
-                  <div className={styles.featuredFooter}>
-                    <button type="button" className={styles.viewAllBtn} onClick={handleModalToggle}>
-                      Alle Events anzeigen
-                    </button>
-                  </div>
-                )}
+          <>
+            {upcomingEvents.length > 0 && (
+              <section className={styles.group} aria-label="Aktive und kommende Events">
+                <header className={styles.groupHeader}>
+                  <h3 className={styles.groupTitle}>Aktiv und bevorstehend</h3>
+                  <span className={styles.groupCount}>{upcomingEvents.length}</span>
+                </header>
+                <div className={styles.grid}>
+                  {upcomingEvents.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
               </section>
             )}
 
-            {hasAdditionalEvents && (
-              <p className={styles.modalHint}>
-                {additionalEventsCount > 1
-                  ? `${additionalEventsCount} weitere Events findest du im Modal.`
-                  : 'Ein weiteres Event findest du im Modal.'}
-              </p>
+            {pastEvents.length > 0 && (
+              <section className={styles.group} aria-label="Vergangene Events">
+                <header className={styles.groupHeader}>
+                  <h3 className={styles.groupTitle}>Vergangene Events</h3>
+                  <span className={styles.groupCount}>{pastEvents.length}</span>
+                </header>
+                <div className={`${styles.grid} ${styles.pastGrid}`}>
+                  {pastEvents.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+              </section>
             )}
-          </div>
+          </>
         )}
       </div>
-
-      {isModalOpen && (
-        <EventModal events={filteredEvents} onClose={handleModalClose} animationEnabled={animationEnabled} />
-      )}
     </section>
-  );
-}
-
-interface FeaturedEventCardProps {
-  event: EventItem;
-  animate: boolean;
-}
-
-function FeaturedEventCard({ event, animate }: FeaturedEventCardProps) {
-  const details = [
-    { label: 'Datum', value: event.date },
-    { label: 'Zeit', value: event.time },
-    { label: 'Ort', value: event.location }
-  ].filter((detail): detail is { label: string; value: string } => Boolean(detail.value));
-
-  const cardStyle = animate ? ({ '--card-delay': '0s' } as CSSProperties) : undefined;
-
-  return (
-    <article className={styles.featuredCard} data-status={event.status} style={cardStyle}>
-      <div className={styles.featuredMedia} aria-hidden="true">
-        <img src={event.image ?? '/images/HSTC-Logo.webp'} alt="" loading="lazy" />
-      </div>
-      <div className={styles.featuredContent}>
-        <div className={styles.meta}>
-          <span className={styles.badge} data-kind={event.category}>
-            {EVENT_CATEGORIES[event.category]}
-          </span>
-          <span className={styles.status} data-status={event.status}>
-            {event.status === 'upcoming' ? 'Bevorstehend' : 'Vergangen'}
-          </span>
-        </div>
-        <h3 className={styles.featuredTitle}>{event.title}</h3>
-        <p className={styles.featuredDesc}>{event.description}</p>
-        {details.length > 0 && (
-          <dl className={styles.featuredDetails}>
-            {details.map((detail) => (
-              <div key={detail.label} className={styles.detailRow}>
-                <dt>{detail.label}</dt>
-                <dd>{detail.value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
-        {event.links && event.links.length > 0 && (
-          <div className={styles.featuredActions}>
-            {event.links.map((link, index) => (
-              <a
-                key={`${event.id}-${link.href}`}
-                href={link.href}
-                className={
-                  index === 0
-                    ? `${styles.primaryLink} btn btn-outline btn-sm`
-                    : `${styles.secondaryLink} btn btn-outline btn-sm`
-                }
-                target="_blank"
-                rel="noreferrer noopener"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-    </article>
-  );
-}
-
-interface EventModalProps {
-  events: EventItem[];
-  onClose: () => void;
-  animationEnabled: boolean;
-}
-
-function EventModal({ events, onClose, animationEnabled }: EventModalProps) {
-  if (events.length === 0) {
-    return null;
-  }
-
-  const modalBuckets = bucketEvents(events);
-
-  const handleBackdropClick = () => onClose();
-  const handleContentClick = (event: MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation();
-  };
-
-  return (
-    <div className={styles.modalBackdrop} role="dialog" aria-modal="true" onClick={handleBackdropClick}>
-      <div className={styles.modalCard} onClick={handleContentClick}>
-        <header className={styles.modalHeader}>
-          <div>
-            <p className={styles.modalEyebrow}>Event Übersicht</p>
-            <h3 className={styles.modalTitle}>Alle Events im aktuellen Filter</h3>
-          </div>
-          <button type="button" className={styles.modalClose} onClick={onClose} aria-label="Modal schließen">
-            Schließen
-          </button>
-        </header>
-        <div className={styles.modalBody}>
-          {modalBuckets.upcoming.length > 0 && (
-            <div className={styles.modalSection}>
-              <h4 className={styles.modalSubheading}>Bevorstehend</h4>
-              <EventGrid events={modalBuckets.upcoming} animationEnabled={animationEnabled} />
-            </div>
-          )}
-          {modalBuckets.past.length > 0 && (
-            <div className={styles.modalSection}>
-              <h4 className={styles.modalSubheading}>Vergangen</h4>
-              <EventGrid events={modalBuckets.past} animationEnabled={animationEnabled} />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface EventGridProps {
-  events: EventItem[];
-  animationEnabled: boolean;
-}
-
-function EventGrid({ events, animationEnabled }: EventGridProps) {
-  return (
-    <ul className={styles.modalGrid} role="list">
-      {events.map((event, index) => (
-        <li key={event.id} className={styles.modalGridItem}>
-          <EventCard event={event} index={index} animate={animationEnabled} />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-interface EventCardProps {
-  event: EventItem;
-  index: number;
-  animate: boolean;
-}
-
-function EventCard({ event, index, animate }: EventCardProps) {
-  const details = [
-    { label: 'Datum', value: event.date },
-    { label: 'Zeit', value: event.time },
-    { label: 'Ort', value: event.location }
-  ].filter((detail): detail is { label: string; value: string } => Boolean(detail.value));
-
-  const delay = animate ? `${index * 0.04}s` : undefined;
-  const cardStyle = animate ? ({ '--card-delay': delay } as CSSProperties) : undefined;
-
-  return (
-    <article className={styles.card} data-status={event.status} style={cardStyle}>
-      <div className={styles.cardMedia} aria-hidden="true">
-        <img src={event.image ?? '/images/HSTC-Logo.webp'} alt="" loading="lazy" />
-      </div>
-      <div className={styles.cardBody}>
-        <div className={styles.meta}>
-          <span className={styles.badge} data-kind={event.category}>
-            {EVENT_CATEGORIES[event.category]}
-          </span>
-          <span className={styles.status} data-status={event.status}>
-            {event.status === 'upcoming' ? 'Bevorstehend' : 'Vergangen'}
-          </span>
-        </div>
-        <h4 className={styles.cardTitle}>{event.title}</h4>
-        <p className={styles.cardDesc}>{event.description}</p>
-        {details.length > 0 && (
-          <dl className={styles.details}>
-            {details.map((detail) => (
-              <div key={detail.label} className={styles.detailRow}>
-                <dt>{detail.label}</dt>
-                <dd>{detail.value}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
-        {event.links && event.links.length > 0 && (
-          <div className={styles.links}>
-            {event.links.map((link) => (
-              <a
-                key={`${event.id}-${link.href}`}
-                href={link.href}
-                className={`${styles.secondaryLink} btn btn-outline btn-sm`}
-                target="_blank"
-                rel="noreferrer noopener"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-    </article>
   );
 }

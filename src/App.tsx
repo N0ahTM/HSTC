@@ -27,8 +27,8 @@ function SiteShell() {
 
   return (
     <>
-  <SpaceBackground showCircleGuide={false} />
-  <NavigationBar />
+      <SpaceBackground showCircleGuide={false} />
+      <NavigationBar />
       <main>
         <HeroSection onJoin={openRecruitment} onDiscord={openDiscord} />
         <PillarsSection />
