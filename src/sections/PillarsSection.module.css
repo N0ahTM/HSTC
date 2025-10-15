@@ -70,12 +70,12 @@
 /* Legacy variants kept (can be removed once unused in code):
   .card--dach, .card--elite, .card--security, .card--logistics, .card--recon */
 /* New dedicated variants for each card */
-.card--escort { background-image: url('/images/ships/Ship.webp'); }
+.card--escort { background-image: url('/images/ships/Hornet.webp'); }
 .card--hauling { background-image: url('/images/backgrounds/Starlancer.webp'); }
-.card--industrial { background-image: url('/images/backgrounds/Space.webp'); }
-.card--exploring { background-image: url('/images/backgrounds/Pyro.webp'); }
-.card--missions { background-image: url('/images/backgrounds/Explosion.webp'); }
-.card--fps { background-image: url('/images/ships/Hornet.webp'); }
+.card--industrial { background-image: url('/images/ships/Terrapin.webp'); }
+.card--exploring { background-image: url('/images/ships/Carrack.webp'); }
+.card--missions { background-image: url('/images/ships/F7A.webp'); }
+.card--fps { background-image: url('/images/fps/visir.webp'); }
 
 /* Optional: remove obsolete ones later */
 

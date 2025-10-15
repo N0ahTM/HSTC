@@ -5,87 +5,154 @@ import { fileURLToPath, URL } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
-// Local-dev middleware: forward /api/discord-images to the TS handler directly
-const discordImagesApi = (): Plugin => ({
-  name: 'discord-images-api',
-  configureServer(server) {
-    // Lazy import to avoid issues during build
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    server.middlewares.use('/api/discord-images', async (req, res) => {
-      try {
-        const method = req.method ?? 'GET';
-        const url = new URL(req.url ?? '', 'http://localhost');
-        const query: Record<string, string | undefined> = {};
-        url.searchParams.forEach((v, k) => (query[k] = v));
+type AmplifyOutputs = {
+  custom?: {
+    discordImagesUrl?: string;
+    discordEventsUrl?: string;
+  };
+};
 
-        const hasSecrets = Boolean(process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_CHANNEL_ID);
+type ProxyOptions = {
+  route: string;
+  handlerModule: string;
+  envEndpointVar: string;
+  amplifyKey: keyof NonNullable<AmplifyOutputs['custom']>;
+  requiredSecrets: string[];
+  logScope: string;
+};
+
+const amplifyOutputsCache: { value: AmplifyOutputs | null; inFlight: Promise<AmplifyOutputs | null> | null } = {
+  value: null,
+  inFlight: null
+};
+
+async function loadAmplifyOutputs(): Promise<AmplifyOutputs | null> {
+  if (amplifyOutputsCache.value) {
+    return amplifyOutputsCache.value;
+  }
+  if (amplifyOutputsCache.inFlight) {
+    return amplifyOutputsCache.inFlight;
+  }
+  amplifyOutputsCache.inFlight = (async () => {
+    try {
+      const jsonPath = path.join(process.cwd(), 'amplify_outputs.json');
+      const content = await readFile(jsonPath, 'utf-8');
+      return JSON.parse(content) as AmplifyOutputs;
+    } catch {
+      return null;
+    } finally {
+      amplifyOutputsCache.inFlight = null;
+    }
+  })();
+  amplifyOutputsCache.value = await amplifyOutputsCache.inFlight;
+  return amplifyOutputsCache.value;
+}
+
+async function resolveRemoteEndpoint(envVar: string, key: keyof NonNullable<AmplifyOutputs['custom']>): Promise<string | null> {
+  const direct = (process.env[envVar] ?? '').toString().trim();
+  if (direct) {
+    return direct;
+  }
+  const outputs = await loadAmplifyOutputs();
+  const candidate = outputs?.custom?.[key];
+  return typeof candidate === 'string' && candidate.length > 0 ? candidate : null;
+}
+
+const createAmplifyProxy = (options: ProxyOptions): Plugin => ({
+  name: `${options.logScope}-api`,
+  configureServer(server) {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    server.middlewares.use(options.route, async (req, res) => {
+      const method = req.method ?? 'GET';
+      const requestUrl = new URL(req.url ?? '', 'http://localhost');
+      const query: Record<string, string | undefined> = {};
+      requestUrl.searchParams.forEach((v, k) => (query[k] = v));
+
+      try {
+        const hasSecrets = options.requiredSecrets.every((name) => Boolean(process.env[name]));
 
         if (hasSecrets) {
-          // Run the handler locally when secrets are available
-          const mod = await server.ssrLoadModule('/amplify/functions/discord-images/handler.ts');
-          const { handler } = mod as { handler: (event: unknown) => Promise<{ statusCode: number; headers: Record<string, string>; body: string }> };
+          const mod = await server.ssrLoadModule(options.handlerModule);
+          const { handler } = mod as {
+            handler: (event: { requestContext: { http: { method: string } }; queryStringParameters: Record<string, string | undefined> }) => Promise<{
+              statusCode: number;
+              headers: Record<string, string>;
+              body: string;
+            }>;
+          };
+
           const event = {
             requestContext: { http: { method } },
             queryStringParameters: query
           } as const;
 
-          const result = await handler(event as any);
+          const result = await handler(event);
           res.statusCode = result.statusCode;
-          for (const [k, v] of Object.entries(result.headers)) {
-            res.setHeader(k, String(v));
+          for (const [header, value] of Object.entries(result.headers)) {
+            res.setHeader(header, value);
           }
           res.end(result.body);
           return;
         }
 
-        // Fallback: proxy to the deployed Lambda URL to avoid CORS in the browser during dev
-        let remoteEndpoint = (process.env.VITE_DISCORD_IMAGES_ENDPOINT ?? '').toString().trim();
-        if (!remoteEndpoint) {
-          try {
-            const jsonPath = path.join(process.cwd(), 'amplify_outputs.json');
-            const content = await readFile(jsonPath, 'utf-8');
-            const parsed = JSON.parse(content) as { custom?: { discordImagesUrl?: string } };
-            remoteEndpoint = parsed.custom?.discordImagesUrl ?? '';
-          } catch {
-            // ignore
-          }
-        }
-
+        const remoteEndpoint = await resolveRemoteEndpoint(options.envEndpointVar, options.amplifyKey);
         if (!remoteEndpoint) {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ error: 'No remote endpoint configured. Set VITE_DISCORD_IMAGES_ENDPOINT or amplify_outputs.json.' }));
+          res.end(
+            JSON.stringify({
+              error: `No remote endpoint configured for ${options.logScope}. Set ${options.envEndpointVar} or provide amplify_outputs.json.`
+            })
+          );
           return;
         }
 
         const target = new URL(remoteEndpoint);
-        for (const [k, v] of Object.entries(query)) {
-          if (typeof v === 'string') target.searchParams.set(k, v);
+        for (const [key, value] of Object.entries(query)) {
+          if (typeof value === 'string') {
+            target.searchParams.set(key, value);
+          }
         }
 
         const upstream = await fetch(target, { method: 'GET', headers: { Accept: 'application/json' } });
-
         res.statusCode = upstream.status;
-        // Copy minimal headers
         res.setHeader('Content-Type', upstream.headers.get('content-type') ?? 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Expose-Headers', 'Content-Type, Content-Length');
         const buf = Buffer.from(await upstream.arrayBuffer());
         res.setHeader('Content-Length', String(buf.length));
         res.end(buf);
-      } catch (err) {
+      } catch (error) {
         // eslint-disable-next-line no-console
-        console.error('Local API middleware error', err);
+        console.error(`[${options.logScope}] local API middleware error`, error);
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ error: 'Local API error' }));
+        res.end(JSON.stringify({ error: 'Local API middleware error' }));
       }
     });
   }
 });
 
 export default defineConfig({
-  plugins: [react(), discordImagesApi()],
+  plugins: [
+    react(),
+    createAmplifyProxy({
+      route: '/api/discord-images',
+      handlerModule: '/amplify/functions/discord-images/handler.ts',
+      envEndpointVar: 'VITE_DISCORD_IMAGES_ENDPOINT',
+      amplifyKey: 'discordImagesUrl',
+      requiredSecrets: ['DISCORD_BOT_TOKEN', 'DISCORD_CHANNEL_ID'],
+      logScope: 'discord-images'
+    }),
+    createAmplifyProxy({
+      route: '/api/discord-events',
+      handlerModule: '/amplify/functions/discord-events/handler.ts',
+      envEndpointVar: 'VITE_DISCORD_EVENTS_ENDPOINT',
+      amplifyKey: 'discordEventsUrl',
+      requiredSecrets: ['DISCORD_BOT_TOKEN', 'DISCORD_GUILD_ID'],
+      logScope: 'discord-events'
+    })
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

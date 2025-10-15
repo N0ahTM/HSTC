@@ -24,4 +24,9 @@
 
   --transition-fast: 150ms ease;
   --transition-medium: 250ms ease;
+
+  /* Layout parameters */
+  /* How far the Hero middle content (logo/title/subtitle/buttons) should be pushed down on mobile.
+     Tweakable by the user; consumed by HeroSection.module.css. */
+  --hero-mobile-content-offset: clamp(11rem, 14vh, 8rem);
 }
