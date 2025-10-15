@@ -176,7 +176,7 @@ export function CommunitySection() {
 
         {!isInitialLoading && !loadedAny ? (
           <div className={styles.emptyState}>
-            <p>Derzeit sind keine Events geplant. Schau spaeter noch einmal vorbei.</p>
+            <p>Derzeit sind keine Events geplant. Schau später noch einmal vorbei.</p>
           </div>
         ) : (
           <div className={styles.list}>
