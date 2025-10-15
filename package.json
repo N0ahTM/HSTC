@@ -20,7 +20,6 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.654.0",
     "animejs": "^3.2.2",
     "clsx": "^2.1.1",
     "react": "^18.3.1",
