@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { SectionHeading } from '@/components/SectionHeading';
-import { useDiscordEvents, type DiscordCommunityEvent } from '@/hooks/useDiscordEvents';
+import type { DiscordCommunityEvent } from '@/hooks/useDiscordEvents';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 
 import styles from './CommunitySection.module.css';
@@ -144,8 +144,19 @@ function EventCard({ event }: { event: DisplayEvent }) {
   );
 }
 
-export function CommunitySection() {
-  const { active, upcoming, past, loading, error, guildId } = useDiscordEvents();
+interface CommunitySectionProps {
+  events: {
+    active: DiscordCommunityEvent[];
+    upcoming: DiscordCommunityEvent[];
+    past: DiscordCommunityEvent[];
+    loading: boolean;
+    error?: string;
+    guildId?: string;
+  };
+}
+
+export function CommunitySection({ events }: CommunitySectionProps) {
+  const { active, upcoming, past, loading, error, guildId } = events;
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useStaggerReveal(containerRef, { rootMargin: '0px 0px -15%' });
@@ -161,8 +172,12 @@ export function CommunitySection() {
   }, [past, guildId]);
 
   const allEvents = useMemo(() => [...upcomingEvents, ...pastEvents], [upcomingEvents, pastEvents]);
-  const loadedAny = allEvents.length > 0;
-  const isInitialLoading = loading && !loadedAny;
+  const hasAnyEvents = allEvents.length > 0;
+  const isInitialLoading = loading && !hasAnyEvents;
+
+  if (!loading && !hasAnyEvents) {
+    return null;
+  }
 
   return (
     <section className={`section ${styles.section}`} id="community">
@@ -170,15 +185,9 @@ export function CommunitySection() {
         <SectionHeading eyebrow="Events" title="Events" description="Ingame und Real-Life" />
 
         {isInitialLoading && <p className={styles.notice}>Events werden geladen...</p>}
-        {error && !isInitialLoading && (
-          <p className={`${styles.notice} ${styles.errorNotice}`}>{error}</p>
-        )}
+        {error && !isInitialLoading && <p className={`${styles.notice} ${styles.errorNotice}`}>{error}</p>}
 
-        {!isInitialLoading && !loadedAny ? (
-          <div className={styles.emptyState}>
-            <p>Derzeit sind keine Events geplant. Schau später noch einmal vorbei.</p>
-          </div>
-        ) : (
+        {hasAnyEvents && (
           <div className={styles.list}>
             {allEvents.map((event) => (
               <EventCard key={event.id} event={event} />

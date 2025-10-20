@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import anime from 'animejs';
 
@@ -7,17 +7,25 @@ import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import styles from './NavigationBar.module.css';
 
 // Navigation bar no longer shows CTA buttons; therefore no props are required
-interface NavigationBarProps {}
+interface NavigationBarProps {
+  showCommunityLink?: boolean;
+}
 
-const navLinks: Array<{ href: string; label: string }> = [
-  { href: '#top', label: 'Start' },
-  { href: '#mission', label: 'Portfolio' },
-  { href: '#community', label: 'Community' },
-  { href: '#community-images', label: 'Bilder' },
-  { href: '#join', label: 'Beitreten' }
-];
-
-export function NavigationBar({}: NavigationBarProps) {
+export function NavigationBar({ showCommunityLink = true }: NavigationBarProps) {
+  const navLinks = useMemo(() => {
+    const links: Array<{ href: string; label: string }> = [
+      { href: '#top', label: 'Start' },
+      { href: '#mission', label: 'Portfolio' }
+    ];
+    if (showCommunityLink) {
+      links.push({ href: '#community', label: 'Community' });
+    }
+    links.push(
+      { href: '#community-images', label: 'Bilder' },
+      { href: '#join', label: 'Beitreten' }
+    );
+    return links;
+  }, [showCommunityLink]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [visible, setVisible] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
