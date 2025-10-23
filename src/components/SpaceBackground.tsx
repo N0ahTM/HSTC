@@ -1,159 +1,337 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import anime from 'animejs';
 import clsx from 'clsx';
 import styles from './SpaceBackground.module.css';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 
 type Vec2 = { x: number; y: number };
+type CirclePixels = { cx: number; cy: number; radius: number };
+type CirclePercent = { cxPct: number; cyPct: number; rPct: number };
+
+interface PlanetArtCalibration {
+  sourceWidth: number;
+  sourceHeight: number;
+  circle: CirclePixels;
+}
+
+const PLANET_ART: PlanetArtCalibration = {
+  sourceWidth: 3840,
+  sourceHeight: 2160,
+  circle: {
+    cx: 1950, 
+    cy: -3220,
+    radius: 4050
+  }
+};
+
+const BASE_VIEWPORT_AREA = 1920 * 1080;
+
+function computeCircleFromCover(width: number, height: number): CirclePixels | null {
+  if (!width || !height) return null;
+  const { sourceWidth, sourceHeight, circle } = PLANET_ART;
+  const scale = Math.max(width / sourceWidth, height / sourceHeight);
+  const displayWidth = sourceWidth * scale;
+  const displayHeight = sourceHeight * scale;
+  const offsetX = (width - displayWidth) / 2;
+  const offsetY = (height - displayHeight) / 2;
+
+  return {
+    cx: circle.cx * scale + offsetX,
+    cy: circle.cy * scale + offsetY,
+    radius: circle.radius * scale
+  };
+}
+
+function circleIntersectsViewport(circle: CirclePixels, width: number, height: number): boolean {
+  if (circle.radius <= 0) return false;
+  const nearestX = Math.max(0, Math.min(circle.cx, width));
+  const nearestY = Math.max(0, Math.min(circle.cy, height));
+  const dx = nearestX - circle.cx;
+  const dy = nearestY - circle.cy;
+  return dx * dx + dy * dy <= circle.radius * circle.radius;
+}
+
+function circlesApproximatelyEqual(a: CirclePixels, b: CirclePixels, epsilon = 0.5): boolean {
+  return (
+    Math.abs(a.cx - b.cx) <= epsilon &&
+    Math.abs(a.cy - b.cy) <= epsilon &&
+    Math.abs(a.radius - b.radius) <= epsilon
+  );
+}
 
 interface SpaceBackgroundProps {
   // Planet area is drawn above FX; by default we assume the screenshot framing
   // If you pass a circle, we will avoid spawning FX inside it to keep the planet clean
   planetCircle?: { cxPct: number; cyPct: number; rPct: number };
-  // Show a red guide circle to adjust the mask visually
-  showCircleGuide?: boolean;
   // Debug: color shooting stars bright red to inspect paths
   meteorDebug?: boolean;
 }
 
-export function SpaceBackground({ planetCircle, showCircleGuide, meteorDebug }: SpaceBackgroundProps) {
+export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const starsRef = useRef<HTMLDivElement>(null);
   const canvasDustRef = useRef<HTMLCanvasElement>(null);
   const canvasTrailsRef = useRef<HTMLCanvasElement>(null);
-  const canvasGuideRef = useRef<HTMLCanvasElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const planetLayerRef = useRef<HTMLDivElement>(null);
   const reduceMotion = usePrefersReducedMotion();
+  const circlePxRef = useRef<CirclePixels>({ cx: 0, cy: 0, radius: 0 });
+  const circlePctRef = useRef<CirclePercent>(planetCircle ?? { cxPct: 50, cyPct: -151, rPct: 110 });
+  const viewportSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
+  const particleBudgetRef = useRef<{ stars: number; dust: number }>({ stars: 0, dust: 0 });
 
-  const circle = useMemo(() => {
-    // Defaults based on your screenshot: center above viewport, large radius so only the arc is visible
-    return planetCircle ?? { cxPct: 50, cyPct: -151, rPct: 110 };
-  }, [planetCircle]);
+  /**
+   * Calibration:
+   * Circle metrics originate from sampling `/images/backgrounds/Planet_4.webp`.
+   * Consumers can override via `planetCircle` if needed.
+   */
+
+  const recomputeCircle = useCallback(
+    (size?: { width: number; height: number }) => {
+      const root = rootRef.current;
+      if (!root) {
+        return null;
+      }
+      const rect = size ?? root.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+      if (!width || !height) {
+        return null;
+      }
+
+      viewportSizeRef.current = { width, height };
+
+      let nextCircle: CirclePixels | null = null;
+      if (planetCircle) {
+        nextCircle = {
+          cx: (planetCircle.cxPct / 100) * width,
+          cy: (planetCircle.cyPct / 100) * height,
+          radius: (planetCircle.rPct / 100) * Math.max(width, height)
+        };
+      } else {
+        nextCircle = computeCircleFromCover(width, height);
+      }
+
+      if (!nextCircle || !circleIntersectsViewport(nextCircle, width, height)) {
+        return null;
+      }
+
+      const prev = circlePxRef.current;
+      const changed = !circlesApproximatelyEqual(prev, nextCircle);
+      circlePxRef.current = nextCircle;
+      circlePctRef.current = {
+        cxPct: (nextCircle.cx / width) * 100,
+        cyPct: (nextCircle.cy / height) * 100,
+        rPct: (nextCircle.radius / Math.max(width, height)) * 100
+      };
+
+      const host = rootRef.current;
+      if (host) {
+        host.style.setProperty('--planet-circle-cx', `${circlePctRef.current.cxPct}%`);
+        host.style.setProperty('--planet-circle-cy', `${circlePctRef.current.cyPct}%`);
+        host.style.setProperty('--planet-circle-r', `${circlePctRef.current.rPct}%`);
+      }
+
+      const area = width * height;
+      const areaFactor = Math.max(0.65, Math.min(2.35, area / BASE_VIEWPORT_AREA));
+      const targetStars = Math.round(220 * areaFactor);
+      const targetDust = Math.round(140 * areaFactor);
+      particleBudgetRef.current = { stars: targetStars, dust: targetDust };
+
+      return nextCircle;
+    },
+    [planetCircle]
+  );
 
   useEffect(() => {
-    if (reduceMotion) return; // static background, no animations
-    const root = rootRef.current!;
-    const dustCanvas = canvasDustRef.current!;
-    const trailsCanvas = canvasTrailsRef.current!;
-  const grid = gridRef.current!;
-    const planet = planetLayerRef.current!;
+    const rootNode = rootRef.current;
+    if (!rootNode) return;
+    const root = rootNode;
+
+    const syncCircleMetrics = () => {
+      const rect = root.getBoundingClientRect();
+      recomputeCircle({ width: rect.width, height: rect.height });
+    };
+
+    syncCircleMetrics();
+    if (reduceMotion) {
+      const handleResize = () => syncCircleMetrics();
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('orientationchange', handleResize);
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('orientationchange', handleResize);
+      };
+    }
+
+    const dustCanvasNode = canvasDustRef.current;
+    const trailsCanvasNode = canvasTrailsRef.current;
+    const gridNode = gridRef.current;
+    const planetNode = planetLayerRef.current;
+    if (!dustCanvasNode || !trailsCanvasNode || !gridNode || !planetNode) {
+      return;
+    }
+    const dustCanvas = dustCanvasNode;
+    const trailsCanvas = trailsCanvasNode;
+    const grid = gridNode;
+    const planet = planetNode;
 
     let raf = 0;
     let running = true;
+    const starNodes: HTMLElement[] = [];
+    let starTweens: anime.AnimeInstance[] = [];
+    let lastStarConfig = { width: 0, height: 0, count: 0 };
 
-  // Resize canvases to device-pixel ratio for crispness
+    type Dust = { x: number; y: number; r: number; a: number; vx: number; vy: number; hue: number };
+    const dustCtx = dustCanvas.getContext('2d')!;
+    const dust: Dust[] = [];
+
+    function spawnDust(): Dust {
+      const rect = root.getBoundingClientRect();
+      let p: Dust;
+      let guard = 0;
+      do {
+        p = {
+          x: Math.random() * rect.width,
+          y: Math.random() * rect.height,
+          r: 0.35 + Math.pow(Math.random(), 2.2) * 1.0,
+          a: 0.02 + Math.random() * 0.06,
+          vx: -0.02 + Math.random() * 0.04,
+          vy: -0.02 + Math.random() * 0.04,
+          hue: 12 + Math.random() * 10
+        };
+        guard++;
+      } while (isInsidePlanetPx(p) && guard < 10);
+      return p;
+    }
+
+    function ensureDustBudget(target: number) {
+      const desired = Math.max(90, Math.round(Number.isFinite(target) ? target : dust.length));
+      if (desired > dust.length) {
+        for (let i = dust.length; i < desired; i++) dust.push(spawnDust());
+      } else if (desired < dust.length) {
+        dust.splice(desired);
+      }
+    }
+
+    ensureDustBudget(particleBudgetRef.current.dust || 140);
+
+    // Resize canvases to device-pixel ratio for crispness
     const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
     function resize() {
       const { width, height } = root.getBoundingClientRect();
-      for (const c of [dustCanvas, trailsCanvas, canvasGuideRef.current!]) {
-        c.width = Math.floor(width * dpr);
-        c.height = Math.floor(height * dpr);
-        c.style.width = width + 'px';
-        c.style.height = height + 'px';
+      if (!width || !height) return;
+      recomputeCircle({ width, height });
+
+      for (const canvas of [dustCanvas, trailsCanvas]) {
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
       }
-      // Revalidate star positions after resize to ensure none drift inside planet
+
       const starContainer = starsRef.current;
-      if (starContainer && starContainer.children.length) {
-        const elems = Array.from(starContainer.children) as HTMLElement[];
-        for (const node of elems) {
-          const leftPct = parseFloat(node.style.left);
-          const topPct = parseFloat(node.style.top);
-          let px = (leftPct / 100) * width;
-          let py = (topPct / 100) * height;
-          if (isInsidePlanet({ x: px, y: py })) {
+      if (starContainer) {
+        const targetCount = particleBudgetRef.current.stars || 260;
+        const widthChanged = Math.abs(width - lastStarConfig.width) > 1;
+        const heightChanged = Math.abs(height - lastStarConfig.height) > 1;
+        const countChanged = targetCount !== lastStarConfig.count;
+        if (widthChanged || heightChanged || countChanged) {
+          anime.remove(starNodes);
+          starNodes.forEach((n) => n.remove());
+          starNodes.length = 0;
+          starTweens.forEach((t) => t.pause());
+          starTweens = [];
+
+          for (let i = 0; i < targetCount; i++) {
+            const star = document.createElement('span');
+            star.style.position = 'absolute';
+            const size = 0.6 + Math.pow(Math.random(), 2.6) * 2.0;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.borderRadius = '50%';
+            const hueRoll = Math.random();
+            let color: string;
+            if (hueRoll < 0.6) color = `hsl(${210 + Math.random() * 20}, 40%, ${80 + Math.random() * 18}%)`;
+            else if (hueRoll < 0.9) color = `hsl(${38 + Math.random() * 12}, 60%, ${78 + Math.random() * 16}%)`;
+            else color = `hsl(${8 + Math.random() * 6}, 70%, ${72 + Math.random() * 14}%)`;
+            star.style.background = color;
+
+            let x = Math.random() * width;
+            let y = Math.random() * height;
             let tries = 0;
-            let nx = Math.random() * 100;
-            let ny = Math.random() * 100;
             while (tries < 80) {
-              px = (nx / 100) * width;
-              py = (ny / 100) * height;
-              if (!isInsidePlanet({ x: px, y: py })) break;
-              nx = Math.random() * 100;
-              ny = Math.random() * 100;
+              if (!isInsidePlanetPx({ x, y })) break;
+              x = Math.random() * width;
+              y = Math.random() * height;
               tries++;
             }
-            if (tries < 80) {
-              node.style.left = nx + '%';
-              node.style.top = ny + '%';
+            if (tries >= 80) continue;
+            star.style.left = `${(x / width) * 100}%`;
+            star.style.top = `${(y / height) * 100}%`;
+            star.style.opacity = String(0.35 + Math.random() * 0.55);
+            star.style.filter = `blur(${Math.random() < 0.3 ? 0.6 : 0}px)`;
+            star.style.pointerEvents = 'none';
+            starContainer.appendChild(star);
+            starNodes.push(star);
+          }
+
+          starTweens = starNodes.map((n) =>
+            anime({
+              targets: n,
+              opacity: [0.12, 0.9],
+              duration: 6500 + Math.random() * 4500,
+              delay: Math.random() * 1600,
+              direction: 'alternate',
+              easing: 'easeInOutSine',
+              loop: true
+            })
+          );
+
+          lastStarConfig = { width, height, count: starNodes.length };
+        } else {
+          // Only revalidate positions to keep clear of the planet rim
+          const elems = Array.from(starContainer.children) as HTMLElement[];
+          for (const node of elems) {
+            const leftPct = parseFloat(node.style.left);
+            const topPct = parseFloat(node.style.top);
+            let px = (leftPct / 100) * width;
+            let py = (topPct / 100) * height;
+            if (isInsidePlanetPx({ x: px, y: py })) {
+              let tries = 0;
+              let nx = Math.random() * width;
+              let ny = Math.random() * height;
+              while (tries < 80) {
+                if (!isInsidePlanetPx({ x: nx, y: ny })) break;
+                nx = Math.random() * width;
+                ny = Math.random() * height;
+                tries++;
+              }
+              if (tries < 80) {
+                node.style.left = `${(nx / width) * 100}%`;
+                node.style.top = `${(ny / height) * 100}%`;
+              }
             }
           }
         }
       }
+
+      ensureDustBudget(particleBudgetRef.current.dust || dust.length);
     }
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(root);
+    const handleWindowResize = () => resize();
+    window.addEventListener('resize', handleWindowResize);
+    window.addEventListener('orientationchange', handleWindowResize);
 
-    // Helper: check if point is inside planet circle (in CSS pixels)
-    function isInsidePlanet(p: Vec2): boolean {
-      const rect = root.getBoundingClientRect();
-      const cx = (circle.cxPct / 100) * rect.width;
-      const cy = (circle.cyPct / 100) * rect.height;
-      const r = (circle.rPct / 100) * Math.max(rect.width, rect.height);
-      const dx = p.x - cx;
-      const dy = p.y - cy;
-      return dx * dx + dy * dy <= r * r;
+    function isInsidePlanetPx(p: Vec2): boolean {
+      const circle = circlePxRef.current;
+      if (circle.radius <= 0) return false;
+      const dx = p.x - circle.cx;
+      const dy = p.y - circle.cy;
+      return dx * dx + dy * dy <= circle.radius * circle.radius;
     }
-
-    // Stars (DOM nodes to leverage CSS filters and anime.js opacity easily)
-  const starCount = 260; // more stars
-  const starNodes: HTMLElement[] = [];
-    for (let i = 0; i < starCount; i++) {
-      const star = document.createElement('span');
-      star.style.position = 'absolute';
-      const size = 0.6 + Math.pow(Math.random(), 2.6) * 2.0; // bias to smaller
-      star.style.width = `${size}px`;
-      star.style.height = `${size}px`;
-      star.style.borderRadius = '50%';
-      // subtle color variety near white
-      const r = Math.random();
-      let color: string;
-      if (r < 0.6) {
-        // cool/neutral whites
-        color = `hsl(${210 + Math.random() * 20}, 40%, ${80 + Math.random() * 18}%)`;
-      } else if (r < 0.9) {
-        // warm/yellowish
-        color = `hsl(${38 + Math.random() * 12}, 60%, ${78 + Math.random() * 16}%)`;
-      } else {
-        // very few reddish dwarfs
-        color = `hsl(${8 + Math.random() * 6}, 70%, ${72 + Math.random() * 14}%)`;
-      }
-      star.style.background = color;
-
-      // Reject positions that fall inside the planet
-      let x = Math.random() * 100;
-      let y = Math.random() * 100;
-      let tries = 0;
-      while (tries < 80) {
-        const px = (x / 100) * root.clientWidth;
-        const py = (y / 100) * root.clientHeight;
-        if (!isInsidePlanet({ x: px, y: py })) break;
-        x = Math.random() * 100;
-        y = Math.random() * 100;
-        tries++;
-      }
-      if (tries >= 80) { i--; continue; }
-      star.style.left = x + '%';
-      star.style.top = y + '%';
-      star.style.opacity = String(0.35 + Math.random() * 0.55);
-      star.style.filter = `blur(${Math.random() < 0.3 ? 0.6 : 0}px)`;
-      star.style.pointerEvents = 'none';
-      starsRef.current!.appendChild(star);
-      starNodes.push(star);
-    }
-
-    const starTweens = starNodes.map((n) =>
-      anime({
-        targets: n,
-        opacity: [0.12, 0.9],
-        duration: 6500 + Math.random() * 4500,
-        delay: Math.random() * 1600,
-        direction: 'alternate',
-        easing: 'easeInOutSine',
-        loop: true
-      })
-    );
 
     // Grid gentle pulse (re-added)
     const gridTween = anime({
@@ -191,31 +369,6 @@ export function SpaceBackground({ planetCircle, showCircleGuide, meteorDebug }: 
     }
     window.addEventListener('mousemove', onMouseMove);
 
-    // Dust and nebula: soft moving particles, slight parallax drift
-    type Dust = { x: number; y: number; r: number; a: number; vx: number; vy: number; hue: number };
-    const dustCtx = dustCanvas.getContext('2d')!;
-    const dustCount = 180; // subtle many tiny dust particles
-    const dust: Dust[] = [];
-    function spawnDust(): Dust {
-      const rect = root.getBoundingClientRect();
-      let p: Dust;
-      let guard = 0;
-      do {
-        p = {
-          x: Math.random() * rect.width,
-          y: Math.random() * rect.height,
-          r: 0.35 + Math.pow(Math.random(), 2.2) * 1.0,
-          a: 0.02 + Math.random() * 0.06,
-          vx: -0.02 + Math.random() * 0.04,
-          vy: -0.02 + Math.random() * 0.04,
-          hue: 12 + Math.random() * 10,
-        };
-        guard++;
-      } while (isInsidePlanet(p) && guard < 10);
-      return p;
-    }
-    for (let i = 0; i < dustCount; i++) dust.push(spawnDust());
-
     // Meteors: random point A -> random point B with tail, rAF scheduled (no timeout burst on tab return)
     const trailsCtx = trailsCanvas.getContext('2d')!;
     trailsCtx.globalCompositeOperation = 'lighter';
@@ -232,7 +385,7 @@ export function SpaceBackground({ planetCircle, showCircleGuide, meteorDebug }: 
       for (let t = 0; t <= 1; t += 0.15) {
         const px = a.x + (b.x - a.x) * t;
         const py = a.y + (b.y - a.y) * t;
-        if (isInsidePlanet({ x: px, y: py })) return true;
+        if (isInsidePlanetPx({ x: px, y: py })) return true;
       }
       return false;
     }
@@ -244,7 +397,7 @@ export function SpaceBackground({ planetCircle, showCircleGuide, meteorDebug }: 
         B = randomPoint(rect);
         tries++;
         // ensure distance and not crossing planet & start/end outside planet
-      } while ((tries < 40) && (Math.hypot(B.x - A.x, B.y - A.y) < rect.width * 0.3 || pathTouchesPlanet(A, B) || isInsidePlanet(A) || isInsidePlanet(B)));
+      } while ((tries < 40) && (Math.hypot(B.x - A.x, B.y - A.y) < rect.width * 0.3 || pathTouchesPlanet(A, B) || isInsidePlanetPx(A) || isInsidePlanetPx(B)));
       if (Math.hypot(B.x - A.x, B.y - A.y) < rect.width * 0.15) return; // give up (rare)
       const dist = Math.hypot(B.x - A.x, B.y - A.y);
       // speed: slower again (12-24s normal), debug 2.5-4.0s
@@ -309,9 +462,10 @@ export function SpaceBackground({ planetCircle, showCircleGuide, meteorDebug }: 
       const ry = dustCanvas.height / root.clientHeight;
       // Create an even-odd clip region = full rect minus circle
       const rectW = dustCanvas.width; const rectH = dustCanvas.height;
-      const clipCx = (circle.cxPct / 100) * root.clientWidth * rx;
-      const clipCy = (circle.cyPct / 100) * root.clientHeight * ry;
-      const clipR = (circle.rPct / 100) * Math.max(root.clientWidth, root.clientHeight) * dpr;
+      const circle = circlePxRef.current;
+      const clipCx = circle.cx * rx;
+      const clipCy = circle.cy * ry;
+      const clipR = circle.radius * dpr;
       dustCtx.save();
       dustCtx.beginPath();
       dustCtx.rect(0, 0, rectW, rectH);
@@ -321,7 +475,7 @@ export function SpaceBackground({ planetCircle, showCircleGuide, meteorDebug }: 
       for (const d of dust) {
         d.x += d.vx + wind.x * 0.6; 
         d.y += d.vy + wind.y * 0.6;
-        if (isInsidePlanet(d)) { d.x -= d.vx * 2; d.y -= d.vy * 2; }
+        if (isInsidePlanetPx(d)) { d.x -= d.vx * 2; d.y -= d.vy * 2; }
         if (d.x < -5 || d.y < -5 || d.x > root.clientWidth + 5 || d.y > root.clientHeight + 5) Object.assign(d, spawnDust());
         dustCtx.beginPath();
         dustCtx.fillStyle = `hsla(${d.hue}, 80%, 60%, ${d.a})`;
@@ -405,30 +559,6 @@ export function SpaceBackground({ planetCircle, showCircleGuide, meteorDebug }: 
       }
       trailsCtx.restore();
 
-      // Guide circle overlay (red) when requested
-      const guide = canvasGuideRef.current!;
-      const gctx = guide.getContext('2d')!;
-      gctx.clearRect(0, 0, guide.width, guide.height);
-      if (showCircleGuide) {
-        const rect = root.getBoundingClientRect();
-        const cx = (circle.cxPct / 100) * rect.width * rx;
-        const cy = (circle.cyPct / 100) * rect.height * ry;
-        const r = (circle.rPct / 100) * Math.max(rect.width, rect.height) * dpr;
-        gctx.save();
-        gctx.strokeStyle = 'rgba(255,0,0,0.9)';
-        gctx.lineWidth = 2 * dpr;
-        gctx.setLineDash([6 * dpr, 6 * dpr]);
-        gctx.beginPath();
-        gctx.arc(cx, cy, r, 0, Math.PI * 2);
-        gctx.stroke();
-        // crosshair
-        gctx.setLineDash([]);
-        gctx.globalAlpha = 0.6;
-        gctx.beginPath(); gctx.moveTo(cx - 10 * dpr, cy); gctx.lineTo(cx + 10 * dpr, cy); gctx.stroke();
-        gctx.beginPath(); gctx.moveTo(cx, cy - 10 * dpr); gctx.lineTo(cx, cy + 10 * dpr); gctx.stroke();
-        gctx.restore();
-      }
-
       raf = requestAnimationFrame(step);
     }
     raf = requestAnimationFrame(step);
@@ -437,68 +567,24 @@ export function SpaceBackground({ planetCircle, showCircleGuide, meteorDebug }: 
       running = false;
       cancelAnimationFrame(raf);
       ro.disconnect();
+      window.removeEventListener('resize', handleWindowResize);
+      window.removeEventListener('orientationchange', handleWindowResize);
       window.removeEventListener('mousemove', onMouseMove);
-      starNodes.forEach((n) => n.remove());
+      if (flashTimer !== null) window.clearTimeout(flashTimer);
+      document.removeEventListener('visibilitychange', onVisibility);
+      starTweens.forEach((t) => t.pause());
       anime.remove(starNodes);
+      starNodes.forEach((n) => n.remove());
       gridTween.pause();
       planetTween.pause();
-      document.removeEventListener('visibilitychange', onVisibility);
-    // no engine trails timer to clear
     };
-  }, [circle.cxPct, circle.cyPct, circle.rPct, reduceMotion, meteorDebug]);
-
-  // Draw guide even when reduced motion is enabled
-  useEffect(() => {
-    if (!showCircleGuide) return;
-  const root = rootRef.current;
-  const guide = canvasGuideRef.current;
-  if (!root || !guide) return;
-    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-
-    function drawGuide() {
-  const rect = root!.getBoundingClientRect();
-  guide!.width = Math.floor(rect.width * dpr);
-  guide!.height = Math.floor(rect.height * dpr);
-  guide!.style.width = rect.width + 'px';
-  guide!.style.height = rect.height + 'px';
-
-  const gctx = guide!.getContext('2d');
-      if (!gctx) return;
-  gctx.clearRect(0, 0, guide!.width, guide!.height);
-
-  const rx = guide!.width / rect.width;
-  const ry = guide!.height / rect.height;
-      const cx = (circle.cxPct / 100) * rect.width * rx;
-      const cy = (circle.cyPct / 100) * rect.height * ry;
-      const r = (circle.rPct / 100) * Math.max(rect.width, rect.height) * dpr;
-      gctx.save();
-      gctx.strokeStyle = 'rgba(255,0,0,0.9)';
-      gctx.lineWidth = 2 * dpr;
-      gctx.setLineDash([6 * dpr, 6 * dpr]);
-      gctx.beginPath();
-      gctx.arc(cx, cy, r, 0, Math.PI * 2);
-      gctx.stroke();
-      gctx.setLineDash([]);
-      gctx.globalAlpha = 0.6;
-      gctx.beginPath(); gctx.moveTo(cx - 10 * dpr, cy); gctx.lineTo(cx + 10 * dpr, cy); gctx.stroke();
-      gctx.beginPath(); gctx.moveTo(cx, cy - 10 * dpr); gctx.lineTo(cx, cy + 10 * dpr); gctx.stroke();
-      gctx.restore();
-    }
-
-    const ro = new ResizeObserver(() => drawGuide());
-    ro.observe(root);
-    drawGuide();
-
-    return () => ro.disconnect();
-  }, [showCircleGuide, circle.cxPct, circle.cyPct, circle.rPct]);
-
+  }, [recomputeCircle, reduceMotion, meteorDebug]);
   return (
     <div className={clsx(styles.root)} ref={rootRef} aria-hidden>
       <div className={styles.fxLayer}>
         <div className={styles.starsContainer} ref={starsRef} />
         <canvas className={styles.canvas} ref={canvasDustRef} />
         <canvas className={styles.canvas} ref={canvasTrailsRef} />
-        <canvas className={styles.guideCanvas} ref={canvasGuideRef} />
       </div>
       <div className={styles.gridLayer} ref={gridRef} />
       <div className={clsx(styles.planetLayer, styles.breathing)} ref={planetLayerRef} />

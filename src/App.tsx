@@ -32,7 +32,7 @@ function SiteShell() {
 
   return (
     <>
-      <SpaceBackground showCircleGuide={false} />
+      <SpaceBackground />
       <NavigationBar showCommunityLink={showEventsSection} />
       <main>
         <HeroSection onJoin={openRecruitment} onDiscord={openDiscord} />
