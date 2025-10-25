@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { App } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import './styles/global.css';
+import { warmImageManifest } from '@/utils/imageManifest';
 
 if (typeof window !== 'undefined') {
   const rootElement = document.documentElement;
@@ -29,6 +30,9 @@ if (typeof window !== 'undefined') {
   } else {
     motionQuery.addListener(onChange);
   }
+
+  // Warm the responsive image manifest early to reduce first-use latency
+  try { warmImageManifest(); } catch { /* ignore */ }
 }
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(

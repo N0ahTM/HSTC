@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import viteCompression from 'vite-plugin-compression';
 import { fileURLToPath, URL } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -135,6 +136,20 @@ const createAmplifyProxy = (options: ProxyOptions): Plugin => ({
 export default defineConfig({
   plugins: [
     react(),
+    viteCompression({
+      verbose: false,
+      disable: false,
+      threshold: 1024,
+      algorithm: 'brotliCompress',
+      ext: '.br'
+    }),
+    viteCompression({
+      verbose: false,
+      disable: false,
+      threshold: 1024,
+      algorithm: 'gzip',
+      ext: '.gz'
+    }),
     createAmplifyProxy({
       route: '/api/discord-combined',
       handlerModule: '/amplify/functions/discord-aggregate/handler.ts',
@@ -151,7 +166,7 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
-    sourcemap: true,
+    sourcemap: false,
     chunkSizeWarningLimit: 600
   },
   server: {

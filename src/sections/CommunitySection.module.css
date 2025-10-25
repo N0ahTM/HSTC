@@ -41,6 +41,8 @@
   flex: 0 0 clamp(320px, 48%, 560px);
   background: rgba(0, 0, 0, 0.28);
   overflow: hidden;
+  /* Reserve space to avoid layout shift on large screens too */
+  aspect-ratio: 16 / 9;
 }
 
 .cardMedia img {

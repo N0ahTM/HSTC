@@ -2,6 +2,7 @@ import { ForwardedRef, forwardRef } from 'react';
 import { useLayoutEffect, useRef } from 'react';
 
 import styles from './YearBadge.module.css';
+import ResponsiveImage from '@/components/ResponsiveImage';
 
 interface YearBadgeProps {
   verseYear: number;
@@ -61,7 +62,7 @@ export const YearBadge = forwardRef(function YearBadge(
         <div className={styles.flags} aria-label="Herkunftsländer">
           {flags.map((flag) => (
             <span key={flag.alt} className={styles.flag}>
-              <img src={flag.src} alt={flag.alt} loading="lazy" />
+              <ResponsiveImage src={flag.src} alt={flag.alt} loading="lazy" width={28} height={28} autoSize={false} sizes="28px" />
             </span>
           ))}
         </div>
@@ -70,10 +71,14 @@ export const YearBadge = forwardRef(function YearBadge(
         </span>
       </aside>
       <div className={styles.community} aria-label="Star Citizen Community Hinweis">
-        <img
+        <ResponsiveImage
           src="/images/MadeByTheCommunity_Black.png"
-          alt="Made by the Star Citizen Community"
+          alt=""
+          aria-hidden="true"
           loading="lazy"
+          width={300}
+          height={60}
+          autoSize
         />
       </div>
     </div>

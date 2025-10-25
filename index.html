@@ -1,17 +1,35 @@
 ﻿<!doctype html>
 <html lang="de">
   <head>
+    <style>
+      /* Ensure skip link is visible even before app CSS loads */
+      .skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+      .skip-link:focus{left:1rem;top:1rem;width:auto;height:auto;padding:.5rem .75rem;background:#000;color:#fff;z-index:1000}
+    </style>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/webp" href="/images/HSTC-Logo.webp" />
+    <link rel="preload" as="image" href="/images/HSTC-Logo.webp" />
     <link rel="preconnect" href="https://cdn.discordapp.com" crossorigin />
     <meta
       name="description"
       content="HSTC - Helvetic Security &amp; Transport Corporation."
     />
+    <meta name="theme-color" content="#040506" />
+    <link rel="canonical" href="https://hstc.space/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="HSTC – Helvetic Security &amp; Transport Corporation" />
+    <meta property="og:description" content="HSTC - Helvetic Security &amp; Transport Corporation." />
+    <meta property="og:url" content="https://hstc.space/" />
+    <meta property="og:image" content="/images/HSTC-Logo.webp" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="HSTC – Helvetic Security &amp; Transport Corporation" />
+    <meta name="twitter:description" content="HSTC - Helvetic Security &amp; Transport Corporation." />
+    <meta name="twitter:image" content="/images/HSTC-Logo.webp" />
     <title>HSTC – Helvetic Security &amp; Transport Corporation</title>
   </head>
   <body>
+  <a href="#main" class="skip-link">Zum Inhalt springen</a>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

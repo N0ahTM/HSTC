@@ -2,7 +2,6 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react';
 import { NavigationBar } from '@/components/NavigationBar';
 import { HeroSection } from '@/sections/HeroSection';
-import { PillarsSection } from '@/sections/PillarsSection';
 import { JoinSection } from '@/sections/JoinSection';
 import { FooterSection } from '@/sections/FooterSection';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
@@ -15,6 +14,9 @@ const CommunitySectionLazy = lazy(() =>
 );
 const CommunityImagesSectionLazy = lazy(() =>
   import('@/sections/CommunityImagesSection').then((module) => ({ default: module.CommunityImagesSection }))
+);
+const PillarsSectionLazy = lazy(() =>
+  import('@/sections/PillarsSection').then((module) => ({ default: module.PillarsSection }))
 );
 
 const DISCORD_INVITE = 'https://discord.gg/jV8rByuJ4G';
@@ -45,9 +47,13 @@ function SiteShell() {
     <>
       <SpaceBackground />
       <NavigationBar showCommunityLink={showEventsSection} />
-      <main>
+      <main id="main">
         <HeroSection onJoin={openRecruitment} onDiscord={openDiscord} />
-        <PillarsSection />
+        <LazyVisibleSection placeholder={<SectionPlaceholder minHeight={520} />} rootMargin="0px 0px -12%">
+          <Suspense fallback={<SectionPlaceholder minHeight={520} />}>
+            <PillarsSectionLazy />
+          </Suspense>
+        </LazyVisibleSection>
         {showEventsSection && (
           <LazyVisibleSection placeholder={<SectionPlaceholder minHeight={480} />} rootMargin="0px 0px -15%">
             <Suspense fallback={<SectionPlaceholder minHeight={480} />}>
@@ -113,7 +119,7 @@ function LazyVisibleSection({ children, placeholder, rootMargin = '0px 0px -20%'
 function SectionPlaceholder({ minHeight = 360 }: { minHeight?: number }) {
   return (
     <section className="section section-placeholder" aria-hidden="true">
-      <div className="container" style={{ minHeight }} />
+      <div className="container" data-minheight={minHeight} />
     </section>
   );
 }

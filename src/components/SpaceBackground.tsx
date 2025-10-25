@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import anime from 'animejs';
 import clsx from 'clsx';
 import styles from './SpaceBackground.module.css';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { selectBackgroundUrl } from '@/utils/imageManifest';
 
 type Vec2 = { x: number; y: number };
 type CirclePixels = { cx: number; cy: number; radius: number };
@@ -68,6 +69,7 @@ interface SpaceBackgroundProps {
 }
 
 export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundProps) {
+  const [activated, setActivated] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const starsRef = useRef<HTMLDivElement>(null);
   const canvasDustRef = useRef<HTMLCanvasElement>(null);
@@ -133,9 +135,10 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
       }
 
       const area = width * height;
-      const areaFactor = Math.max(0.65, Math.min(2.35, area / BASE_VIEWPORT_AREA));
-      const targetStars = Math.round(220 * areaFactor);
-      const targetDust = Math.round(140 * areaFactor);
+  const areaFactor = Math.max(0.65, Math.min(2.35, area / BASE_VIEWPORT_AREA));
+  // Lower particle budgets to reduce main-thread work
+  const targetStars = Math.round(140 * areaFactor);
+  const targetDust = Math.round(90 * areaFactor);
       particleBudgetRef.current = { stars: targetStars, dust: targetDust };
 
       return nextCircle;
@@ -143,7 +146,29 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
     [planetCircle]
   );
 
+  // Defer heavy initialization until the browser is idle to improve TBT/INP
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (activated) return;
+    // Skip FX entirely on small screens or when user prefers reduced motion
+    const smallScreen = window.innerWidth < 768;
+    if (smallScreen || reduceMotion) return;
+    const start = () => setActivated(true);
+    let cancel: () => void = () => {};
+    if ('requestIdleCallback' in window) {
+      const rIC = (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+      const cIC = (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback;
+      const id = rIC(start, { timeout: 1000 });
+      cancel = () => cIC(id);
+    } else {
+      const id = setTimeout(start, 150);
+      cancel = () => clearTimeout(id);
+    }
+    return cancel;
+  }, [activated, reduceMotion]);
+
+  useEffect(() => {
+    if (!activated) return;
     const rootNode = rootRef.current;
     if (!rootNode) return;
     const root = rootNode;
@@ -218,10 +243,19 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
 
     // Resize canvases to device-pixel ratio for crispness
     const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    function resize() {
+    async function resize() {
       const { width, height } = root.getBoundingClientRect();
       if (!width || !height) return;
       recomputeCircle({ width, height });
+      // Apply planet background image with best-fit variant
+      try {
+        const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+        const best = await selectBackgroundUrl('/images/backgrounds/Planet_4.webp', Math.ceil(width), dpr);
+        planet.style.backgroundImage = `url('${best}')`;
+        planet.style.backgroundPosition = 'center';
+        planet.style.backgroundSize = 'cover';
+        planet.style.backgroundRepeat = 'no-repeat';
+      } catch {/* ignore */}
 
       for (const canvas of [dustCanvas, trailsCanvas]) {
         canvas.width = Math.floor(width * dpr);
@@ -318,8 +352,8 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
 
       ensureDustBudget(particleBudgetRef.current.dust || dust.length);
     }
-    resize();
-    const ro = new ResizeObserver(resize);
+  void resize();
+  const ro = new ResizeObserver(() => void resize());
     ro.observe(root);
     const handleWindowResize = () => resize();
     window.addEventListener('resize', handleWindowResize);
@@ -578,7 +612,7 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
       gridTween.pause();
       planetTween.pause();
     };
-  }, [recomputeCircle, reduceMotion, meteorDebug]);
+  }, [recomputeCircle, reduceMotion, meteorDebug, activated]);
   return (
     <div className={clsx(styles.root)} ref={rootRef} aria-hidden>
       <div className={styles.fxLayer}>

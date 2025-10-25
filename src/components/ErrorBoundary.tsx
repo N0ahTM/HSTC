@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './ErrorBoundary.module.css';
+import ResponsiveImage from '@/components/ResponsiveImage';
 
 type Props = { children: React.ReactNode };
 type State = { hasError: boolean; error?: Error };
@@ -29,7 +30,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
         <div className={styles.shell}>
           <div className={`glass-panel ${styles.panel}`}>
             <header className={styles.header}>
-              <img className={styles.logo} src="/images/HSTC-Logo.webp" alt="HSTC" width={56} height={56} />
+              <ResponsiveImage className={styles.logo} src="/images/HSTC-Logo.webp" alt="HSTC" width={56} height={56} autoSize={false} sizes="56px" />
               <h1 className={styles.title}>Fehler aufgetreten</h1>
             </header>
             <p className={styles.text}>

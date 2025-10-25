@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { clsx } from 'clsx';
+import ResponsiveImage from '@/components/ResponsiveImage';
 import anime from 'animejs';
 
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
@@ -72,6 +73,19 @@ export function NavigationBar({ showCommunityLink = true }: NavigationBarProps) 
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [mobileOpen]);
 
+  // Prevent background scroll when the mobile menu is open
+  useEffect(() => {
+    const body = document?.body;
+    if (!body) return;
+    const previous = body.style.overflow;
+    if (mobileOpen) {
+      body.style.overflow = 'hidden';
+    }
+    return () => {
+      body.style.overflow = previous;
+    };
+  }, [mobileOpen]);
+
   useEffect(() => {
     if (!visible || prefersReducedMotion) {
       return;
@@ -119,7 +133,7 @@ export function NavigationBar({ showCommunityLink = true }: NavigationBarProps) 
         <div className="container">
           <div className={styles.inner}>
             <a href="#top" className={styles.logo} onClick={closeMobileMenu}>
-              <img src="/images/HSTC-Logo.webp" alt="HSTC" loading="lazy" />
+              <ResponsiveImage src="/images/HSTC-Logo.webp" alt="" aria-hidden="true" loading="lazy" width={1920} height={1663} autoSize />
               <span>HSTC</span>
             </a>
 
@@ -137,6 +151,7 @@ export function NavigationBar({ showCommunityLink = true }: NavigationBarProps) 
                 type="button"
                 aria-label={mobileOpen ? 'Menü schliessen' : 'Menü öffnen'}
                 aria-controls="primary-navigation"
+                aria-expanded={mobileOpen ? 'true' : 'false'}
                 onClick={toggleMobileMenu}
               >
                 <span aria-hidden="true">{mobileOpen ? '\u00D7' : '\u2261'}</span>

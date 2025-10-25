@@ -38,6 +38,27 @@ img {
   max-width: 100%;
 }
 
+/* Visually hidden but focusable skip link */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 0.75rem;
+  background: #000;
+  color: #fff;
+  z-index: 1000;
+}
+
 main {
   position: relative;
   z-index: 1;

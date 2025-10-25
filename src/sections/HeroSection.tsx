@@ -8,6 +8,7 @@ import { useVerseYear } from '@/hooks/useVerseYear';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { playHeroIntro, startHeroLogoDrift, stopAnimations } from '@/motion/hero';
 import { splitLetters, letterReveal } from '@/motion/textEffects';
+import ResponsiveImage from '@/components/ResponsiveImage';
 
 import type { AnimeInstance, AnimeTimelineInstance } from 'animejs';
 
@@ -34,7 +35,8 @@ export function HeroSection({ onJoin, onDiscord }: HeroSectionProps) {
 
   // Hero intro timeline with letter-reveal
   useEffect(() => {
-    if (prefersReducedMotion) {
+    const smallScreen = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+    if (prefersReducedMotion || smallScreen) {
       return;
     }
 
@@ -80,12 +82,17 @@ export function HeroSection({ onJoin, onDiscord }: HeroSectionProps) {
       />
       <StatsBadge ref={statsBadgeRef} onlineMembers={presenceCount} inVoice={inVoice} />
       <div className={styles.content}>
-        <img
+        <ResponsiveImage
           ref={logoRef}
           src="/images/HSTC-Logo.webp"
           alt="HSTC Logo"
           className={styles.logo}
           loading="eager"
+          decoding="async"
+          width={1920}
+          height={1663}
+          fetchPriority="high"
+          autoSize
         />
         <h1 ref={titleRef} className={styles.title}>
           HSTC

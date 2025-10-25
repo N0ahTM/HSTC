@@ -17,6 +17,10 @@
 
 .logo {
   width: clamp(140px, 18vw, 220px);
+  height: auto;
+  /* lock the correct intrinsic ratio to prevent any layout distortion */
+  aspect-ratio: 1920 / 1663;
+  /* keep natural aspect ratio from width/height attributes */
   filter: drop-shadow(0 0 28px rgba(255, 119, 51, 0.55));
   justify-self: center;
 }
