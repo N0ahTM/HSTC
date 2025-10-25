@@ -6,10 +6,12 @@
     "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
   "include": [
     "vite.config.ts",
-    "amplify/functions/discord-images/handler.ts"
+    "amplify/functions/discord-images/handler.ts",
+    "types/**/*.d.ts"
   ]
 }

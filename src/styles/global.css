@@ -38,6 +38,27 @@ img {
   max-width: 100%;
 }
 
+/* Visually hidden but focusable skip link */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 0.75rem;
+  background: #000;
+  color: #fff;
+  z-index: 1000;
+}
+
 main {
   position: relative;
   z-index: 1;
@@ -68,7 +89,7 @@ main {
   position: fixed;
   inset: 0;
   /* Zentrum bewusst stärker abgedunkelt (für Textlesbarkeit) -> sanfter Übergang zu komplett transparent am Rand */
-  background:
+  background-image:
     radial-gradient(
       ellipse at 50% 45%,
       rgba(0, 0, 0, 0.50) 0%,
@@ -79,7 +100,10 @@ main {
       rgba(0, 0, 0, 0.01) 78%,
       rgba(0, 0, 0, 0) 90%
     ),
-    url('/images/backgrounds/Planet_4.webp') center/cover no-repeat;
+    var(--space-background-image, none);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
   background-color: #1a1a1f;
   z-index: -2;
 }
@@ -207,6 +231,36 @@ button {
 :root[data-prefers-reduced-motion='true'] [data-reveal-item] {
   opacity: 1 !important;
   transform: none !important;
+}
+
+.section-placeholder {
+  position: relative;
+}
+
+.section-placeholder .container {
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(120deg, rgba(255, 119, 51, 0.08), rgba(255, 119, 51, 0.02));
+  animation: placeholderPulse 2.6s ease-in-out infinite;
+  opacity: 0.45;
+}
+
+@keyframes placeholderPulse {
+  0% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-placeholder .container {
+    animation: none;
+  }
 }
 
 @media (max-width: 768px) {

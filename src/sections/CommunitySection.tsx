@@ -4,6 +4,7 @@ import type { DiscordCommunityEvent } from '@/hooks/useDiscordEvents';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 
 import styles from './CommunitySection.module.css';
+import ResponsiveImage from '@/components/ResponsiveImage';
 
 type DisplayStatus = 'active' | 'upcoming' | 'past';
 
@@ -102,7 +103,7 @@ function EventCard({ event }: { event: DisplayEvent }) {
     <article className={styles.card} data-status={event.status}>
       {event.imageUrl && (
         <div className={styles.cardMedia} aria-hidden="true">
-          <img src={event.imageUrl} alt="" loading="lazy" />
+          <ResponsiveImage src={event.imageUrl} alt="" loading="lazy" />
         </div>
       )}
       <div className={styles.cardContent}>

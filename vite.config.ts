@@ -1,14 +1,15 @@
 import 'dotenv/config';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import viteCompression from 'vite-plugin-compression';
 import { fileURLToPath, URL } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 
 type AmplifyOutputs = {
   custom?: {
-    discordImagesUrl?: string;
-    discordEventsUrl?: string;
+    discordCombinedUrl?: string;
   };
 };
 
@@ -19,6 +20,21 @@ type ProxyOptions = {
   amplifyKey: keyof NonNullable<AmplifyOutputs['custom']>;
   requiredSecrets: string[];
   logScope: string;
+};
+
+type DevServer = {
+  middlewares: {
+    use: (
+      route: string,
+      handler: (req: IncomingMessage, res: ServerResponse, next?: () => void) => void
+    ) => void;
+  };
+  ssrLoadModule: (id: string) => Promise<unknown>;
+};
+
+type MinimalVitePlugin = {
+  name: string;
+  configureServer?: (server: DevServer) => void;
 };
 
 const amplifyOutputsCache: { value: AmplifyOutputs | null; inFlight: Promise<AmplifyOutputs | null> | null } = {
@@ -58,7 +74,7 @@ async function resolveRemoteEndpoint(envVar: string, key: keyof NonNullable<Ampl
   return typeof candidate === 'string' && candidate.length > 0 ? candidate : null;
 }
 
-const createAmplifyProxy = (options: ProxyOptions): Plugin => ({
+const createAmplifyProxy = (options: ProxyOptions): MinimalVitePlugin => ({
   name: `${options.logScope}-api`,
   configureServer(server) {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -136,21 +152,27 @@ const createAmplifyProxy = (options: ProxyOptions): Plugin => ({
 export default defineConfig({
   plugins: [
     react(),
-    createAmplifyProxy({
-      route: '/api/discord-images',
-      handlerModule: '/amplify/functions/discord-images/handler.ts',
-      envEndpointVar: 'VITE_DISCORD_IMAGES_ENDPOINT',
-      amplifyKey: 'discordImagesUrl',
-      requiredSecrets: ['DISCORD_BOT_TOKEN', 'DISCORD_CHANNEL_ID'],
-      logScope: 'discord-images'
+    viteCompression({
+      verbose: false,
+      disable: false,
+      threshold: 1024,
+      algorithm: 'brotliCompress',
+      ext: '.br'
+    }),
+    viteCompression({
+      verbose: false,
+      disable: false,
+      threshold: 1024,
+      algorithm: 'gzip',
+      ext: '.gz'
     }),
     createAmplifyProxy({
-      route: '/api/discord-events',
-      handlerModule: '/amplify/functions/discord-events/handler.ts',
-      envEndpointVar: 'VITE_DISCORD_EVENTS_ENDPOINT',
-      amplifyKey: 'discordEventsUrl',
-      requiredSecrets: ['DISCORD_BOT_TOKEN', 'DISCORD_GUILD_ID'],
-      logScope: 'discord-events'
+      route: '/api/discord-combined',
+      handlerModule: '/amplify/functions/discord-aggregate/handler.ts',
+      envEndpointVar: 'VITE_DISCORD_COMBINED_ENDPOINT',
+      amplifyKey: 'discordCombinedUrl',
+      requiredSecrets: ['DISCORD_BOT_TOKEN', 'DISCORD_CHANNEL_ID', 'DISCORD_GUILD_ID'],
+      logScope: 'discord-combined'
     })
   ],
   resolve: {
@@ -160,7 +182,7 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
-    sourcemap: true,
+    sourcemap: false,
     chunkSizeWarningLimit: 600
   },
   server: {
