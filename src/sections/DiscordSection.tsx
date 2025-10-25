@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 
+import ResponsiveImage from '@/components/ResponsiveImage';
 import { SectionHeading } from '@/components/SectionHeading';
 import { useDiscordStats } from '@/hooks/useDiscordStats';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
+import { selectBackgroundUrl } from '@/utils/imageManifest';
 
 import styles from './DiscordSection.module.css';
 
@@ -28,6 +30,67 @@ export function DiscordSection({ onJoinClick }: DiscordSectionProps) {
 
   useAnimatedNumber(onlineValue, onlineRef);
   useAnimatedNumber(voiceValue, voiceRef);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const node = sectionRef.current;
+    if (!node) {
+      return;
+    }
+
+    let cancelled = false;
+    let raf = 0;
+
+    const resolveForWidth = async (width: number) => {
+      try {
+        const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+        const best = await selectBackgroundUrl('/images/ships/Hornet.webp', Math.ceil(width), dpr);
+        if (!cancelled) {
+          node.style.setProperty('--discord-background-image', `url('${best}')`);
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+
+    const scheduleResolve = (width: number) => {
+      if (raf) {
+        cancelAnimationFrame(raf);
+      }
+      raf = window.requestAnimationFrame(() => {
+        void resolveForWidth(width);
+      });
+    };
+
+    const measure = () => {
+      const rect = node.getBoundingClientRect();
+      const width = rect.width || node.clientWidth || window.innerWidth || 1024;
+      scheduleResolve(Math.max(width, 320));
+    };
+
+    measure();
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof window.ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => measure());
+      resizeObserver.observe(node);
+    } else {
+      window.addEventListener('resize', measure);
+    }
+
+    return () => {
+      cancelled = true;
+      if (raf) {
+        cancelAnimationFrame(raf);
+      }
+      resizeObserver?.disconnect();
+      if (typeof window.ResizeObserver === 'undefined') {
+        window.removeEventListener('resize', measure);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -119,7 +182,7 @@ export function DiscordSection({ onJoinClick }: DiscordSectionProps) {
           <article className={`${styles.card} ${styles.qrCard}`} data-reveal-item>
             <h3>Scan &amp; connect</h3>
             <p>Direkt mit deinem Mobilgerät auf den Server kommen – der QR-Code führt zur aktuellen Einladung.</p>
-            <img
+            <ResponsiveImage
               ref={qrRef}
               src="/images/hstc_discord_qr.webp"
               alt="Discord Einladung QR Code"
@@ -128,6 +191,8 @@ export function DiscordSection({ onJoinClick }: DiscordSectionProps) {
               decoding="async"
               width={256}
               height={256}
+              autoSize={false}
+              sizes="256px"
             />
             <button className="btn btn-outline" type="button" onClick={onJoinClick}>
               Einladung öffnen

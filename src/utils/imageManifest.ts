@@ -38,6 +38,17 @@ function normalizeRequestUrl(source: string): string {
   if (isAbsoluteUrl(normalized)) {
     return normalized;
   }
+  const lower = normalized.toLowerCase();
+  const marker = '/images/';
+  const markerIdx = lower.indexOf(marker);
+  if (markerIdx >= 0) {
+    return normalized.slice(markerIdx);
+  }
+  const markerNoSlash = 'images/';
+  const markerNoSlashIdx = lower.indexOf(markerNoSlash);
+  if (markerNoSlashIdx >= 0) {
+    return `/${normalized.slice(markerNoSlashIdx)}`;
+  }
   if (normalized.startsWith('/')) {
     return normalized;
   }

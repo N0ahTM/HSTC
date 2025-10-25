@@ -161,6 +161,48 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
     [planetCircle]
   );
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const planet = planetLayerRef.current;
+    if (!planet) return;
+
+    let cancelled = false;
+    let raf = 0;
+
+    const resolveBackground = async () => {
+      const host = rootRef.current ?? planetLayerRef.current;
+      const rect = host?.getBoundingClientRect();
+      const width = rect?.width || window.innerWidth || 1280;
+      const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+      try {
+        const best = await selectBackgroundUrl('/images/backgrounds/Planet_4.webp', Math.ceil(width), dpr);
+        if (!cancelled) {
+          planet.style.setProperty('--space-background-image', `url('${best}')`);
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+
+    const scheduleResolve = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = window.requestAnimationFrame(() => {
+        void resolveBackground();
+      });
+    };
+
+    scheduleResolve();
+    window.addEventListener('resize', scheduleResolve);
+    window.addEventListener('orientationchange', scheduleResolve);
+
+    return () => {
+      cancelled = true;
+      if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener('resize', scheduleResolve);
+      window.removeEventListener('orientationchange', scheduleResolve);
+    };
+  }, []);
+
   // Defer heavy initialization until the browser is idle to improve TBT/INP
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -268,11 +310,10 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
       try {
         const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
         const best = await selectBackgroundUrl('/images/backgrounds/Planet_4.webp', Math.ceil(width), dpr);
-        planet.style.backgroundImage = `url('${best}')`;
-        planet.style.backgroundPosition = 'center';
-        planet.style.backgroundSize = 'cover';
-        planet.style.backgroundRepeat = 'no-repeat';
-      } catch {/* ignore */}
+        planet.style.setProperty('--space-background-image', `url('${best}')`);
+      } catch {
+        /* ignore */
+      }
 
       for (const canvas of [dustCanvas, trailsCanvas]) {
         canvas.width = Math.floor(width * dpr);

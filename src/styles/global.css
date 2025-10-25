@@ -89,7 +89,7 @@ main {
   position: fixed;
   inset: 0;
   /* Zentrum bewusst stärker abgedunkelt (für Textlesbarkeit) -> sanfter Übergang zu komplett transparent am Rand */
-  background:
+  background-image:
     radial-gradient(
       ellipse at 50% 45%,
       rgba(0, 0, 0, 0.50) 0%,
@@ -100,7 +100,10 @@ main {
       rgba(0, 0, 0, 0.01) 78%,
       rgba(0, 0, 0, 0) 90%
     ),
-    url('/images/backgrounds/Planet_4.webp') center/cover no-repeat;
+    var(--space-background-image, none);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
   background-color: #1a1a1f;
   z-index: -2;
 }
