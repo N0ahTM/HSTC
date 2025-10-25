@@ -82,6 +82,21 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
   const viewportSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
   const particleBudgetRef = useRef<{ stars: number; dust: number }>({ stars: 0, dust: 0 });
 
+  const getCurrentViewport = useCallback(() => {
+    const { width, height } = viewportSizeRef.current;
+    if (width > 0 && height > 0) {
+      return { width, height };
+    }
+    const root = rootRef.current;
+    if (!root) {
+      return { width: 0, height: 0 };
+    }
+    return {
+      width: root.clientWidth || 0,
+      height: root.clientHeight || 0
+    };
+  }, []);
+
   /**
    * Calibration:
    * Circle metrics originate from sampling `/images/backgrounds/Planet_4.webp`.
@@ -212,13 +227,15 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
     const dust: Dust[] = [];
 
     function spawnDust(): Dust {
-      const rect = root.getBoundingClientRect();
+      const { width: viewportWidth, height: viewportHeight } = getCurrentViewport();
+      const width = viewportWidth || root.clientWidth || 0;
+      const height = viewportHeight || root.clientHeight || 0;
       let p: Dust;
       let guard = 0;
       do {
         p = {
-          x: Math.random() * rect.width,
-          y: Math.random() * rect.height,
+          x: Math.random() * width,
+          y: Math.random() * height,
           r: 0.35 + Math.pow(Math.random(), 2.2) * 1.0,
           a: 0.02 + Math.random() * 0.06,
           vx: -0.02 + Math.random() * 0.04,
@@ -411,8 +428,8 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
   interface Meteor { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; width: number; hue: number; sat: number; light: number; points: MeteorTrailPoint[]; }
     const meteors: Meteor[] = [];
 
-    function randomPoint(rect: DOMRect): Vec2 {
-      return { x: Math.random() * rect.width, y: Math.random() * rect.height };
+    function randomPoint(width: number, height: number): Vec2 {
+      return { x: Math.random() * width, y: Math.random() * height };
     }
     function pathTouchesPlanet(a: Vec2, b: Vec2): boolean {
       // sample along the line
@@ -424,23 +441,30 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
       return false;
     }
     function spawnMeteor() {
-      const rect = root.getBoundingClientRect();
-      let A: Vec2; let B: Vec2; let tries = 0;
+      const { width: viewportWidth, height: viewportHeight } = getCurrentViewport();
+      if (!viewportWidth || !viewportHeight) return;
+      let A: Vec2;
+      let B: Vec2;
+      let tries = 0;
       do {
-        A = randomPoint(rect);
-        B = randomPoint(rect);
+        A = randomPoint(viewportWidth, viewportHeight);
+        B = randomPoint(viewportWidth, viewportHeight);
         tries++;
         // ensure distance and not crossing planet & start/end outside planet
-      } while ((tries < 40) && (Math.hypot(B.x - A.x, B.y - A.y) < rect.width * 0.3 || pathTouchesPlanet(A, B) || isInsidePlanetPx(A) || isInsidePlanetPx(B)));
-      if (Math.hypot(B.x - A.x, B.y - A.y) < rect.width * 0.15) return; // give up (rare)
-      const dist = Math.hypot(B.x - A.x, B.y - A.y);
-      // speed: slower again (12-24s normal), debug 2.5-4.0s
-      const durationMs = meteorDebug ? (2500 + Math.random() * 1500) : (12000 + Math.random() * 12000);
+      } while (
+        tries < 40 &&
+        (Math.hypot(B.x - A.x, B.y - A.y) < viewportWidth * 0.3 ||
+          pathTouchesPlanet(A, B) ||
+          isInsidePlanetPx(A) ||
+          isInsidePlanetPx(B))
+      );
+      if (Math.hypot(B.x - A.x, B.y - A.y) < viewportWidth * 0.15) return; // give up (rare)
+      const durationMs = meteorDebug ? 2500 + Math.random() * 1500 : 12000 + Math.random() * 12000;
       const steps = Math.max(60, Math.round((durationMs / 1000) * 60));
       const vx = (B.x - A.x) / steps;
       const vy = (B.y - A.y) / steps;
-  // size variation smaller (0.5 - 1.9 normal). Debug still larger for visibility.
-  const width = meteorDebug ? 2.4 : (0.5 + Math.random() * 1.4);
+      // size variation smaller (0.5 - 1.9 normal). Debug still larger for visibility.
+      const trailWidth = meteorDebug ? 2.4 : 0.5 + Math.random() * 1.4;
       // white tone variation: choose between neutral white, slight cool, slight warm; low saturation, no orange
       let hue = 210 + Math.random() * 40; // base cool
       if (Math.random() < 0.35) hue = 190 + Math.random() * 30; // more bluish
@@ -448,7 +472,7 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
       const sat = 8 + Math.random() * 14; // low saturation for white look
       const light = 82 + Math.random() * 12;
       if (meteorDebug) { hue = 0; }
-      meteors.push({ x: A.x, y: A.y, vx, vy, life: 0, maxLife: steps, width, hue, sat, light, points: [] });
+      meteors.push({ x: A.x, y: A.y, vx, vy, life: 0, maxLife: steps, width: trailWidth, hue, sat, light, points: [] });
     }
 
     let nextMeteorAt = performance.now() + (meteorDebug ? 800 : (5000 + Math.random() * 5000));
@@ -486,14 +510,22 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
     function step() {
       if (!running) return;
 
+      const { width: viewportWidth, height: viewportHeight } = getCurrentViewport();
+      const currentWidth = viewportWidth || root.clientWidth || 0;
+      const currentHeight = viewportHeight || root.clientHeight || 0;
+      if (!currentWidth || !currentHeight) {
+        raf = requestAnimationFrame(step);
+        return;
+      }
+
   // Ease wind towards target for smoothness (slower response)
   wind.x += (targetWind.x - wind.x) * 0.015;
   wind.y += (targetWind.y - wind.y) * 0.015;
 
       // Dust layer with clip to exclude planet region
       dustCtx.clearRect(0, 0, dustCanvas.width, dustCanvas.height);
-      const rx = dustCanvas.width / root.clientWidth;
-      const ry = dustCanvas.height / root.clientHeight;
+      const rx = currentWidth > 0 ? dustCanvas.width / currentWidth : 1;
+      const ry = currentHeight > 0 ? dustCanvas.height / currentHeight : 1;
       // Create an even-odd clip region = full rect minus circle
       const rectW = dustCanvas.width; const rectH = dustCanvas.height;
       const circle = circlePxRef.current;
@@ -510,7 +542,7 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
         d.x += d.vx + wind.x * 0.6; 
         d.y += d.vy + wind.y * 0.6;
         if (isInsidePlanetPx(d)) { d.x -= d.vx * 2; d.y -= d.vy * 2; }
-        if (d.x < -5 || d.y < -5 || d.x > root.clientWidth + 5 || d.y > root.clientHeight + 5) Object.assign(d, spawnDust());
+        if (d.x < -5 || d.y < -5 || d.x > currentWidth + 5 || d.y > currentHeight + 5) Object.assign(d, spawnDust());
         dustCtx.beginPath();
         dustCtx.fillStyle = `hsla(${d.hue}, 80%, 60%, ${d.a})`;
         dustCtx.arc(d.x * rx, d.y * ry, d.r * dpr, 0, Math.PI * 2);
@@ -612,7 +644,7 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
       gridTween.pause();
       planetTween.pause();
     };
-  }, [recomputeCircle, reduceMotion, meteorDebug, activated]);
+  }, [recomputeCircle, reduceMotion, meteorDebug, activated, getCurrentViewport]);
   return (
     <div className={clsx(styles.root)} ref={rootRef} aria-hidden>
       <div className={styles.fxLayer}>

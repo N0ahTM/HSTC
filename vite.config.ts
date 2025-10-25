@@ -1,10 +1,11 @@
 import 'dotenv/config';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import viteCompression from 'vite-plugin-compression';
 import { fileURLToPath, URL } from 'node:url';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import type { IncomingMessage, ServerResponse } from 'node:http';
 
 type AmplifyOutputs = {
   custom?: {
@@ -19,6 +20,21 @@ type ProxyOptions = {
   amplifyKey: keyof NonNullable<AmplifyOutputs['custom']>;
   requiredSecrets: string[];
   logScope: string;
+};
+
+type DevServer = {
+  middlewares: {
+    use: (
+      route: string,
+      handler: (req: IncomingMessage, res: ServerResponse, next?: () => void) => void
+    ) => void;
+  };
+  ssrLoadModule: (id: string) => Promise<unknown>;
+};
+
+type MinimalVitePlugin = {
+  name: string;
+  configureServer?: (server: DevServer) => void;
 };
 
 const amplifyOutputsCache: { value: AmplifyOutputs | null; inFlight: Promise<AmplifyOutputs | null> | null } = {
@@ -58,7 +74,7 @@ async function resolveRemoteEndpoint(envVar: string, key: keyof NonNullable<Ampl
   return typeof candidate === 'string' && candidate.length > 0 ? candidate : null;
 }
 
-const createAmplifyProxy = (options: ProxyOptions): Plugin => ({
+const createAmplifyProxy = (options: ProxyOptions): MinimalVitePlugin => ({
   name: `${options.logScope}-api`,
   configureServer(server) {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises

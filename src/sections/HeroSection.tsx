@@ -92,6 +92,8 @@ export function HeroSection({ onJoin, onDiscord }: HeroSectionProps) {
           width={1920}
           height={1663}
           fetchPriority="high"
+          sizes="(min-width: 1280px) 220px, (min-width: 768px) 180px, 140px"
+          initialWidth={220}
           autoSize
         />
         <h1 ref={titleRef} className={styles.title}>

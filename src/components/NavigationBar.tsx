@@ -40,7 +40,8 @@ export function NavigationBar({ showCommunityLink = true }: NavigationBarProps) 
   useEffect(() => {
     const threshold = 600;
     const handleScroll = () => {
-      setVisible(window.scrollY > threshold);
+      const next = window.scrollY > threshold;
+      setVisible((prev) => (prev === next ? prev : next));
     };
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -133,7 +134,19 @@ export function NavigationBar({ showCommunityLink = true }: NavigationBarProps) 
         <div className="container">
           <div className={styles.inner}>
             <a href="#top" className={styles.logo} onClick={closeMobileMenu}>
-              <ResponsiveImage src="/images/HSTC-Logo.webp" alt="" aria-hidden="true" loading="lazy" width={1920} height={1663} autoSize />
+              <ResponsiveImage
+                src="/images/HSTC-Logo.webp"
+                alt=""
+                aria-hidden={true}
+                loading="lazy"
+                decoding="async"
+                width={1920}
+                height={1663}
+                sizes="(min-width: 1200px) 200px, (min-width: 768px) 160px, 120px"
+                initialWidth={200}
+                fetchPriority="low"
+                autoSize
+              />
               <span>HSTC</span>
             </a>
 
@@ -151,7 +164,7 @@ export function NavigationBar({ showCommunityLink = true }: NavigationBarProps) 
                 type="button"
                 aria-label={mobileOpen ? 'Menü schliessen' : 'Menü öffnen'}
                 aria-controls="primary-navigation"
-                aria-expanded={mobileOpen ? 'true' : 'false'}
+                aria-expanded={mobileOpen}
                 onClick={toggleMobileMenu}
               >
                 <span aria-hidden="true">{mobileOpen ? '\u00D7' : '\u2261'}</span>

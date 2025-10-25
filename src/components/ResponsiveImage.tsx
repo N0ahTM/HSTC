@@ -1,11 +1,35 @@
-import React, { forwardRef, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { getBestImageUrl, getSrcSet, guessInitialUrl } from '@/utils/imageManifest';
+import React, { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { getBestImageUrl, getSrcSetSync, guessInitialUrl } from '@/utils/imageManifest';
 
-type Props = React.ImgHTMLAttributes<HTMLImageElement> & {
+type Props = Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src'> & {
   src: string; // original base path in /images or remote
   sizes?: string; // optional override; if omitted, component will auto-size to element width
   autoSize?: boolean; // default true: measure element and set sizes to <width>px
+  initialWidth?: number; // optional hint for the first requested width before measurements run
+  fetchPriority?: 'high' | 'low' | 'auto';
 };
+
+const DEFAULT_PLACEHOLDER_WIDTH = 320;
+const MAX_INITIAL_WIDTH = 640;
+
+function parseNumericWidth(value: Props['width']): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const parsed = parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function extractPxFromSizes(sizes?: string): number | null {
+  if (!sizes) return null;
+  const match = sizes.match(/(\d+)\s*px/);
+  if (!match) return null;
+  const parsed = parseInt(match[1], 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
 
 /**
  * ResponsiveImage: uses the generated manifest to load best-fit variant.
@@ -13,7 +37,7 @@ type Props = React.ImgHTMLAttributes<HTMLImageElement> & {
  * - For remote URLs or missing manifest entries, it gracefully falls back to given src.
  */
 export const ResponsiveImage = forwardRef<HTMLImageElement, Props>(function ResponsiveImage(
-  { src, sizes, autoSize = true, loading = 'lazy', decoding = 'async', ...rest }: Props,
+  { src, sizes, autoSize = true, loading = 'lazy', decoding = 'async', initialWidth, fetchPriority, ...rest }: Props,
   ref
 ) {
   const imgRef = useRef<HTMLImageElement>(null);
@@ -25,25 +49,48 @@ export const ResponsiveImage = forwardRef<HTMLImageElement, Props>(function Resp
       (ref as React.MutableRefObject<HTMLImageElement | null>).current = node;
     }
   };
-  const [resolvedSrc, setResolvedSrc] = useState<string>(() => guessInitialUrl(src) || src);
-  const [resolvedSrcSet, setResolvedSrcSet] = useState<string>('');
+  const sizeHint = useMemo(() => {
+    if (typeof initialWidth === 'number' && initialWidth > 0) {
+      return Math.min(initialWidth, MAX_INITIAL_WIDTH);
+    }
+    const widthAttr = parseNumericWidth(rest.width);
+    if (widthAttr) {
+      return Math.min(widthAttr, MAX_INITIAL_WIDTH);
+    }
+    const pxFromSizes = extractPxFromSizes(sizes);
+    if (pxFromSizes) {
+      return Math.min(pxFromSizes, MAX_INITIAL_WIDTH);
+    }
+    return DEFAULT_PLACEHOLDER_WIDTH;
+  }, [initialWidth, rest.width, sizes]);
+
+  const [resolvedSrc, setResolvedSrc] = useState<string>(() => guessInitialUrl(src, sizeHint) || src);
+  const resolvedSrcSet = useMemo(() => getSrcSetSync(src), [src]);
   const [resolvedSizes, setResolvedSizes] = useState<string | undefined>(sizes);
 
-  // Resolve srcset from manifest (async)
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [ss] = await Promise.all([getSrcSet(src)]);
-        if (!cancelled && ss) setResolvedSrcSet(ss);
-      } catch {
-        /* ignore */
+    setResolvedSrc(guessInitialUrl(src, sizeHint) || src);
+  }, [sizeHint, src]);
+
+  useEffect(() => {
+    setResolvedSizes(sizes);
+  }, [sizes]);
+
+  // Keep fetchpriority attribute in sync without triggering React warnings
+  useEffect(() => {
+    if (!fetchPriority) {
+      if (imgRef.current) {
+        imgRef.current.removeAttribute('fetchpriority');
       }
-    })();
+      return;
+    }
+    const node = imgRef.current;
+    if (!node) return;
+    node.setAttribute('fetchpriority', fetchPriority);
     return () => {
-      cancelled = true;
+      node.removeAttribute('fetchpriority');
     };
-  }, [src]);
+  }, [fetchPriority]);
 
   // Auto measure element width and select best variant
   useLayoutEffect(() => {
