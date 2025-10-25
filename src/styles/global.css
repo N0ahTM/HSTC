@@ -209,6 +209,36 @@ button {
   transform: none !important;
 }
 
+.section-placeholder {
+  position: relative;
+}
+
+.section-placeholder .container {
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(120deg, rgba(255, 119, 51, 0.08), rgba(255, 119, 51, 0.02));
+  animation: placeholderPulse 2.6s ease-in-out infinite;
+  opacity: 0.45;
+}
+
+@keyframes placeholderPulse {
+  0% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-placeholder .container {
+    animation: none;
+  }
+}
+
 @media (max-width: 768px) {
   .section {
     padding: 3rem 0;

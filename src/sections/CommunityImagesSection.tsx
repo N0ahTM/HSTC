@@ -8,6 +8,8 @@ import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 
 import styles from './CommunityImagesSection.module.css';
 
+const isDev = import.meta.env.DEV;
+
 interface ScrollControlsState {
   canScrollPrev: boolean;
   canScrollNext: boolean;
@@ -26,7 +28,9 @@ function formatUploadedAt(value: string): string {
 
 export function CommunityImagesSection() {
   const { images, loading, error, hasMore, isFetchingMore, fetchNext, retry } = useDiscordChannelImages(20);
-  console.info('[discord-images] hook state', { items: images.length, loading, error, hasMore, isFetchingMore });
+  if (isDev) {
+    console.info('[discord-images] hook state', { items: images.length, loading, error, hasMore, isFetchingMore });
+  }
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -242,7 +246,15 @@ export function CommunityImagesSection() {
               >
                 &times;
               </button>
-              <img className={styles.lightboxImage} src={selectedImage.imageUrl} alt={`Bild von ${selectedImage.author.name}`} />
+              <img
+                className={styles.lightboxImage}
+                src={selectedImage.imageUrl}
+                alt={`Bild von ${selectedImage.author.name}`}
+                loading="lazy"
+                decoding="async"
+                width={selectedImage.width ?? undefined}
+                height={selectedImage.height ?? undefined}
+              />
               <figcaption className={styles.lightboxMeta}>
                 <div className={styles.lightboxMetaPrimary}>
                   <span className={styles.lightboxCaptionLabel}>Autor</span>
@@ -297,6 +309,10 @@ function ImageCard({ image, animate, onOpen }: ImageCardProps) {
           src={image.imageUrl}
           alt={`Bild von ${image.author.name}`}
           loading="lazy"
+          decoding="async"
+          width={image.width ?? undefined}
+          height={image.height ?? undefined}
+          sizes="(min-width: 1100px) 22vw, (min-width: 768px) 45vw, 80vw"
           onLoad={() => setIsLoaded(true)}
           className={clsx(styles.image, { [styles.isLoading]: !isLoaded })}
         />
@@ -305,7 +321,15 @@ function ImageCard({ image, animate, onOpen }: ImageCardProps) {
         <div className={styles.author}>
           {image.author.avatarUrl ? (
             <div className={styles.avatar}>
-              <img src={image.author.avatarUrl} alt="" aria-hidden="true" />
+              <img
+                src={image.author.avatarUrl}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                decoding="async"
+                width={40}
+                height={40}
+              />
             </div>
           ) : (
             <div className={styles.avatarFallback} aria-hidden="true">

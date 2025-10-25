@@ -1,20 +1,31 @@
-import { useCallback } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { NavigationBar } from '@/components/NavigationBar';
 import { HeroSection } from '@/sections/HeroSection';
 import { PillarsSection } from '@/sections/PillarsSection';
-import { CommunitySection } from '@/sections/CommunitySection';
-import { CommunityImagesSection } from '@/sections/CommunityImagesSection';
 import { JoinSection } from '@/sections/JoinSection';
 import { FooterSection } from '@/sections/FooterSection';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { SpaceBackground } from '@/components/SpaceBackground';
 import { useDiscordEvents } from '@/hooks/useDiscordEvents';
+import { DiscordDataProvider } from '@/providers/DiscordDataProvider';
+
+const CommunitySectionLazy = lazy(() =>
+  import('@/sections/CommunitySection').then((module) => ({ default: module.CommunitySection }))
+);
+const CommunityImagesSectionLazy = lazy(() =>
+  import('@/sections/CommunityImagesSection').then((module) => ({ default: module.CommunityImagesSection }))
+);
 
 const DISCORD_INVITE = 'https://discord.gg/jV8rByuJ4G';
 const ORG_PROFILE_URL = 'https://robertsspaceindustries.com/orgs/HSTC';
 
 export function App() {
-  return <SiteShell />;
+  return (
+    <DiscordDataProvider>
+      <SiteShell />
+    </DiscordDataProvider>
+  );
 }
 
 function SiteShell() {
@@ -38,21 +49,71 @@ function SiteShell() {
         <HeroSection onJoin={openRecruitment} onDiscord={openDiscord} />
         <PillarsSection />
         {showEventsSection && (
-          <CommunitySection
-            events={{
-              active: discordEvents.active,
-              upcoming: discordEvents.upcoming,
-              past: discordEvents.past,
-              loading: discordEvents.loading,
-              error: discordEvents.error,
-              guildId: discordEvents.guildId
-            }}
-          />
+          <LazyVisibleSection placeholder={<SectionPlaceholder minHeight={480} />} rootMargin="0px 0px -15%">
+            <Suspense fallback={<SectionPlaceholder minHeight={480} />}>
+              <CommunitySectionLazy
+                events={{
+                  active: discordEvents.active,
+                  upcoming: discordEvents.upcoming,
+                  past: discordEvents.past,
+                  loading: discordEvents.loading,
+                  error: discordEvents.error,
+                  guildId: discordEvents.guildId
+                }}
+              />
+            </Suspense>
+          </LazyVisibleSection>
         )}
-        <CommunityImagesSection />
+        <LazyVisibleSection placeholder={<SectionPlaceholder minHeight={520} />} rootMargin="0px 0px -10%">
+          <Suspense fallback={<SectionPlaceholder minHeight={520} />}>
+            <CommunityImagesSectionLazy />
+          </Suspense>
+        </LazyVisibleSection>
         <JoinSection onJoin={openRecruitment} onDiscord={openDiscord} />
       </main>
       <FooterSection />
     </>
+  );
+}
+
+interface LazyVisibleSectionProps {
+  children: ReactNode;
+  placeholder: ReactNode;
+  rootMargin?: string;
+}
+
+function LazyVisibleSection({ children, placeholder, rootMargin = '0px 0px -20%' }: LazyVisibleSectionProps) {
+  const [shouldRender, setShouldRender] = useState(() => typeof window === 'undefined');
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (shouldRender || typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+    const node = containerRef.current;
+    if (!node) {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldRender(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin, threshold: 0.15 }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [rootMargin, shouldRender]);
+
+  return <div ref={containerRef}>{shouldRender ? children : placeholder}</div>;
+}
+
+function SectionPlaceholder({ minHeight = 360 }: { minHeight?: number }) {
+  return (
+    <section className="section section-placeholder" aria-hidden="true">
+      <div className="container" style={{ minHeight }} />
+    </section>
   );
 }

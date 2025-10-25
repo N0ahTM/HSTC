@@ -7,8 +7,7 @@ import path from 'node:path';
 
 type AmplifyOutputs = {
   custom?: {
-    discordImagesUrl?: string;
-    discordEventsUrl?: string;
+    discordCombinedUrl?: string;
   };
 };
 
@@ -137,20 +136,12 @@ export default defineConfig({
   plugins: [
     react(),
     createAmplifyProxy({
-      route: '/api/discord-images',
-      handlerModule: '/amplify/functions/discord-images/handler.ts',
-      envEndpointVar: 'VITE_DISCORD_IMAGES_ENDPOINT',
-      amplifyKey: 'discordImagesUrl',
-      requiredSecrets: ['DISCORD_BOT_TOKEN', 'DISCORD_CHANNEL_ID'],
-      logScope: 'discord-images'
-    }),
-    createAmplifyProxy({
-      route: '/api/discord-events',
-      handlerModule: '/amplify/functions/discord-events/handler.ts',
-      envEndpointVar: 'VITE_DISCORD_EVENTS_ENDPOINT',
-      amplifyKey: 'discordEventsUrl',
-      requiredSecrets: ['DISCORD_BOT_TOKEN', 'DISCORD_GUILD_ID'],
-      logScope: 'discord-events'
+      route: '/api/discord-combined',
+      handlerModule: '/amplify/functions/discord-aggregate/handler.ts',
+      envEndpointVar: 'VITE_DISCORD_COMBINED_ENDPOINT',
+      amplifyKey: 'discordCombinedUrl',
+      requiredSecrets: ['DISCORD_BOT_TOKEN', 'DISCORD_CHANNEL_ID', 'DISCORD_GUILD_ID'],
+      logScope: 'discord-combined'
     })
   ],
   resolve: {

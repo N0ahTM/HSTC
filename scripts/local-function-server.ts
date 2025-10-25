@@ -4,8 +4,7 @@ import { URL } from 'node:url';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 // Import the handler directly from the backend function
-import { handler as imagesHandler } from '../amplify/functions/discord-images/handler';
-import { handler as eventsHandler } from '../amplify/functions/discord-events/handler';
+import { handler as aggregateHandler } from '../amplify/functions/discord-aggregate/handler';
 
 const PORT = Number(process.env.FUNCTION_PORT ?? 3000);
 
@@ -41,15 +40,9 @@ const server = http.createServer(async (req, res) => {
 
   // Only handle our API route; return 404 for others
   try {
-    if (url.pathname === '/api/discord-images') {
+    if (url.pathname === '/api/discord-combined') {
       const event = buildEvent(req, url);
-      const lambdaRes = await imagesHandler(event as any);
-      writeResponse(res, lambdaRes.statusCode, lambdaRes.headers, lambdaRes.body);
-      return;
-    }
-    if (url.pathname === '/api/discord-events') {
-      const event = buildEvent(req, url);
-      const lambdaRes = await eventsHandler(event as any);
+      const lambdaRes = await aggregateHandler(event as any);
       writeResponse(res, lambdaRes.statusCode, lambdaRes.headers, lambdaRes.body);
       return;
     }
@@ -68,7 +61,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`Local function server listening:
-    Images:  http://localhost:${PORT}/api/discord-images
-    Events:  http://localhost:${PORT}/api/discord-events`);
+  console.log(`Local function server listening at http://localhost:${PORT}/api/discord-combined`);
 });

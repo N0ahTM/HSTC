@@ -1,11 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { SectionHeading } from '@/components/SectionHeading';
 import { useDiscordStats } from '@/hooks/useDiscordStats';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
-import anime from 'animejs';
 
 import styles from './DiscordSection.module.css';
 
@@ -20,6 +19,7 @@ export function DiscordSection({ onJoinClick }: DiscordSectionProps) {
   const qrRef = useRef<HTMLImageElement | null>(null);
   const onlineRef = useRef<HTMLSpanElement | null>(null);
   const voiceRef = useRef<HTMLSpanElement | null>(null);
+  const [allowGlow, setAllowGlow] = useState(() => typeof window === 'undefined');
 
   useStaggerReveal(sectionRef, { rootMargin: '0px 0px -12%' });
 
@@ -31,6 +31,33 @@ export function DiscordSection({ onJoinClick }: DiscordSectionProps) {
 
   useEffect(() => {
     if (prefersReducedMotion) {
+      setAllowGlow(false);
+      return;
+    }
+    const target = sectionRef.current;
+    if (!target || typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') {
+      setAllowGlow(true);
+      return;
+    }
+    let cancelled = false;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!cancelled && entries.some((entry) => entry.isIntersecting)) {
+          setAllowGlow(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.25 }
+    );
+    observer.observe(target);
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+    };
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (prefersReducedMotion || !allowGlow) {
       return;
     }
 
@@ -39,17 +66,29 @@ export function DiscordSection({ onJoinClick }: DiscordSectionProps) {
       return;
     }
 
-    const glow = anime({
-      targets: qr,
-      filter: ['drop-shadow(0 0 0px rgba(255,119,51,0))', 'drop-shadow(0 0 16px rgba(255,119,51,0.4))'],
-      duration: 4000,
-      direction: 'alternate',
-      easing: 'easeInOutSine',
-      loop: true
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+
+    void import('animejs').then(({ default: anime }) => {
+      if (cancelled || !qrRef.current) {
+        return;
+      }
+      const glow = anime({
+        targets: qrRef.current,
+        filter: ['drop-shadow(0 0 0px rgba(255,119,51,0))', 'drop-shadow(0 0 16px rgba(255,119,51,0.4))'],
+        duration: 4000,
+        direction: 'alternate',
+        easing: 'easeInOutSine',
+        loop: true
+      });
+      cleanup = () => glow.pause();
     });
 
-    return () => glow.pause();
-  }, [prefersReducedMotion]);
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [allowGlow, prefersReducedMotion]);
 
   return (
     <section ref={sectionRef} className={`section ${styles.section}`} id="discord">
@@ -86,6 +125,9 @@ export function DiscordSection({ onJoinClick }: DiscordSectionProps) {
               alt="Discord Einladung QR Code"
               className={styles.qrImage}
               loading="lazy"
+              decoding="async"
+              width={256}
+              height={256}
             />
             <button className="btn btn-outline" type="button" onClick={onJoinClick}>
               Einladung öffnen
