@@ -12,13 +12,13 @@ export const discordAggregate = defineFunction((scope) => {
   const lambda = new NodejsFunction(scope, 'DiscordAggregateHandler', {
     entry: path.join(__dirname, 'handler.ts'),
     handler: 'handler',
-    runtime: Runtime.NODEJS_20_X,
+    runtime: Runtime.NODEJS_22_X,
     architecture: Architecture.ARM_64,
     memorySize: 256,
     timeout: Duration.seconds(20),
     bundling: {
       minify: true,
-      target: 'node20',
+      target: 'node22',
       format: OutputFormat.CJS
     }
   });
