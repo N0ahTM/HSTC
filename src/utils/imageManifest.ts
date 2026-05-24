@@ -27,7 +27,19 @@ type NormalizedManifest = Record<string, ImageVariant[]>; // key: original web p
 
 const manifest: NormalizedManifest = normalizeManifest(rawManifest as ImageManifest);
 const DEFAULT_PLACEHOLDER_WIDTH = 320;
-const ASSET_BASE_URL = getAssetBaseUrl();
+let resolvedAssetBaseUrl: string | null = null;
+
+function resolveAssetBaseUrl(): string {
+  if (resolvedAssetBaseUrl !== null) {
+    return resolvedAssetBaseUrl;
+  }
+  try {
+    resolvedAssetBaseUrl = getAssetBaseUrl();
+  } catch {
+    resolvedAssetBaseUrl = '';
+  }
+  return resolvedAssetBaseUrl;
+}
 
 function isAbsoluteUrl(value: string): boolean {
   return /^https?:\/\//i.test(value) || value.startsWith('//');
@@ -68,8 +80,9 @@ function normalizeRequestUrl(source: string): string {
 
 function toDeliveryUrl(source: string): string {
   const normalized = normalizeRequestUrl(source);
+  const assetBaseUrl = resolveAssetBaseUrl();
   if (normalized.startsWith('/images/')) {
-    return `${ASSET_BASE_URL}${normalized}`;
+    return assetBaseUrl ? `${assetBaseUrl}${normalized}` : normalized;
   }
   return normalized;
 }
