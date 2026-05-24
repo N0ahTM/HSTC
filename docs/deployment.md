@@ -98,10 +98,14 @@ Defined in `customHttp.yml` and `public/_headers`:
 
 Images are served through a dedicated CloudFront distribution backed by S3:
 
-1. **Sync**: `npm run assets:sync` uploads `public/images` to S3
-2. **Cache**: `/images/*` served with `immutable` cache headers
-3. **Manifest**: `/_manifest.json` explicitly set to `no-cache` for fresh metadata
-4. **Override**: `VITE_ASSET_CDN_BASE_URL` can override the CloudFront domain at build/runtime
+1. **Source**: Original images live in `assets/images/` (tracked in Git)
+2. **Build**: `npm run build:images` (via `sharp`) generates responsive WebP variants + `_manifest.json` into `public/images/`
+3. **Sync**: `npm run assets:sync` uploads `public/images` to S3
+4. **Cache**: `/images/*` served with `immutable` cache headers
+5. **Manifest**: `/_manifest.json` explicitly set to `no-cache` for fresh metadata
+6. **Override**: `VITE_ASSET_CDN_BASE_URL` can override the CloudFront domain at build/runtime
+
+The generated `public/images/` directory is `.gitignore`d — no generated binaries are committed.
 
 ---
 

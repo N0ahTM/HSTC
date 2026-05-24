@@ -6,4 +6,7 @@ amplify_outputs.json
 .lighthouseci/
 *.tsbuildinfo
 amplify/node_modules/
+# Generated image assets (built from assets/images/ via scripts/build-images.mjs)
+public/images/*
+!public/images/.gitkeep
 public/images/_manifest.json

@@ -67,6 +67,9 @@ src/
 ├── config/          # Runtime configuration & endpoint resolution
 └── styles/          # Global styles & CSS custom properties
 
+assets/
+└── images/          # Source images (responsive variants generated at build time)
+
 amplify/
 ├── backend.ts                    # CDK infrastructure definition
 └── functions/
@@ -122,6 +125,7 @@ amplify/
 |---|---|
 | **Compression** | Brotli + Gzip via Vite plugin at build time |
 | **Caching** | Immutable assets (`/images/*`), strict `Cache-Control` headers via `customHttp.yml` |
+| **Image Pipeline** | Source images in `assets/images/` → responsive WebP variants generated at build time → synced to S3 + CloudFront |
 | **Security Headers** | HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy |
 | **Rate Limiting** | AWS WAF rate-based rule on API edge |
 | **Lazy Loading** | Sections render on Intersection Observer; unused code never executes |
@@ -148,8 +152,9 @@ Pipeline defined in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml).
 ## Scripts
 
 ```bash
-npm run dev           # Vite dev server
+npm run dev           # Vite dev server (generates missing images first)
 npm run dev:full      # Frontend + local Lambda proxy
+npm run build:images  # Generate responsive WebP variants from assets/images/
 npm run build         # Full type-check + production build
 npm run lint          # Lint source files
 npm run lint:infra    # Lint infrastructure and tooling
