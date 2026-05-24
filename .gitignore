@@ -3,5 +3,6 @@ dist/
 .amplify/
 amplify_outputs.json
 .env
+.lighthouseci/
 *.tsbuildinfo
 amplify/node_modules/

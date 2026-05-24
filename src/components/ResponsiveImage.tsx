@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { getBestImageUrl, getSrcSetSync, guessInitialUrl } from '@/utils/imageManifest';
+import { getBestImageUrl, getSrcSetSync, guessInitialUrl } from '@/lib/utils';
 
 type Props = Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src'> & {
   src: string; // original base path in /images or remote

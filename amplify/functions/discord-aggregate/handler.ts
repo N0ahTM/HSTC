@@ -31,6 +31,7 @@ type Mode = 'both' | 'events' | 'images';
 
 type LambdaEvent = {
   readonly requestContext: { readonly http: { readonly method: string } };
+  readonly headers?: Record<string, string | undefined>;
   readonly queryStringParameters?: Record<string, string | undefined>;
 };
 
@@ -215,12 +216,27 @@ const ssmConfig = (() => {
 })();
 const secretCache = new Map<string, string>();
 
+function getHeader(headers: Record<string, string | undefined> | undefined, key: string): string | undefined {
+  if (!headers) {
+    return undefined;
+  }
+  const match = Object.entries(headers).find(([candidate]) => candidate.toLowerCase() === key.toLowerCase());
+  return match?.[1];
+}
+
 export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
   if (event.requestContext.http.method === 'OPTIONS') {
     return { statusCode: 204, headers: corsHeaders, body: '' };
   }
   if (event.requestContext.http.method !== 'GET') {
     return createErrorResponse(new HttpError(405, 'Method Not Allowed'));
+  }
+  const expectedEdgeKey = (process.env.DISCORD_EDGE_ORIGIN_KEY ?? '').trim();
+  if (expectedEdgeKey) {
+    const presentedEdgeKey = (getHeader(event.headers, 'x-hstc-edge-key') ?? '').trim();
+    if (!presentedEdgeKey || presentedEdgeKey !== expectedEdgeKey) {
+      return createErrorResponse(new HttpError(403, 'Forbidden'));
+    }
   }
 
   try {

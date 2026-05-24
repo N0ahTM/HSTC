@@ -1,10 +1,10 @@
 import { useCallback, useRef, type MouseEvent } from 'react';
 import anime from 'animejs';
 
-import { SectionHeading } from '@/components/SectionHeading';
+import { SectionHeading } from '@/lib/ui';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
-import { buttonPress } from '@/motion/interactions';
+import { buttonPress } from '@/lib/motion';
 import { useDiscordStats } from '@/hooks/useDiscordStats';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 

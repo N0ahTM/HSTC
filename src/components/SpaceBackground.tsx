@@ -3,7 +3,7 @@ import anime from 'animejs';
 import clsx from 'clsx';
 import styles from './SpaceBackground.module.css';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
-import { selectBackgroundUrl } from '@/utils/imageManifest';
+import { selectBackgroundUrl } from '@/lib/utils';
 
 type Vec2 = { x: number; y: number };
 type CirclePixels = { cx: number; cy: number; radius: number };

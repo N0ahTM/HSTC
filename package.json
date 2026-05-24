@@ -19,9 +19,11 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "lint:infra": "eslint \"{scripts,amplify}/**/*.{ts,mjs}\" \"vite.config.ts\"",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "assets:sync": "node ./scripts/sync-assets-to-s3.mjs",
     "sandbox": "npx -y -p @aws-amplify/backend-cli@latest ampx sandbox",
     "sandbox:remove": "npx -y -p @aws-amplify/backend-cli@latest ampx sandbox --remove",
-    "ampx:version": "npx -y -p @aws-amplify/backend-cli@latest ampx -v"
+    "ampx:version": "npx -y -p @aws-amplify/backend-cli@latest ampx -v",
+    "perf:lighthouse": "lhci autorun --config=.lighthouserc.json"
   },
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.910.0",
@@ -31,6 +33,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@aws-amplify/backend": "^1.16.1",
     "@aws-amplify/backend-cli": "^1.8.0",
     "@aws-amplify/cli": "^14.1.0",

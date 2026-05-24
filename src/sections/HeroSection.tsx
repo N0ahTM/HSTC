@@ -1,14 +1,10 @@
 import { useEffect, useRef } from 'react';
 
-import { YearBadge } from '@/components/YearBadge';
-import { StatsBadge } from '@/components/StatsBadge';
-import { ScrollIndicator } from '@/components/ScrollIndicator';
+import { YearBadge, StatsBadge, ScrollIndicator, ResponsiveImage } from '@/lib/ui';
 import { useDiscordStats } from '@/hooks/useDiscordStats';
 import { useVerseYear } from '@/hooks/useVerseYear';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
-import { playHeroIntro, startHeroLogoDrift, stopAnimations } from '@/motion/hero';
-import { splitLetters, letterReveal } from '@/motion/textEffects';
-import ResponsiveImage from '@/components/ResponsiveImage';
+import { playHeroIntro, startHeroLogoDrift, stopAnimations, splitLetters, letterReveal } from '@/lib/motion';
 
 import type { AnimeInstance, AnimeTimelineInstance } from 'animejs';
 

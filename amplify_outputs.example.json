@@ -1,6 +1,7 @@
 {
   "version": "1.4",
   "custom": {
-    "discordCombinedUrl": "https://YOUR_LAMBDA_ID.lambda-url.eu-central-1.on.aws/"
+    "discordCombinedUrl": "https://d111111abcdef8.cloudfront.net/",
+    "discordCombinedOriginUrl": "https://YOUR_LAMBDA_ID.lambda-url.eu-central-1.on.aws/"
   }
 }

@@ -2,9 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 import { App } from './App';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { ErrorBoundary } from '@/lib/ui';
 import './styles/global.css';
-import { warmImageManifest } from '@/utils/imageManifest';
+import { warmImageManifest } from '@/lib/utils';
 
 if (typeof window !== 'undefined') {
   const rootElement = document.documentElement;

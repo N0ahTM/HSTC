@@ -1,21 +1,20 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { NavigationBar } from '@/components/NavigationBar';
-import { HeroSection } from '@/sections/HeroSection';
-import { JoinSection } from '@/sections/JoinSection';
-import { FooterSection } from '@/sections/FooterSection';
-import { SpaceBackground } from '@/components/SpaceBackground';
+import { NavigationBar, SpaceBackground } from '@/lib/ui';
+import { HeroSection } from '@/features/site/HeroSection';
+import { JoinSection } from '@/features/site/JoinSection';
+import { FooterSection } from '@/features/site/FooterSection';
 import { useDiscordEvents } from '@/hooks/useDiscordEvents';
 import { DiscordDataProvider } from '@/providers/DiscordDataProvider';
 
 const CommunitySectionLazy = lazy(() =>
-  import('@/sections/CommunitySection').then((module) => ({ default: module.CommunitySection }))
+  import('@/features/site/CommunitySection').then((module) => ({ default: module.CommunitySection }))
 );
 const CommunityImagesSectionLazy = lazy(() =>
-  import('@/sections/CommunityImagesSection').then((module) => ({ default: module.CommunityImagesSection }))
+  import('@/features/site/CommunityImagesSection').then((module) => ({ default: module.CommunityImagesSection }))
 );
 const PillarsSectionLazy = lazy(() =>
-  import('@/sections/PillarsSection').then((module) => ({ default: module.PillarsSection }))
+  import('@/features/site/PillarsSection').then((module) => ({ default: module.PillarsSection }))
 );
 
 const DISCORD_INVITE = 'https://discord.gg/jV8rByuJ4G';

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import styles from './ErrorBoundary.module.css';
 import ResponsiveImage from '@/components/ResponsiveImage';
-import { selectBackgroundUrl } from '@/utils/imageManifest';
+import { selectBackgroundUrl } from '@/lib/utils';
 
 type Props = { children: React.ReactNode };
 type State = { hasError: boolean; error?: Error };

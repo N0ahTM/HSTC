@@ -26,6 +26,10 @@ type NormalizedManifest = Record<string, ImageVariant[]>; // key: original web p
 
 const manifest: NormalizedManifest = normalizeManifest(rawManifest as ImageManifest);
 const DEFAULT_PLACEHOLDER_WIDTH = 320;
+const ASSET_CDN_BASE_URL =
+  typeof import.meta.env.VITE_ASSET_CDN_BASE_URL === 'string'
+    ? import.meta.env.VITE_ASSET_CDN_BASE_URL.trim().replace(/\/+$/, '')
+    : '';
 
 function isAbsoluteUrl(value: string): boolean {
   return /^https?:\/\//i.test(value) || value.startsWith('//');
@@ -62,6 +66,14 @@ function normalizeRequestUrl(source: string): string {
     return normalized.replace(/^\./, '');
   }
   return normalized.startsWith('/images/') ? normalized : `/images/${normalized}`;
+}
+
+function toDeliveryUrl(source: string): string {
+  const normalized = normalizeRequestUrl(source);
+  if (ASSET_CDN_BASE_URL && normalized.startsWith('/images/')) {
+    return `${ASSET_CDN_BASE_URL}${normalized}`;
+  }
+  return normalized;
 }
 
 function manifestKeyFromUrl(source: string): string | null {
@@ -123,13 +135,13 @@ function effectiveTargetWidth(cssWidth: number, dpr: number): number {
  * If no variants exist, returns the normalized original URL.
  */
 export async function getBestImageUrl(originalUrl: string, desiredCssWidth: number, dpr = 1): Promise<string> {
-  const fallback = normalizeRequestUrl(originalUrl);
+  const fallback = toDeliveryUrl(originalUrl);
   const variants = getVariantsFor(originalUrl);
   if (!variants || variants.length === 0) {
     return fallback;
   }
   const candidate = pickVariantByWidth(variants, effectiveTargetWidth(desiredCssWidth, dpr));
-  return candidate.src;
+  return toDeliveryUrl(candidate.src);
 }
 
 /** Build a srcset string from manifest variants. Fallback to empty string when missing. */
@@ -149,7 +161,7 @@ export function getSrcSetSync(originalUrl: string): string {
     }
   }
   const items = Array.from(uniqueByWidth.values()).sort((a, b) => a.width - b.width);
-  return items.map((v) => `${v.src} ${v.width}w`).join(', ');
+  return items.map((v) => `${toDeliveryUrl(v.src)} ${v.width}w`).join(', ');
 }
 
 /**
@@ -159,7 +171,7 @@ export function getSrcSetSync(originalUrl: string): string {
 export function guessInitialUrl(originalUrl: string, preferredWidth = DEFAULT_PLACEHOLDER_WIDTH): string {
   const variants = getVariantsFor(originalUrl);
   if (variants && variants.length > 0) {
-    return pickVariantByWidth(variants, preferredWidth).src;
+    return toDeliveryUrl(pickVariantByWidth(variants, preferredWidth).src);
   }
   const fallback = normalizeRequestUrl(originalUrl);
   if (!fallback.startsWith('/images/')) {
@@ -170,7 +182,7 @@ export function guessInitialUrl(originalUrl: string, preferredWidth = DEFAULT_PL
   const base = fallback.slice(0, idx);
   const ext = fallback.slice(idx);
   const width = Math.max(64, Math.round(preferredWidth || DEFAULT_PLACEHOLDER_WIDTH));
-  return `${base}-w${width}${ext}`;
+  return toDeliveryUrl(`${base}-w${width}${ext}`);
 }
 
 /**

@@ -1,10 +1,9 @@
 import { useMemo, useRef } from 'react';
-import { SectionHeading } from '@/components/SectionHeading';
+import { ResponsiveImage, SectionHeading } from '@/lib/ui';
 import type { DiscordCommunityEvent } from '@/hooks/useDiscordEvents';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 
 import styles from './CommunitySection.module.css';
-import ResponsiveImage from '@/components/ResponsiveImage';
 
 type DisplayStatus = 'active' | 'upcoming' | 'past';
 

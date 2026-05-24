@@ -1,4 +1,14 @@
 import { defineBackend, secret } from '@aws-amplify/backend';
+import { Stack } from 'aws-cdk-lib';
+import {
+  AllowedMethods,
+  CachePolicy,
+  Distribution,
+  OriginRequestPolicy,
+  ViewerProtocolPolicy
+} from 'aws-cdk-lib/aws-cloudfront';
+import { FunctionUrlOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { CfnWebACL, CfnWebACLAssociation } from 'aws-cdk-lib/aws-wafv2';
 import { FunctionUrlAuthType, HttpMethod } from 'aws-cdk-lib/aws-lambda';
 import { discordAggregate } from './functions/discord-aggregate/resource.js';
 
@@ -53,11 +63,72 @@ const discordCombinedUrl = backend.discordAggregate.resources.lambda.addFunction
     allowedHeaders: ['Accept', 'Accept-Language', 'Content-Type', 'Origin', 'Referer', 'User-Agent'],
     allowCredentials: false
   }
-}).url;
+});
+
+const edgeOriginHeaderName = 'x-hstc-edge-key';
+const edgeOriginHeaderValue = (process.env.DISCORD_EDGE_ORIGIN_KEY ?? '').trim();
+if (edgeOriginHeaderValue) {
+  backend.discordAggregate.addEnvironment('DISCORD_EDGE_ORIGIN_KEY', edgeOriginHeaderValue);
+}
+
+const edgeStack = backend.createStack('DiscordAggregateEdge');
+const discordCombinedDistribution = new Distribution(edgeStack, 'DiscordAggregateDistribution', {
+  comment: 'CloudFront edge for discord aggregate function URL',
+  defaultBehavior: {
+    origin: new FunctionUrlOrigin(discordCombinedUrl, {
+      customHeaders: edgeOriginHeaderValue
+        ? {
+            [edgeOriginHeaderName]: edgeOriginHeaderValue
+          }
+        : undefined
+    }),
+    allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+    viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    cachePolicy: CachePolicy.CACHING_DISABLED,
+    originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER
+  }
+});
+
+const webAcl = new CfnWebACL(edgeStack, 'DiscordAggregateWebAcl', {
+  name: 'discord-aggregate-waf',
+  scope: 'CLOUDFRONT',
+  defaultAction: { allow: {} },
+  visibilityConfig: {
+    cloudWatchMetricsEnabled: true,
+    metricName: 'DiscordAggregateWaf',
+    sampledRequestsEnabled: true
+  },
+  rules: [
+    {
+      name: 'RateLimitByIp',
+      priority: 0,
+      statement: {
+        rateBasedStatement: {
+          aggregateKeyType: 'IP',
+          limit: 1200
+        }
+      },
+      action: {
+        block: {}
+      },
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: 'DiscordAggregateRateLimitByIp',
+        sampledRequestsEnabled: true
+      }
+    }
+  ]
+});
+
+new CfnWebACLAssociation(edgeStack, 'DiscordAggregateWebAclAssociation', {
+  webAclArn: webAcl.attrArn,
+  resourceArn: `arn:aws:cloudfront::${Stack.of(edgeStack).account}:distribution/${discordCombinedDistribution.distributionId}`
+});
 
 backend.addOutput({
   custom: {
-    discordCombinedUrl
+    discordCombinedUrl: `https://${discordCombinedDistribution.distributionDomainName}/`,
+    discordCombinedOriginUrl: discordCombinedUrl.url
   }
 });
 

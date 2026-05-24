@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react';
 
-import { SectionHeading } from '@/components/SectionHeading';
+import { SectionHeading } from '@/lib/ui';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
-import { apply3DTilt } from '@/motion/interactions';
+import { apply3DTilt } from '@/lib/motion';
 
 import styles from './PillarsSection.module.css';
-import { selectBackgroundUrl } from '@/utils/imageManifest';
+import { selectBackgroundUrl } from '@/lib/utils';
 
 // Statisches Set der 6 Karten
 const cards = [

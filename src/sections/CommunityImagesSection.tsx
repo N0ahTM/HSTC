@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 
-import { SectionHeading } from '@/components/SectionHeading';
+import { SectionHeading } from '@/lib/ui';
 import { useDiscordChannelImages, type DiscordChannelImage } from '@/hooks/useDiscordChannelImages';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { useStaggerReveal } from '@/hooks/useAnimateOnIntersect';
