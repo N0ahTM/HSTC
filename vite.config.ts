@@ -1,9 +1,10 @@
 import 'dotenv/config';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import viteCompression from 'vite-plugin-compression';
 import { fileURLToPath, URL } from 'node:url';
-import { readFile } from 'node:fs/promises';
+import { readFile, copyFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
@@ -32,10 +33,7 @@ type DevServer = {
   ssrLoadModule: (id: string) => Promise<unknown>;
 };
 
-type MinimalVitePlugin = {
-  name: string;
-  configureServer?: (server: DevServer) => void;
-};
+type MinimalVitePlugin = Plugin;
 
 const amplifyOutputsCache: { value: AmplifyOutputs | null; inFlight: Promise<AmplifyOutputs | null> | null } = {
   value: null,
@@ -74,11 +72,52 @@ async function resolveRemoteEndpoint(envVar: string, key: keyof NonNullable<Ampl
   return typeof candidate === 'string' && candidate.length > 0 ? candidate : null;
 }
 
+
+function resolveDiscordCombinedOrigin(outputs: AmplifyOutputs | null): string | null {
+  const envEndpoint = (process.env.VITE_DISCORD_COMBINED_ENDPOINT ?? '').trim();
+  const candidate =
+    envEndpoint ||
+    (typeof outputs?.custom?.discordCombinedUrl === 'string' ? outputs.custom.discordCombinedUrl : '');
+  if (!candidate) return null;
+  try {
+    return new URL(candidate).origin;
+  } catch {
+    return null;
+  }
+}
+
+const amplifyHostingPlugin = (): MinimalVitePlugin => ({
+  name: 'amplify-hosting',
+  transformIndexHtml: {
+    order: 'pre',
+    async handler(html: string) {
+      const outputs = await loadAmplifyOutputs();
+      const lambdaOrigin = resolveDiscordCombinedOrigin(outputs);
+      const preconnect = lambdaOrigin
+        ? `  <link rel="preconnect" href="${lambdaOrigin}" crossorigin />\n`
+        : '';
+      return html.replace('  <!-- hstc:lambda-preconnect -->', preconnect);
+    }
+  },
+  async closeBundle() {
+    const src = path.join(process.cwd(), 'amplify_outputs.json');
+    const dest = path.join(process.cwd(), 'dist', 'amplify_outputs.json');
+    if (!existsSync(src)) {
+      // eslint-disable-next-line no-console
+      console.warn('[amplify-hosting] amplify_outputs.json not found — skipping copy to dist/.');
+      return;
+    }
+    await copyFile(src, dest);
+    // eslint-disable-next-line no-console
+    console.info('[amplify-hosting] Copied amplify_outputs.json to dist/.');
+  }
+});
+
 const createAmplifyProxy = (options: ProxyOptions): MinimalVitePlugin => ({
   name: `${options.logScope}-api`,
-  configureServer(server) {
+  configureServer(server: DevServer) {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    server.middlewares.use(options.route, async (req, res) => {
+    server.middlewares.use(options.route, async (req: IncomingMessage, res: ServerResponse) => {
       const method = req.method ?? 'GET';
       const requestUrl = new URL(req.url ?? '', 'http://localhost');
       const query: Record<string, string | undefined> = {};
@@ -173,7 +212,8 @@ export default defineConfig({
       amplifyKey: 'discordCombinedUrl',
       requiredSecrets: ['DISCORD_BOT_TOKEN', 'DISCORD_CHANNEL_ID', 'DISCORD_GUILD_ID'],
       logScope: 'discord-combined'
-    })
+    }),
+    amplifyHostingPlugin()
   ],
   resolve: {
     alias: {

@@ -9,6 +9,7 @@
     "test:function": "tsx ./scripts/test-discord-function.ts",
     "dev:full": "concurrently \"npm:dev:function\" \"npm:dev\"",
     "build": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.json --noEmit && vite build",
+    "apply:redirects": "node scripts/apply-amplify-redirects.mjs",
     "preview": "vite preview",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest --passWithNoTests",

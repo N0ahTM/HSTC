@@ -1,18 +1,25 @@
 [
-  { "source": "/robots.txt", "target": "/robots.txt", "status": "200" },
-  { "source": "/sitemap.xml", "target": "/sitemap.xml", "status": "200" },
+  { "source": "https://www.hstc.space", "target": "https://hstc.space", "status": "301" },
+  { "source": "https://www.hstc.space/<*>", "target": "https://hstc.space/<*>", "status": "301" },
 
+  { "source": "/favicon.ico", "target": "/images/HSTC-Logo.webp", "status": "301" },
   { "source": "/index.html", "target": "/", "status": "301" },
 
   { "source": "/discord", "target": "https://discord.gg/jV8rByuJ4G", "status": "302" },
+  { "source": "/discord/", "target": "https://discord.gg/jV8rByuJ4G", "status": "302" },
   { "source": "/join", "target": "https://robertsspaceindustries.com/orgs/HSTC", "status": "302" },
+  { "source": "/join/", "target": "https://robertsspaceindustries.com/orgs/HSTC", "status": "302" },
 
   { "source": "/404", "target": "/404.html", "status": "404" },
   { "source": "/403", "target": "/403.html", "status": "200" },
   { "source": "/429", "target": "/429.html", "status": "200" },
   { "source": "/500", "target": "/500.html", "status": "200" },
 
-  { "source": "</^[^.]+$|\\.(?!(css|gif|ico|jpg|jpeg|js|png|txt|svg|webp|woff|woff2|ttf|map|json)$)([^.]+$)/>", "target": "/index.html", "status": "200" },
+  {
+    "source": "</^[^.]+$|\\.(?!(css|gif|ico|jpg|jpeg|js|png|txt|svg|webp|woff|woff2|ttf|map|json|br|gz)$)([^.]+$)/>",
+    "target": "/index.html",
+    "status": "200"
+  },
 
   { "source": "/<*>", "target": "/index.html", "status": "404-200" }
 ]
