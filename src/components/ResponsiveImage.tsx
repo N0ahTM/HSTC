@@ -31,6 +31,10 @@ function extractPxFromSizes(sizes?: string): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function isMutableRefObject<T>(value: unknown): value is React.MutableRefObject<T> {
+  return Boolean(value) && typeof value === 'object' && 'current' in (value as object);
+}
+
 /**
  * ResponsiveImage: uses the generated manifest to load best-fit variant.
  * - For local /images/* sources, it sets src/srcSet/sizes.
@@ -45,7 +49,7 @@ export const ResponsiveImage = forwardRef<HTMLImageElement, Props>(function Resp
     (imgRef as React.MutableRefObject<HTMLImageElement | null>).current = node;
     if (typeof ref === 'function') {
       ref(node);
-    } else if (ref && 'current' in (ref as any)) {
+    } else if (isMutableRefObject<HTMLImageElement | null>(ref)) {
       (ref as React.MutableRefObject<HTMLImageElement | null>).current = node;
     }
   };
@@ -103,7 +107,7 @@ export const ResponsiveImage = forwardRef<HTMLImageElement, Props>(function Resp
     const update = async () => {
       if (!el || cancelled) return;
       const rect = el.getBoundingClientRect();
-      const width = Math.max(1, Math.round(rect.width || (el as any).clientWidth || 0));
+      const width = Math.max(1, Math.round(rect.width || el.clientWidth || 0));
       if (width > 0) {
         try {
           const best = await getBestImageUrl(src, width, dpr);
@@ -160,7 +164,7 @@ export const ResponsiveImage = forwardRef<HTMLImageElement, Props>(function Resp
       srcSet={resolvedSrcSet || undefined}
       sizes={resolvedSizes}
       loading={loading}
-      decoding={decoding as any}
+      decoding={decoding}
       {...rest}
     />
   );

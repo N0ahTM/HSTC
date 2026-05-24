@@ -1,4 +1,4 @@
-import { useDiscordData, type DiscordChannelImage, type DiscordChannelImageAuthor } from '@/providers/DiscordDataProvider';
+import { useDiscordData, type DiscordChannelImage } from '@/providers/DiscordDataProvider';
 
 export type { DiscordChannelImage, DiscordChannelImageAuthor } from '@/providers/DiscordDataProvider';
 
@@ -14,8 +14,12 @@ interface UseDiscordChannelImagesResult {
 
 const DEFAULT_LIMIT = 20;
 
-export function useDiscordChannelImages(_limit: number = DEFAULT_LIMIT): UseDiscordChannelImagesResult {
+export function useDiscordChannelImages(limit: number = DEFAULT_LIMIT): UseDiscordChannelImagesResult {
   const { images, refresh } = useDiscordData();
+  if (import.meta.env.DEV && limit !== DEFAULT_LIMIT) {
+    // Provider currently serves a fixed page size to keep response/cache behavior consistent.
+    console.warn(`[discord-images] Custom limit (${limit}) is ignored; using ${DEFAULT_LIMIT}.`);
+  }
 
   return {
     images: images.items,

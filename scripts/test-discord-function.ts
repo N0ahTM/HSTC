@@ -18,7 +18,7 @@ interface CliOptions {
 }
 
 async function loadHandler(): Promise<LambdaHandler> {
-  const mod = await import('../amplify/functions/discord-aggregate/handler');
+  const mod = await import('../amplify/functions/discord-aggregate/handler.ts');
   return mod.handler;
 }
 
@@ -127,7 +127,7 @@ async function main() {
     queryStringParameters: buildQuery(options)
   } as const;
 
-  const result = await handler(event as any);
+  const result = await handler(event as Parameters<LambdaHandler>[0]);
   console.log('status:', result.statusCode);
   console.log('headers:', result.headers);
   try {

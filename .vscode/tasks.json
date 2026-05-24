@@ -1,39 +1,24 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "typecheck-build",
-			"type": "shell",
-			"command": "npm run build",
-			"args": [],
-			"isBackground": false,
-			"problemMatcher": [
-				"$tsc",
-				"$eslint - stylish"
-			],
-			"group": "build"
-		},
-		{
-			"label": "typecheck-build",
-			"type": "shell",
-			"command": "npm run build",
-			"args": [],
-			"isBackground": false,
-			"problemMatcher": [
-				"$tsc"
-			],
-			"group": "build"
-		},
-		{
-			"label": "typecheck-build",
-			"type": "shell",
-			"command": "npm run build",
-			"args": [],
-			"isBackground": false,
-			"problemMatcher": [
-				"$tsc"
-			],
-			"group": "build"
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "npm run build",
+      "problemMatcher": ["$tsc"],
+      "group": "build"
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "npm run lint",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev:full",
+      "type": "shell",
+      "command": "npm run dev:full",
+      "isBackground": true
+    }
+  ]
 }

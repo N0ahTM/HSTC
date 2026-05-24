@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface DiscordMember {
   channel_id?: string;
@@ -27,125 +27,132 @@ interface CachedStats {
   timestamp: number;
 }
 
-export function useDiscordStats(): DiscordStats {
-  const [presenceCount, setPresenceCount] = useState<number | null>(null);
-  const [inVoice, setInVoice] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | undefined>();
+type DiscordStatsSnapshot = DiscordStats;
 
-  const controllerRef = useRef<AbortController | null>(null);
+const widgetUrl = import.meta.env.VITE_DISCORD_WIDGET_URL ?? DEFAULT_WIDGET_URL;
+let snapshot: DiscordStatsSnapshot = { presenceCount: null, inVoice: null, isLoading: true };
+let inFlight: Promise<void> | null = null;
+let intervalHandle: number | null = null;
+let subscriberCount = 0;
+let initialized = false;
+const listeners = new Set<(value: DiscordStatsSnapshot) => void>();
 
-  const widgetUrl = useMemo(
-    () => import.meta.env.VITE_DISCORD_WIDGET_URL ?? DEFAULT_WIDGET_URL,
-    [],
-  );
+function publish(next: DiscordStatsSnapshot) {
+  snapshot = next;
+  for (const listener of listeners) {
+    listener(snapshot);
+  }
+}
 
-  const readCache = useCallback((): CachedStats | null => {
-    if (typeof window === 'undefined') {
+function readCache(): CachedStats | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    const raw = window.localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CachedStats;
+    if (typeof parsed.timestamp !== 'number') return null;
+    if (Date.now() - parsed.timestamp > CACHE_TTL) return null;
+    if (typeof parsed.presenceCount !== 'number' || typeof parsed.inVoice !== 'number') {
       return null;
     }
+    return parsed;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+function writeCache(presence: number, voice: number) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  const payload: CachedStats = {
+    presenceCount: presence,
+    inVoice: voice,
+    timestamp: Date.now()
+  };
+  try {
+    window.localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function fetchNetwork(): Promise<void> {
+  if (inFlight) {
+    return inFlight;
+  }
+  inFlight = (async () => {
+    publish({ ...snapshot, isLoading: true, error: undefined });
     try {
-      const raw = window.localStorage.getItem(CACHE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as CachedStats;
-      if (typeof parsed.timestamp !== 'number') return null;
-      if (Date.now() - parsed.timestamp > CACHE_TTL) return null;
-      if (typeof parsed.presenceCount !== 'number' || typeof parsed.inVoice !== 'number') {
-        return null;
-      }
-      return parsed;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
-  }, []);
-
-  const writeCache = useCallback((presence: number, voice: number) => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const payload: CachedStats = {
-      presenceCount: presence,
-      inVoice: voice,
-      timestamp: Date.now()
-    };
-    try {
-      window.localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
-
-  const load = useCallback(
-    async (mode: 'cache-first' | 'network' = 'network'): Promise<boolean> => {
-      if (mode === 'cache-first') {
-        const cached = readCache();
-        if (cached) {
-          setPresenceCount(cached.presenceCount);
-          setInVoice(cached.inVoice);
-          setIsLoading(false);
-          return true;
-        }
-      }
-
-    controllerRef.current?.abort();
-    const controller = new AbortController();
-    controllerRef.current = controller;
-
-    setIsLoading(true);
-    setError(undefined);
-
-    try {
-      const response = await fetch(widgetUrl, { signal: controller.signal });
+      const response = await fetch(widgetUrl);
       if (!response.ok) {
         throw new Error(`Discord widget request failed: ${response.status}`);
       }
       const data = (await response.json()) as DiscordWidgetResponse;
       const presence = data.presence_count ?? 0;
-      const voice = Array.isArray(data.members)
-        ? data.members.filter((member) => Boolean(member.channel_id)).length
-        : 0;
-
-      setPresenceCount(presence);
-      setInVoice(voice);
+      const voice = Array.isArray(data.members) ? data.members.filter((member) => Boolean(member.channel_id)).length : 0;
       writeCache(presence, voice);
+      publish({ presenceCount: presence, inVoice: voice, isLoading: false, error: undefined });
     } catch (err) {
-      if ((err as Error).name !== 'AbortError') {
-        console.error(err);
-        setError('Discord-Daten konnten nicht geladen werden.');
-      }
+      console.error(err);
+      const hasUsableData = snapshot.presenceCount !== null || snapshot.inVoice !== null;
+      publish({
+        ...snapshot,
+        isLoading: false,
+        error: hasUsableData ? undefined : 'Discord-Daten konnten nicht geladen werden.'
+      });
     } finally {
-      setIsLoading(false);
+      inFlight = null;
     }
-      return false;
-    },
-    [readCache, widgetUrl, writeCache],
-  );
+  })();
+  return inFlight;
+}
+
+function initializeStore() {
+  if (initialized || typeof window === 'undefined') {
+    return;
+  }
+  initialized = true;
+  const cached = readCache();
+  if (cached) {
+    publish({
+      presenceCount: cached.presenceCount,
+      inVoice: cached.inVoice,
+      isLoading: false,
+      error: undefined
+    });
+  }
+  void fetchNetwork();
+  intervalHandle = window.setInterval(() => {
+    void fetchNetwork();
+  }, REFRESH_INTERVAL);
+}
+
+function subscribe(listener: (value: DiscordStatsSnapshot) => void) {
+  listeners.add(listener);
+  subscriberCount += 1;
+  listener(snapshot);
+  return () => {
+    listeners.delete(listener);
+    subscriberCount = Math.max(0, subscriberCount - 1);
+    if (subscriberCount === 0 && intervalHandle !== null && typeof window !== 'undefined') {
+      window.clearInterval(intervalHandle);
+      intervalHandle = null;
+      initialized = false;
+    }
+  };
+}
+
+export function useDiscordStats(): DiscordStats {
+  const [state, setState] = useState<DiscordStatsSnapshot>(snapshot);
 
   useEffect(() => {
-    let isMounted = true;
+    initializeStore();
+    return subscribe(setState);
+  }, []);
 
-    load('cache-first').then((usedCache) => {
-      if (usedCache && isMounted) {
-        void load('network');
-      }
-    });
-
-    const interval = window.setInterval(() => {
-      void load('network');
-    }, REFRESH_INTERVAL);
-
-    return () => {
-      isMounted = false;
-      controllerRef.current?.abort();
-      window.clearInterval(interval);
-    };
-  }, [load]);
-
-  return {
-    presenceCount,
-    inVoice,
-    isLoading,
-    error
-  };
+  return state;
 }

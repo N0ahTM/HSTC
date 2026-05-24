@@ -11,7 +11,8 @@
   },
   "include": [
     "vite.config.ts",
-    "amplify/functions/discord-images/handler.ts",
+    "amplify/functions/discord-aggregate/handler.ts",
+    "scripts/**/*.ts",
     "types/**/*.d.ts"
   ]
 }

@@ -4,8 +4,8 @@ Dieses Dokument beschreibt alle Schritte, die du für die lokale Arbeit mit der 
 
 ## Voraussetzungen
 - Windows 11 mit PowerShell
-- Node.js 18+ und npm
-- Zugriff auf den HSTC AWS‑SSO Start‑URL: `https://d-99675ae8b6.awsapps.com/start`
+- Node.js 22+ und npm
+- Zugriff auf deinen AWS-SSO Start-URL (aus interner Team-Doku)
 - Region: `eu-central-1`
 
 ## 1) AWS CLI installieren (Windows)
@@ -29,11 +29,11 @@ aws configure sso
 
 Empfohlene Eingaben (Beispiel):
 - SSO session name: `hstc`
-- SSO start URL: `https://d-99675ae8b6.awsapps.com/start`
+- SSO start URL: `<deine-start-url>`
 - SSO region: `eu-central-1`
 - SSO registration scopes: ENTER für Standard (`sso:account:access`)
-- Account: wähle `133347220319`
-- Role: `AdministratorAccess`
+- Account: wähle den Zielaccount aus deinem Team-Setup
+- Role: nutze eine least-privilege Deploy-/Dev-Rolle (nicht pauschal AdministratorAccess)
 - Default client Region: `eu-central-1`
 - CLI default output format: ENTER (oder `json`)
 - Profile name: `hstc-dev`
@@ -54,8 +54,8 @@ Erwartete Ausgabe (gekürzt):
 
 ```json
 {
-  "Account": "133347220319",
-  "Arn": "arn:aws:sts::133347220319:assumed-role/.../hstc-dev"
+  "Account": "<aws-account-id>",
+  "Arn": "arn:aws:sts::<aws-account-id>:assumed-role/.../hstc-dev"
 }
 ```
 
@@ -84,7 +84,7 @@ npm run sandbox
 
 Wichtig:
 - Am Ende wird `amplify_outputs.json` im Projektwurzelverzeichnis erzeugt/aktualisiert.
-- Die Datei ist bereits in `.gitignore` und wird vom Frontend für `Amplify.configure(...)` genutzt.
+- Die Datei ist bereits in `.gitignore` und wird vom Frontend für die Endpoint-Auflösung genutzt.
 - Zum Aufräumen/Entfernen deiner Sandbox:
 
 ```powershell
@@ -102,17 +102,19 @@ npm run dev
 
 Das Frontend verwendet automatisch die Werte aus `amplify_outputs.json`, wenn diese vorhanden sind.
 
-## 6) Secrets für die Discord‑Images‑Funktion (optional)
+## 6) Secrets für die Discord‑Aggregate‑Funktion (optional)
 
-Für die Funktion unter `amplify/functions/discord-images` brauchst du zwei Secrets:
+Für die Funktion unter `amplify/functions/discord-aggregate` brauchst du drei Secrets:
 - `DISCORD_BOT_TOKEN`
 - `DISCORD_CHANNEL_ID`
+- `DISCORD_GUILD_ID`
 
 Im Sandbox‑Kontext setzen:
 
 ```powershell
 npx -y -p @aws-amplify/backend-cli@latest ampx sandbox secret set DISCORD_BOT_TOKEN
 npx -y -p @aws-amplify/backend-cli@latest ampx sandbox secret set DISCORD_CHANNEL_ID
+npx -y -p @aws-amplify/backend-cli@latest ampx sandbox secret set DISCORD_GUILD_ID
 ```
 
 Mehr Details findest du in `docs/discord-images-function-setup.md`.

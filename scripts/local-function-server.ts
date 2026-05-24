@@ -4,7 +4,7 @@ import { URL } from 'node:url';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 // Import the handler directly from the backend function
-import { handler as aggregateHandler } from '../amplify/functions/discord-aggregate/handler';
+import { handler as aggregateHandler } from '../amplify/functions/discord-aggregate/handler.ts';
 
 const PORT = Number(process.env.FUNCTION_PORT ?? 3000);
 
@@ -36,13 +36,13 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const url = new URL(req.url, `https://dwvzp4itkvcxlfpqv7elwljq6u.appsync-api.eu-central-1.amazonaws.com/graphql`);
+  const url = new URL(req.url, `http://localhost:${PORT}`);
 
   // Only handle our API route; return 404 for others
   try {
     if (url.pathname === '/api/discord-combined') {
       const event = buildEvent(req, url);
-      const lambdaRes = await aggregateHandler(event as any);
+      const lambdaRes = await aggregateHandler(event as Parameters<typeof aggregateHandler>[0]);
       writeResponse(res, lambdaRes.statusCode, lambdaRes.headers, lambdaRes.body);
       return;
     }
@@ -60,6 +60,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  // eslint-disable-next-line no-console
   console.log(`Local function server listening at http://localhost:${PORT}/api/discord-combined`);
 });

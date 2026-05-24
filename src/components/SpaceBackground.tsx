@@ -52,14 +52,6 @@ function circleIntersectsViewport(circle: CirclePixels, width: number, height: n
   return dx * dx + dy * dy <= circle.radius * circle.radius;
 }
 
-function circlesApproximatelyEqual(a: CirclePixels, b: CirclePixels, epsilon = 0.5): boolean {
-  return (
-    Math.abs(a.cx - b.cx) <= epsilon &&
-    Math.abs(a.cy - b.cy) <= epsilon &&
-    Math.abs(a.radius - b.radius) <= epsilon
-  );
-}
-
 interface SpaceBackgroundProps {
   // Planet area is drawn above FX; by default we assume the screenshot framing
   // If you pass a circle, we will avoid spawning FX inside it to keep the planet clean
@@ -133,8 +125,6 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
         return null;
       }
 
-      const prev = circlePxRef.current;
-      const changed = !circlesApproximatelyEqual(prev, nextCircle);
       circlePxRef.current = nextCircle;
       circlePctRef.current = {
         cxPct: (nextCircle.cx / width) * 100,
@@ -387,8 +377,8 @@ export function SpaceBackground({ planetCircle, meteorDebug }: SpaceBackgroundPr
           for (const node of elems) {
             const leftPct = parseFloat(node.style.left);
             const topPct = parseFloat(node.style.top);
-            let px = (leftPct / 100) * width;
-            let py = (topPct / 100) * height;
+            const px = (leftPct / 100) * width;
+            const py = (topPct / 100) * height;
             if (isInsidePlanetPx({ x: px, y: py })) {
               let tries = 0;
               let nx = Math.random() * width;

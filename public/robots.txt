@@ -1,5 +1,10 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
+Disallow: /amplify_outputs.json
+Disallow: /403.html
+Disallow: /404.html
+Disallow: /429.html
+Disallow: /500.html
 
 Sitemap: https://hstc.space/sitemap.xml

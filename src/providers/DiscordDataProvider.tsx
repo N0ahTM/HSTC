@@ -110,6 +110,8 @@ export function DiscordDataProvider({ children }: { children: ReactNode }) {
   const seenKeysRef = useRef<Set<string>>(new Set());
   const initialController = useRef<AbortController | null>(null);
   const loadMoreController = useRef<AbortController | null>(null);
+  const loadSequenceRef = useRef(0);
+  const isFetchingMoreRef = useRef(false);
 
   const buildCombinedUrl = useCallback(async (query: Record<string, string | number | undefined>) => {
     const endpoint = await getDiscordCombinedEndpoint();
@@ -135,15 +137,23 @@ export function DiscordDataProvider({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined') {
       return;
     }
+    loadSequenceRef.current += 1;
+    const requestSequence = loadSequenceRef.current;
     initialController.current?.abort();
+    loadMoreController.current?.abort();
     const controller = new AbortController();
     initialController.current = controller;
 
     setIsLoading(true);
+    isFetchingMoreRef.current = false;
+    setIsFetchingMore(false);
     setEventsError(undefined);
     setImagesError(null);
     setMetaCache(undefined);
     setMetaFetchedAt(undefined);
+    setEventsPayload(null);
+    setImages([]);
+    setImagesPage({ hasMore: false });
 
     try {
       const url = await buildCombinedUrl({ mode: 'both', limit: DEFAULT_IMAGE_LIMIT });
@@ -151,7 +161,10 @@ export function DiscordDataProvider({ children }: { children: ReactNode }) {
       if (!response.ok) {
         throw new Error(`Combined request failed: ${response.status}`);
       }
-      const json = (await response.json()) as CombinedApiResponse;
+      const json = normalizeCombinedResponse((await response.json()) as CombinedApiResponse);
+      if (controller.signal.aborted || requestSequence !== loadSequenceRef.current) {
+        return;
+      }
       seenKeysRef.current = new Set();
       setEventsPayload(json.events ?? null);
       const imagesBlock = json.images;
@@ -171,11 +184,11 @@ export function DiscordDataProvider({ children }: { children: ReactNode }) {
       if (isDev) {
         console.info('[discord-data] initial load', {
           events: {
-            active: json.events?.active.length ?? 0,
-            upcoming: json.events?.upcoming.length ?? 0,
-            past: json.events?.past.length ?? 0
+            active: json.events?.active?.length ?? 0,
+            upcoming: json.events?.upcoming?.length ?? 0,
+            past: json.events?.past?.length ?? 0
           },
-          images: json.images?.data.length ?? 0,
+          images: json.images?.data?.length ?? 0,
           cache: json.meta?.cache
         });
       }
@@ -194,12 +207,13 @@ export function DiscordDataProvider({ children }: { children: ReactNode }) {
   }, [buildCombinedUrl]);
 
   const loadMoreImages = useCallback(async () => {
-    if (isFetchingMore || !imagesPage.hasMore || !imagesPage.nextBefore) {
+    if (isFetchingMoreRef.current || !imagesPage.hasMore || !imagesPage.nextBefore) {
       return;
     }
     loadMoreController.current?.abort();
     const controller = new AbortController();
     loadMoreController.current = controller;
+    isFetchingMoreRef.current = true;
     setIsFetchingMore(true);
     try {
       const url = await buildCombinedUrl({
@@ -211,7 +225,10 @@ export function DiscordDataProvider({ children }: { children: ReactNode }) {
       if (!response.ok) {
         throw new Error(`Images pagination failed: ${response.status}`);
       }
-      const json = (await response.json()) as CombinedApiResponse;
+      const json = normalizeCombinedResponse((await response.json()) as CombinedApiResponse);
+      if (controller.signal.aborted || loadMoreController.current !== controller) {
+        return;
+      }
       const imagesBlock = json.images;
       if (!imagesBlock) {
         setImagesPage({ hasMore: false });
@@ -231,7 +248,7 @@ export function DiscordDataProvider({ children }: { children: ReactNode }) {
       if (isDev) {
         console.info('[discord-data] loaded more images', {
           added: freshItems.length,
-          total: freshItems.length + images.length,
+          total: seenKeysRef.current.size,
           hasMore: imagesBlock.page?.hasMore
         });
       }
@@ -242,15 +259,19 @@ export function DiscordDataProvider({ children }: { children: ReactNode }) {
       console.error('discord-data pagination failed', error);
       setImagesError('Weitere Discord-Bilder konnten nicht geladen werden.');
     } finally {
-      setIsFetchingMore(false);
+      if (loadMoreController.current === controller) {
+        isFetchingMoreRef.current = false;
+        setIsFetchingMore(false);
+      }
     }
-  }, [buildCombinedUrl, images.length, imagesPage.hasMore, imagesPage.nextBefore, isFetchingMore]);
+  }, [buildCombinedUrl, imagesPage.hasMore, imagesPage.nextBefore]);
 
   useEffect(() => {
     void loadInitial();
     return () => {
       initialController.current?.abort();
       loadMoreController.current?.abort();
+      isFetchingMoreRef.current = false;
     };
   }, [loadInitial]);
 
@@ -301,6 +322,41 @@ export function DiscordDataProvider({ children }: { children: ReactNode }) {
   );
 
   return <DiscordDataContext.Provider value={contextValue}>{children}</DiscordDataContext.Provider>;
+}
+
+function normalizeCombinedResponse(input: CombinedApiResponse): CombinedApiResponse {
+  const events = input.events
+    ? {
+        generatedAt: typeof input.events.generatedAt === 'string' ? input.events.generatedAt : new Date().toISOString(),
+        guildId: typeof input.events.guildId === 'string' ? input.events.guildId : '',
+        upcoming: Array.isArray(input.events.upcoming) ? input.events.upcoming : [],
+        active: Array.isArray(input.events.active) ? input.events.active : [],
+        past: Array.isArray(input.events.past) ? input.events.past : [],
+        rawCount: typeof input.events.rawCount === 'number' ? input.events.rawCount : 0,
+        all: Array.isArray(input.events.all) ? input.events.all : undefined
+      }
+    : undefined;
+
+  const images = input.images
+    ? {
+        data: Array.isArray(input.images.data) ? input.images.data : [],
+        page: {
+          nextBefore: typeof input.images.page?.nextBefore === 'string' ? input.images.page.nextBefore : undefined,
+          hasMore: Boolean(input.images.page?.hasMore)
+        },
+        meta:
+          input.images.meta && typeof input.images.meta.fetchedAt === 'string' && typeof input.images.meta.cache === 'string'
+            ? input.images.meta
+            : undefined
+      }
+    : undefined;
+
+  const meta =
+    input.meta && typeof input.meta.fetchedAt === 'string' && typeof input.meta.cache === 'string'
+      ? input.meta
+      : undefined;
+
+  return { events, images, meta };
 }
 
 export function useDiscordData(): DiscordDataContextValue {

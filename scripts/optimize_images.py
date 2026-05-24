@@ -65,6 +65,10 @@ def parse_widths(s: str) -> List[int]:
 def ensure_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
+def to_web_path(path: Path, *, input_root: Path) -> str:
+    rel = path.resolve().relative_to(input_root.resolve()).as_posix()
+    return f"/images/{rel}"
+
 
 def detect_alpha(img: Image.Image) -> bool:
     mode = img.mode
@@ -94,13 +98,11 @@ def save_avif(img: Image.Image, dest: Path, *, quality: int) -> None:
     img.save(dest, format="AVIF", quality=quality)
 
 
-def process_image(src: Path, out_root: Path, widths: List[int], *, keep_tree: bool, png_lossless: bool,
+def process_image(src: Path, input_root: Path, out_root: Path, widths: List[int], *, keep_tree: bool, png_lossless: bool,
                   skip_existing: bool) -> Dict[str, Dict[str, List[Dict[str, int | str]]]]:
-    rel = src.relative_to(src.anchor) if not keep_tree else src
     # If keep_tree, we mirror directory structure under out_root
-    rel_out = src.relative_to(src.parents[0]) if keep_tree else src.name
     if keep_tree:
-        rel_out_path = out_root / src.parent.relative_to(src.parents[0])
+        rel_out_path = out_root / src.parent.relative_to(input_root)
     else:
         rel_out_path = out_root
 
@@ -139,16 +141,16 @@ def process_image(src: Path, out_root: Path, widths: List[int], *, keep_tree: bo
                     quality_photo=WEBP_QUALITY_DEFAULT,
                     quality_pngish=WEBP_QUALITY_PNGISH,
                 )
-            formats_done.setdefault("webp", []).append({"src": str(webp_path.as_posix()), "width": w, "height": h})
+            formats_done.setdefault("webp", []).append({"src": to_web_path(webp_path, input_root=input_root), "width": w, "height": h})
 
             # AVIF (optional)
             if HAS_AVIF:
                 avif_path = rel_out_path / f"{stem}-w{w}.avif"
                 if not (skip_existing and avif_path.exists()):
                     save_avif(resized, avif_path, quality=AVIF_QUALITY_DEFAULT)
-                formats_done.setdefault("avif", []).append({"src": str(avif_path.as_posix()), "width": w, "height": h})
+                formats_done.setdefault("avif", []).append({"src": to_web_path(avif_path, input_root=input_root), "width": w, "height": h})
 
-        manifest_entry[str(src.as_posix())] = formats_done
+        manifest_entry[to_web_path(src, input_root=input_root)] = formats_done
 
     return manifest_entry
 
@@ -188,6 +190,7 @@ def main() -> None:
             continue
         entry = process_image(
             path,
+            input_root=input_dir,
             out_root=out_dir,
             widths=widths,
             keep_tree=True,

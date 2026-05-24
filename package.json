@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite --host",
     "dev:function": "cross-env FUNCTION_PORT=3000 tsx ./scripts/local-function-server.ts",
@@ -14,11 +17,11 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest --passWithNoTests",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint:infra": "eslint \"{scripts,amplify}/**/*.{ts,mjs}\" \"vite.config.ts\"",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "sandbox": "npx -y -p @aws-amplify/backend-cli@latest ampx sandbox",
     "sandbox:remove": "npx -y -p @aws-amplify/backend-cli@latest ampx sandbox --remove",
-    "ampx:version": "npx -y -p @aws-amplify/backend-cli@latest ampx -v",
-    "postinstall": "patch-package"
+    "ampx:version": "npx -y -p @aws-amplify/backend-cli@latest ampx -v"
   },
   "dependencies": {
     "@aws-sdk/client-ssm": "^3.910.0",
@@ -50,7 +53,6 @@
     "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-testing-library": "^7.13.1",
     "jsdom": "^24.1.3",
-    "patch-package": "^8.0.1",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",

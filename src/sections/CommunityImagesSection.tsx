@@ -28,9 +28,6 @@ function formatUploadedAt(value: string): string {
 
 export function CommunityImagesSection() {
   const { images, loading, error, hasMore, isFetchingMore, fetchNext, retry } = useDiscordChannelImages(20);
-  if (isDev) {
-    console.info('[discord-images] hook state', { items: images.length, loading, error, hasMore, isFetchingMore });
-  }
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -42,6 +39,12 @@ export function CommunityImagesSection() {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useStaggerReveal(sectionRef, { rootMargin: '0px 0px -12%' });
+
+  useEffect(() => {
+    if (isDev) {
+      console.info('[discord-images] hook state', { items: images.length, loading, error, hasMore, isFetchingMore });
+    }
+  }, [images.length, loading, error, hasMore, isFetchingMore]);
 
   const updateControls = useCallback(() => {
     const track = trackRef.current;
@@ -141,6 +144,23 @@ export function CommunityImagesSection() {
       if (event.key === 'Escape') {
         event.preventDefault();
         handleCloseLightbox();
+        return;
+      }
+      if (event.key === 'Tab') {
+        const root = document.querySelector<HTMLElement>(`.${styles.lightboxShell}`);
+        if (!root) return;
+        const focusables = root.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        if (event.shiftKey && active === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && active === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     };
 
@@ -149,6 +169,11 @@ export function CommunityImagesSection() {
     const bodyStyle = document.body.style;
     const previousOverflow = bodyStyle.overflow;
     bodyStyle.overflow = 'hidden';
+    const main = document.getElementById('main');
+    const previousAriaHidden = main ? main.getAttribute('aria-hidden') : null;
+    if (main) {
+      main.setAttribute('aria-hidden', 'true');
+    }
 
     requestAnimationFrame(() => {
       closeButtonRef.current?.focus();
@@ -157,6 +182,13 @@ export function CommunityImagesSection() {
     return () => {
       document.removeEventListener('keydown', onKeyDown);
       bodyStyle.overflow = previousOverflow;
+      if (main) {
+        if (previousAriaHidden === null) {
+          main.removeAttribute('aria-hidden');
+        } else {
+          main.setAttribute('aria-hidden', previousAriaHidden);
+        }
+      }
     };
   }, [handleCloseLightbox, selectedImage]);
 
@@ -197,7 +229,7 @@ export function CommunityImagesSection() {
               )}
               <div ref={sentinelRef} className={styles.sentinel} aria-hidden="true" />
             </div>
-            <div className={styles.controls} aria-hidden="true">
+            <div className={styles.controls}>
               <button
                 type="button"
                 className={styles.controlButton}
@@ -250,7 +282,7 @@ export function CommunityImagesSection() {
                 className={styles.lightboxImage}
                 src={selectedImage.imageUrl}
                 alt={`Bild von ${selectedImage.author.name}`}
-                loading="lazy"
+                loading="eager"
                 decoding="async"
                 width={selectedImage.width ?? undefined}
                 height={selectedImage.height ?? undefined}
@@ -314,6 +346,7 @@ function ImageCard({ image, animate, onOpen }: ImageCardProps) {
           height={image.height ?? undefined}
           sizes="(min-width: 1100px) 22vw, (min-width: 768px) 45vw, 80vw"
           onLoad={() => setIsLoaded(true)}
+          onError={() => setIsLoaded(true)}
           className={clsx(styles.image, { [styles.isLoading]: !isLoaded })}
         />
       </div>
@@ -350,7 +383,7 @@ function ImageCard({ image, animate, onOpen }: ImageCardProps) {
 
 function LoadingSkeletonRow() {
   return (
-    <div className={styles.loadingRow} aria-hidden="true">
+    <div className={styles.loadingRow} role="listitem" aria-hidden="true">
       <div className={styles.loadingCard} />
       <div className={styles.loadingCard} />
       <div className={styles.loadingCard} />

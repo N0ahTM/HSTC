@@ -18,7 +18,7 @@ interface JoinSectionProps {
 const highlights = [
   'Transparente Organisation mit demokratischem Rat',
   'Neu im Verse? Wir begleiten dich.',
-  'Jeder ist Wilkommen'
+  'Jeder ist Willkommen'
 ];
 
 export function JoinSection({ onJoin, onDiscord }: JoinSectionProps) {

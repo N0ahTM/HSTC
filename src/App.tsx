@@ -4,7 +4,6 @@ import { NavigationBar } from '@/components/NavigationBar';
 import { HeroSection } from '@/sections/HeroSection';
 import { JoinSection } from '@/sections/JoinSection';
 import { FooterSection } from '@/sections/FooterSection';
-import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { SpaceBackground } from '@/components/SpaceBackground';
 import { useDiscordEvents } from '@/hooks/useDiscordEvents';
 import { DiscordDataProvider } from '@/providers/DiscordDataProvider';
@@ -32,12 +31,11 @@ export function App() {
 
 function SiteShell() {
   const openDiscord = useCallback(() => {
-    window.open(DISCORD_INVITE, '_blank', 'noopener');
+    window.open(DISCORD_INVITE, '_blank', 'noopener,noreferrer');
   }, []);
   const openRecruitment = useCallback(() => {
-    window.open(ORG_PROFILE_URL, '_blank', 'noopener');
+    window.open(ORG_PROFILE_URL, '_blank', 'noopener,noreferrer');
   }, []);
-  usePrefersReducedMotion();
   const discordEvents = useDiscordEvents();
   const hasAnyEvents =
     discordEvents.active.length > 0 || discordEvents.upcoming.length > 0 || discordEvents.past.length > 0;
@@ -89,11 +87,13 @@ interface LazyVisibleSectionProps {
 }
 
 function LazyVisibleSection({ children, placeholder, rootMargin = '0px 0px -20%' }: LazyVisibleSectionProps) {
-  const [shouldRender, setShouldRender] = useState(() => typeof window === 'undefined');
+  const [shouldRender, setShouldRender] = useState(
+    () => typeof window === 'undefined' || typeof IntersectionObserver === 'undefined'
+  );
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (shouldRender || typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') {
+    if (shouldRender || typeof window === 'undefined') {
       return;
     }
     const node = containerRef.current;
@@ -119,7 +119,7 @@ function LazyVisibleSection({ children, placeholder, rootMargin = '0px 0px -20%'
 function SectionPlaceholder({ minHeight = 360 }: { minHeight?: number }) {
   return (
     <section className="section section-placeholder" aria-hidden="true">
-      <div className="container" data-minheight={minHeight} />
+      <div className="container" style={{ minHeight }} />
     </section>
   );
 }

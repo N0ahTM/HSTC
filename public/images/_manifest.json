@@ -1,934 +1,934 @@
 {
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/HSTC-Logo.webp": {
+  "/images/HSTC-Logo.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/HSTC-Logo-w320.webp",
+        "src": "/images/HSTC-Logo-w320.webp",
         "width": 320,
         "height": 277
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/HSTC-Logo-w480.webp",
+        "src": "/images/HSTC-Logo-w480.webp",
         "width": 480,
         "height": 416
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/HSTC-Logo-w640.webp",
+        "src": "/images/HSTC-Logo-w640.webp",
         "width": 640,
         "height": 554
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/HSTC-Logo-w960.webp",
+        "src": "/images/HSTC-Logo-w960.webp",
         "width": 960,
         "height": 832
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/HSTC-Logo-w1280.webp",
+        "src": "/images/HSTC-Logo-w1280.webp",
         "width": 1280,
         "height": 1109
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/HSTC-Logo-w1600.webp",
+        "src": "/images/HSTC-Logo-w1600.webp",
         "width": 1600,
         "height": 1386
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/HSTC-Logo-w1920.webp",
+        "src": "/images/HSTC-Logo-w1920.webp",
         "width": 1920,
         "height": 1663
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/hstc_discord_qr.webp": {
+  "/images/hstc_discord_qr.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/hstc_discord_qr-w320.webp",
+        "src": "/images/hstc_discord_qr-w320.webp",
         "width": 320,
         "height": 320
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/hstc_discord_qr-w480.webp",
+        "src": "/images/hstc_discord_qr-w480.webp",
         "width": 480,
         "height": 480
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/hstc_discord_qr-w640.webp",
+        "src": "/images/hstc_discord_qr-w640.webp",
         "width": 640,
         "height": 640
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/MadeByTheCommunity_Black.png": {
+  "/images/MadeByTheCommunity_Black.png": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/MadeByTheCommunity_Black-w320.webp",
+        "src": "/images/MadeByTheCommunity_Black-w320.webp",
         "width": 320,
         "height": 320
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/MadeByTheCommunity_Black-w480.webp",
+        "src": "/images/MadeByTheCommunity_Black-w480.webp",
         "width": 480,
         "height": 480
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/MadeByTheCommunity_Black-w640.webp",
+        "src": "/images/MadeByTheCommunity_Black-w640.webp",
         "width": 640,
         "height": 640
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/MadeByTheCommunity_Black-w960.webp",
+        "src": "/images/MadeByTheCommunity_Black-w960.webp",
         "width": 960,
         "height": 960
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/MadeByTheCommunity_Black-w1280.webp",
+        "src": "/images/MadeByTheCommunity_Black-w1280.webp",
         "width": 1280,
         "height": 1280
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/backgrounds/Explosion.webp": {
+  "/images/backgrounds/Explosion.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Explosion-w320.webp",
+        "src": "/images/Explosion-w320.webp",
         "width": 320,
         "height": 200
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Explosion-w480.webp",
+        "src": "/images/Explosion-w480.webp",
         "width": 480,
         "height": 300
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Explosion-w640.webp",
+        "src": "/images/Explosion-w640.webp",
         "width": 640,
         "height": 400
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Explosion-w960.webp",
+        "src": "/images/Explosion-w960.webp",
         "width": 960,
         "height": 600
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Explosion-w1280.webp",
+        "src": "/images/Explosion-w1280.webp",
         "width": 1280,
         "height": 800
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Explosion-w1600.webp",
+        "src": "/images/Explosion-w1600.webp",
         "width": 1600,
         "height": 1000
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Explosion-w1920.webp",
+        "src": "/images/Explosion-w1920.webp",
         "width": 1920,
         "height": 1200
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/backgrounds/Jumpgate.webp": {
+  "/images/backgrounds/Jumpgate.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Jumpgate-w320.webp",
+        "src": "/images/Jumpgate-w320.webp",
         "width": 320,
         "height": 200
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Jumpgate-w480.webp",
+        "src": "/images/Jumpgate-w480.webp",
         "width": 480,
         "height": 300
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Jumpgate-w640.webp",
+        "src": "/images/Jumpgate-w640.webp",
         "width": 640,
         "height": 400
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Jumpgate-w960.webp",
+        "src": "/images/Jumpgate-w960.webp",
         "width": 960,
         "height": 600
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Jumpgate-w1280.webp",
+        "src": "/images/Jumpgate-w1280.webp",
         "width": 1280,
         "height": 800
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Jumpgate-w1600.webp",
+        "src": "/images/Jumpgate-w1600.webp",
         "width": 1600,
         "height": 1000
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Jumpgate-w1920.webp",
+        "src": "/images/Jumpgate-w1920.webp",
         "width": 1920,
         "height": 1200
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/backgrounds/Planet.webp": {
+  "/images/backgrounds/Planet.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet-w320.webp",
+        "src": "/images/Planet-w320.webp",
         "width": 320,
         "height": 180
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet-w480.webp",
+        "src": "/images/Planet-w480.webp",
         "width": 480,
         "height": 270
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet-w640.webp",
+        "src": "/images/Planet-w640.webp",
         "width": 640,
         "height": 360
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet-w960.webp",
+        "src": "/images/Planet-w960.webp",
         "width": 960,
         "height": 540
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet-w1280.webp",
+        "src": "/images/Planet-w1280.webp",
         "width": 1280,
         "height": 720
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet-w1600.webp",
+        "src": "/images/Planet-w1600.webp",
         "width": 1600,
         "height": 900
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet-w1920.webp",
+        "src": "/images/Planet-w1920.webp",
         "width": 1920,
         "height": 1080
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet-w2560.webp",
+        "src": "/images/Planet-w2560.webp",
         "width": 2560,
         "height": 1440
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/backgrounds/Planet_2.webp": {
+  "/images/backgrounds/Planet_2.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_2-w320.webp",
+        "src": "/images/Planet_2-w320.webp",
         "width": 320,
         "height": 180
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_2-w480.webp",
+        "src": "/images/Planet_2-w480.webp",
         "width": 480,
         "height": 270
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_2-w640.webp",
+        "src": "/images/Planet_2-w640.webp",
         "width": 640,
         "height": 360
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_2-w960.webp",
+        "src": "/images/Planet_2-w960.webp",
         "width": 960,
         "height": 540
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_2-w1280.webp",
+        "src": "/images/Planet_2-w1280.webp",
         "width": 1280,
         "height": 720
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_2-w1600.webp",
+        "src": "/images/Planet_2-w1600.webp",
         "width": 1600,
         "height": 900
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_2-w1920.webp",
+        "src": "/images/Planet_2-w1920.webp",
         "width": 1920,
         "height": 1080
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_2-w2560.webp",
+        "src": "/images/Planet_2-w2560.webp",
         "width": 2560,
         "height": 1440
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/backgrounds/Planet_3.webp": {
+  "/images/backgrounds/Planet_3.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_3-w320.webp",
+        "src": "/images/Planet_3-w320.webp",
         "width": 320,
         "height": 180
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_3-w480.webp",
+        "src": "/images/Planet_3-w480.webp",
         "width": 480,
         "height": 270
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_3-w640.webp",
+        "src": "/images/Planet_3-w640.webp",
         "width": 640,
         "height": 360
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_3-w960.webp",
+        "src": "/images/Planet_3-w960.webp",
         "width": 960,
         "height": 540
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_3-w1280.webp",
+        "src": "/images/Planet_3-w1280.webp",
         "width": 1280,
         "height": 720
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_3-w1600.webp",
+        "src": "/images/Planet_3-w1600.webp",
         "width": 1600,
         "height": 900
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_3-w1920.webp",
+        "src": "/images/Planet_3-w1920.webp",
         "width": 1920,
         "height": 1080
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_3-w2560.webp",
+        "src": "/images/Planet_3-w2560.webp",
         "width": 2560,
         "height": 1440
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/backgrounds/Planet_4.webp": {
+  "/images/backgrounds/Planet_4.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_4-w320.webp",
+        "src": "/images/Planet_4-w320.webp",
         "width": 320,
         "height": 180
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_4-w480.webp",
+        "src": "/images/Planet_4-w480.webp",
         "width": 480,
         "height": 270
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_4-w640.webp",
+        "src": "/images/Planet_4-w640.webp",
         "width": 640,
         "height": 360
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_4-w960.webp",
+        "src": "/images/Planet_4-w960.webp",
         "width": 960,
         "height": 540
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_4-w1280.webp",
+        "src": "/images/Planet_4-w1280.webp",
         "width": 1280,
         "height": 720
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_4-w1600.webp",
+        "src": "/images/Planet_4-w1600.webp",
         "width": 1600,
         "height": 900
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_4-w1920.webp",
+        "src": "/images/Planet_4-w1920.webp",
         "width": 1920,
         "height": 1080
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Planet_4-w2560.webp",
+        "src": "/images/Planet_4-w2560.webp",
         "width": 2560,
         "height": 1440
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/backgrounds/Pyro.webp": {
+  "/images/backgrounds/Pyro.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Pyro-w320.webp",
+        "src": "/images/Pyro-w320.webp",
         "width": 320,
         "height": 268
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Pyro-w480.webp",
+        "src": "/images/Pyro-w480.webp",
         "width": 480,
         "height": 402
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Pyro-w640.webp",
+        "src": "/images/Pyro-w640.webp",
         "width": 640,
         "height": 536
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Pyro-w960.webp",
+        "src": "/images/Pyro-w960.webp",
         "width": 960,
         "height": 804
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Pyro-w1280.webp",
+        "src": "/images/Pyro-w1280.webp",
         "width": 1280,
         "height": 1072
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Pyro-w1600.webp",
+        "src": "/images/Pyro-w1600.webp",
         "width": 1600,
         "height": 1340
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/backgrounds/Starlancer.webp": {
+  "/images/backgrounds/Starlancer.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Starlancer-w320.webp",
+        "src": "/images/Starlancer-w320.webp",
         "width": 320,
         "height": 200
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Starlancer-w480.webp",
+        "src": "/images/Starlancer-w480.webp",
         "width": 480,
         "height": 300
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Starlancer-w640.webp",
+        "src": "/images/Starlancer-w640.webp",
         "width": 640,
         "height": 400
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Starlancer-w960.webp",
+        "src": "/images/Starlancer-w960.webp",
         "width": 960,
         "height": 600
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Starlancer-w1280.webp",
+        "src": "/images/Starlancer-w1280.webp",
         "width": 1280,
         "height": 800
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Starlancer-w1600.webp",
+        "src": "/images/Starlancer-w1600.webp",
         "width": 1600,
         "height": 1000
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Starlancer-w1920.webp",
+        "src": "/images/Starlancer-w1920.webp",
         "width": 1920,
         "height": 1200
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Barcitizen_Basel_2025/Manabar.webp": {
+  "/images/Barcitizen_Basel_2025/Manabar.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Manabar-w320.webp",
+        "src": "/images/Manabar-w320.webp",
         "width": 320,
         "height": 240
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Manabar-w480.webp",
+        "src": "/images/Manabar-w480.webp",
         "width": 480,
         "height": 360
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Manabar-w640.webp",
+        "src": "/images/Manabar-w640.webp",
         "width": 640,
         "height": 480
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Manabar-w960.webp",
+        "src": "/images/Manabar-w960.webp",
         "width": 960,
         "height": 720
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Manabar-w1280.webp",
+        "src": "/images/Manabar-w1280.webp",
         "width": 1280,
         "height": 960
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Manabar-w1600.webp",
+        "src": "/images/Manabar-w1600.webp",
         "width": 1600,
         "height": 1200
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Manabar-w1920.webp",
+        "src": "/images/Manabar-w1920.webp",
         "width": 1920,
         "height": 1440
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Manabar-w2560.webp",
+        "src": "/images/Manabar-w2560.webp",
         "width": 2560,
         "height": 1920
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/CitizenCon_2025/Citizencon.webp": {
+  "/images/CitizenCon_2025/Citizencon.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Citizencon-w320.webp",
+        "src": "/images/Citizencon-w320.webp",
         "width": 320,
         "height": 137
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Citizencon-w480.webp",
+        "src": "/images/Citizencon-w480.webp",
         "width": 480,
         "height": 206
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Citizencon-w640.webp",
+        "src": "/images/Citizencon-w640.webp",
         "width": 640,
         "height": 274
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Citizencon-w960.webp",
+        "src": "/images/Citizencon-w960.webp",
         "width": 960,
         "height": 412
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Citizencon-w1280.webp",
+        "src": "/images/Citizencon-w1280.webp",
         "width": 1280,
         "height": 549
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/flags/austria-flag-square-medium.webp": {
+  "/images/flags/austria-flag-square-medium.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/austria-flag-square-medium-w320.webp",
+        "src": "/images/austria-flag-square-medium-w320.webp",
         "width": 320,
         "height": 320
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/austria-flag-square-medium-w480.webp",
+        "src": "/images/austria-flag-square-medium-w480.webp",
         "width": 480,
         "height": 480
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/austria-flag-square-medium-w640.webp",
+        "src": "/images/austria-flag-square-medium-w640.webp",
         "width": 640,
         "height": 640
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/austria-flag-square-medium-w960.webp",
+        "src": "/images/austria-flag-square-medium-w960.webp",
         "width": 960,
         "height": 960
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/flags/germany-flag-square-medium.webp": {
+  "/images/flags/germany-flag-square-medium.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/germany-flag-square-medium-w320.webp",
+        "src": "/images/germany-flag-square-medium-w320.webp",
         "width": 320,
         "height": 320
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/germany-flag-square-medium-w480.webp",
+        "src": "/images/germany-flag-square-medium-w480.webp",
         "width": 480,
         "height": 480
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/germany-flag-square-medium-w640.webp",
+        "src": "/images/germany-flag-square-medium-w640.webp",
         "width": 640,
         "height": 640
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/germany-flag-square-medium-w960.webp",
+        "src": "/images/germany-flag-square-medium-w960.webp",
         "width": 960,
         "height": 960
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/flags/switzerland-flag-square-medium.webp": {
+  "/images/flags/switzerland-flag-square-medium.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/switzerland-flag-square-medium-w320.webp",
+        "src": "/images/switzerland-flag-square-medium-w320.webp",
         "width": 320,
         "height": 320
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/switzerland-flag-square-medium-w480.webp",
+        "src": "/images/switzerland-flag-square-medium-w480.webp",
         "width": 480,
         "height": 480
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/switzerland-flag-square-medium-w640.webp",
+        "src": "/images/switzerland-flag-square-medium-w640.webp",
         "width": 640,
         "height": 640
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/switzerland-flag-square-medium-w960.webp",
+        "src": "/images/switzerland-flag-square-medium-w960.webp",
         "width": 960,
         "height": 960
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/fps/visir.webp": {
+  "/images/fps/visir.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/visir-w320.webp",
+        "src": "/images/visir-w320.webp",
         "width": 320,
         "height": 376
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/visir-w480.webp",
+        "src": "/images/visir-w480.webp",
         "width": 480,
         "height": 564
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/visir-w640.webp",
+        "src": "/images/visir-w640.webp",
         "width": 640,
         "height": 752
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/visir-w960.webp",
+        "src": "/images/visir-w960.webp",
         "width": 960,
         "height": 1128
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/visir-w1280.webp",
+        "src": "/images/visir-w1280.webp",
         "width": 1280,
         "height": 1503
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/visir-w1600.webp",
+        "src": "/images/visir-w1600.webp",
         "width": 1600,
         "height": 1879
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/ships/Carrack.webp": {
+  "/images/ships/Carrack.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Carrack-w320.webp",
+        "src": "/images/Carrack-w320.webp",
         "width": 320,
         "height": 180
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Carrack-w480.webp",
+        "src": "/images/Carrack-w480.webp",
         "width": 480,
         "height": 270
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Carrack-w640.webp",
+        "src": "/images/Carrack-w640.webp",
         "width": 640,
         "height": 360
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Carrack-w960.webp",
+        "src": "/images/Carrack-w960.webp",
         "width": 960,
         "height": 540
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Carrack-w1280.webp",
+        "src": "/images/Carrack-w1280.webp",
         "width": 1280,
         "height": 720
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Carrack-w1600.webp",
+        "src": "/images/Carrack-w1600.webp",
         "width": 1600,
         "height": 900
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Carrack-w1920.webp",
+        "src": "/images/Carrack-w1920.webp",
         "width": 1920,
         "height": 1080
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Carrack-w2560.webp",
+        "src": "/images/Carrack-w2560.webp",
         "width": 2560,
         "height": 1440
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/ships/F7A.webp": {
+  "/images/ships/F7A.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/F7A-w320.webp",
+        "src": "/images/F7A-w320.webp",
         "width": 320,
         "height": 200
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/F7A-w480.webp",
+        "src": "/images/F7A-w480.webp",
         "width": 480,
         "height": 300
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/F7A-w640.webp",
+        "src": "/images/F7A-w640.webp",
         "width": 640,
         "height": 400
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/F7A-w960.webp",
+        "src": "/images/F7A-w960.webp",
         "width": 960,
         "height": 600
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/F7A-w1280.webp",
+        "src": "/images/F7A-w1280.webp",
         "width": 1280,
         "height": 800
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/F7A-w1600.webp",
+        "src": "/images/F7A-w1600.webp",
         "width": 1600,
         "height": 1000
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/F7A-w1920.webp",
+        "src": "/images/F7A-w1920.webp",
         "width": 1920,
         "height": 1200
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/F7A-w2560.webp",
+        "src": "/images/F7A-w2560.webp",
         "width": 2560,
         "height": 1600
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/ships/Hornet.webp": {
+  "/images/ships/Hornet.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hornet-w320.webp",
+        "src": "/images/Hornet-w320.webp",
         "width": 320,
         "height": 200
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hornet-w480.webp",
+        "src": "/images/Hornet-w480.webp",
         "width": 480,
         "height": 300
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hornet-w640.webp",
+        "src": "/images/Hornet-w640.webp",
         "width": 640,
         "height": 400
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hornet-w960.webp",
+        "src": "/images/Hornet-w960.webp",
         "width": 960,
         "height": 600
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hornet-w1280.webp",
+        "src": "/images/Hornet-w1280.webp",
         "width": 1280,
         "height": 800
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hornet-w1600.webp",
+        "src": "/images/Hornet-w1600.webp",
         "width": 1600,
         "height": 1000
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hornet-w1920.webp",
+        "src": "/images/Hornet-w1920.webp",
         "width": 1920,
         "height": 1200
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/ships/Hull_C.webp": {
+  "/images/ships/Hull_C.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hull_C-w320.webp",
+        "src": "/images/Hull_C-w320.webp",
         "width": 320,
         "height": 180
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hull_C-w480.webp",
+        "src": "/images/Hull_C-w480.webp",
         "width": 480,
         "height": 270
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hull_C-w640.webp",
+        "src": "/images/Hull_C-w640.webp",
         "width": 640,
         "height": 360
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hull_C-w960.webp",
+        "src": "/images/Hull_C-w960.webp",
         "width": 960,
         "height": 540
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hull_C-w1280.webp",
+        "src": "/images/Hull_C-w1280.webp",
         "width": 1280,
         "height": 720
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hull_C-w1600.webp",
+        "src": "/images/Hull_C-w1600.webp",
         "width": 1600,
         "height": 900
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hull_C-w1920.webp",
+        "src": "/images/Hull_C-w1920.webp",
         "width": 1920,
         "height": 1080
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Hull_C-w2560.webp",
+        "src": "/images/Hull_C-w2560.webp",
         "width": 2560,
         "height": 1440
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/ships/Polaris.webp": {
+  "/images/ships/Polaris.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Polaris-w320.webp",
+        "src": "/images/Polaris-w320.webp",
         "width": 320,
         "height": 200
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Polaris-w480.webp",
+        "src": "/images/Polaris-w480.webp",
         "width": 480,
         "height": 300
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Polaris-w640.webp",
+        "src": "/images/Polaris-w640.webp",
         "width": 640,
         "height": 400
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Polaris-w960.webp",
+        "src": "/images/Polaris-w960.webp",
         "width": 960,
         "height": 600
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Polaris-w1280.webp",
+        "src": "/images/Polaris-w1280.webp",
         "width": 1280,
         "height": 800
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Polaris-w1600.webp",
+        "src": "/images/Polaris-w1600.webp",
         "width": 1600,
         "height": 1000
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Polaris-w1920.webp",
+        "src": "/images/Polaris-w1920.webp",
         "width": 1920,
         "height": 1200
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Polaris-w2560.webp",
+        "src": "/images/Polaris-w2560.webp",
         "width": 2560,
         "height": 1600
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/ships/Reclaimer.webp": {
+  "/images/ships/Reclaimer.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Reclaimer-w320.webp",
+        "src": "/images/Reclaimer-w320.webp",
         "width": 320,
         "height": 180
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Reclaimer-w480.webp",
+        "src": "/images/Reclaimer-w480.webp",
         "width": 480,
         "height": 270
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Reclaimer-w640.webp",
+        "src": "/images/Reclaimer-w640.webp",
         "width": 640,
         "height": 360
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Reclaimer-w960.webp",
+        "src": "/images/Reclaimer-w960.webp",
         "width": 960,
         "height": 540
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Reclaimer-w1280.webp",
+        "src": "/images/Reclaimer-w1280.webp",
         "width": 1280,
         "height": 720
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Reclaimer-w1600.webp",
+        "src": "/images/Reclaimer-w1600.webp",
         "width": 1600,
         "height": 900
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Reclaimer-w1920.webp",
+        "src": "/images/Reclaimer-w1920.webp",
         "width": 1920,
         "height": 1080
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Reclaimer-w2560.webp",
+        "src": "/images/Reclaimer-w2560.webp",
         "width": 2560,
         "height": 1440
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/ships/Ship.webp": {
+  "/images/ships/Ship.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Ship-w320.webp",
+        "src": "/images/Ship-w320.webp",
         "width": 320,
         "height": 185
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Ship-w480.webp",
+        "src": "/images/Ship-w480.webp",
         "width": 480,
         "height": 278
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Ship-w640.webp",
+        "src": "/images/Ship-w640.webp",
         "width": 640,
         "height": 370
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Ship-w960.webp",
+        "src": "/images/Ship-w960.webp",
         "width": 960,
         "height": 555
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Ship-w1280.webp",
+        "src": "/images/Ship-w1280.webp",
         "width": 1280,
         "height": 740
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Ship-w1600.webp",
+        "src": "/images/Ship-w1600.webp",
         "width": 1600,
         "height": 925
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Ship-w1920.webp",
+        "src": "/images/Ship-w1920.webp",
         "width": 1920,
         "height": 1110
       }
     ]
   },
-  "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/ships/Terrapin.webp": {
+  "/images/ships/Terrapin.webp": {
     "webp": [
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Terrapin-w320.webp",
+        "src": "/images/Terrapin-w320.webp",
         "width": 320,
         "height": 200
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Terrapin-w480.webp",
+        "src": "/images/Terrapin-w480.webp",
         "width": 480,
         "height": 300
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Terrapin-w640.webp",
+        "src": "/images/Terrapin-w640.webp",
         "width": 640,
         "height": 400
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Terrapin-w960.webp",
+        "src": "/images/Terrapin-w960.webp",
         "width": 960,
         "height": 600
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Terrapin-w1280.webp",
+        "src": "/images/Terrapin-w1280.webp",
         "width": 1280,
         "height": 800
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Terrapin-w1600.webp",
+        "src": "/images/Terrapin-w1600.webp",
         "width": 1600,
         "height": 1000
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Terrapin-w1920.webp",
+        "src": "/images/Terrapin-w1920.webp",
         "width": 1920,
         "height": 1200
       },
       {
-        "src": "C:/Users/noaht/Downloads/cghfhjvvhj/HSTC/public/images/Terrapin-w2560.webp",
+        "src": "/images/Terrapin-w2560.webp",
         "width": 2560,
         "height": 1600
       }

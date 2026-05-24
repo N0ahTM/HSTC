@@ -1,66 +1,54 @@
-# Amplify Gen 2 Backend
+# Amplify Backend (Current State)
 
-This directory contains the Amplify Gen 2 backend definition using TypeScript and AWS CDK.
+This project uses Amplify Gen 2 with a focused backend scope.
 
-## Structure
+## What exists
 
 ```
 amplify/
-├── auth/
-│   └── resource.ts       # Amazon Cognito authentication configuration
-├── data/
-│   └── resource.ts       # AWS AppSync GraphQL API and data models
-├── storage/
-│   └── resource.ts       # Amazon S3 storage buckets
-├── backend.ts            # Main backend definition that wires all resources
-├── package.json          # Backend dependencies
-├── tsconfig.json         # TypeScript configuration
-└── README.md            # This file
+├── backend.ts
+└── functions/
+    └── discord-aggregate/
+        ├── resource.ts
+        └── handler.ts
 ```
 
-## Key Features
+- `backend.ts` wires one Lambda function and exposes a Function URL output:
+  - `custom.discordCombinedUrl`
+- `discord-aggregate/handler.ts` returns Discord events/images data for frontend sections.
 
-- **Type-safe**: Full TypeScript support with IDE autocomplete
-- **Code-first**: Infrastructure as Code using AWS CDK
-- **Git-friendly**: All configuration in version control
-- **No CLI required**: Define everything in code
+## Secrets
 
-## Development Workflow
+Set these as Amplify secrets (not plaintext env vars):
 
-### Local Development (Sandbox)
+- `DISCORD_BOT_TOKEN`
+- `DISCORD_CHANNEL_ID`
+- `DISCORD_GUILD_ID`
+
+## Workflow
+
+From repository root:
 
 ```bash
-cd amplify
-npm install
-npx ampx sandbox
+npm run sandbox
 ```
 
-This creates a personal cloud sandbox for development that auto-updates on file changes.
+CI/backend deploy happens via `amplify.yml`:
 
-### Deployment
-
-Amplify Hosting automatically deploys the backend when you push to your connected branch. The deployment is handled by the `amplify.yml` configuration in the root directory.
-
-## Generated Output
-
-When the backend is deployed, it generates `amplify_outputs.json` at the project root. This file contains all the configuration needed by the frontend to connect to AWS services.
-
-**Important**: `amplify_outputs.json` is auto-generated and should be in `.gitignore`.
-
-## Frontend Integration
-
-In your frontend code:
-
-```typescript
-import { Amplify } from 'aws-amplify';
-import outputs from '../amplify_outputs.json';
-
-Amplify.configure(outputs);
+```bash
+npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
 ```
 
-## Resources
+## Output
 
-- [Amplify Gen 2 Documentation](https://docs.amplify.aws/gen2/)
-- [Backend Definition Guide](https://docs.amplify.aws/gen2/build-a-backend/)
-- [Data Modeling](https://docs.amplify.aws/gen2/build-a-backend/data/)
-- [Authentication](https://docs.amplify.aws/gen2/build-a-backend/auth/)
+`amplify_outputs.json` is generated in project root and used by frontend endpoint resolution.
+
+Important:
+- keep `amplify_outputs.json` out of git (already in `.gitignore`)
+- `amplify_outputs.example.json` is only a template
+
+## References
+
+- [Architecture](../docs/architecture.md)
+- [Amplify Integration](../docs/amplify-gen2-integration.md)
+- [Amplify Gen 2 docs](https://docs.amplify.aws/gen2/)

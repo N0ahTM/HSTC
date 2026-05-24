@@ -103,12 +103,10 @@ const amplifyHostingPlugin = (): MinimalVitePlugin => ({
     const src = path.join(process.cwd(), 'amplify_outputs.json');
     const dest = path.join(process.cwd(), 'dist', 'amplify_outputs.json');
     if (!existsSync(src)) {
-      // eslint-disable-next-line no-console
       console.warn('[amplify-hosting] amplify_outputs.json not found — skipping copy to dist/.');
       return;
     }
     await copyFile(src, dest);
-    // eslint-disable-next-line no-console
     console.info('[amplify-hosting] Copied amplify_outputs.json to dist/.');
   }
 });
@@ -116,7 +114,6 @@ const amplifyHostingPlugin = (): MinimalVitePlugin => ({
 const createAmplifyProxy = (options: ProxyOptions): MinimalVitePlugin => ({
   name: `${options.logScope}-api`,
   configureServer(server: DevServer) {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     server.middlewares.use(options.route, async (req: IncomingMessage, res: ServerResponse) => {
       const method = req.method ?? 'GET';
       const requestUrl = new URL(req.url ?? '', 'http://localhost');
@@ -178,7 +175,6 @@ const createAmplifyProxy = (options: ProxyOptions): MinimalVitePlugin => ({
         res.setHeader('Content-Length', String(buf.length));
         res.end(buf);
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error(`[${options.logScope}] local API middleware error`, error);
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json');

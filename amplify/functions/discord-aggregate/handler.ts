@@ -228,7 +228,7 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
     const mode = parseMode(params.mode);
     const includeEvents = mode === 'both' || mode === 'events';
     const includeImages = mode === 'both' || mode === 'images';
-    const debug = params.debug === '1';
+    const includeDebugDetails = params.debug === '1' && process.env.ALLOW_PUBLIC_DEBUG_DETAILS === 'true';
     const wantAll = params.all === '1';
 
     const [token, guildId, channelId] = await Promise.all([
@@ -258,7 +258,7 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
             guildId,
             token: authToken,
             wantAll,
-            debug,
+            debug: includeDebugDetails,
             now
           })
         : null;
@@ -270,7 +270,7 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
             token: authToken,
             limit,
             before,
-            debug,
+            debug: includeDebugDetails,
             now
           })
         : null;
@@ -302,7 +302,7 @@ export async function handler(event: LambdaEvent): Promise<LambdaResponse> {
         cache: combineCacheStates(cacheStates),
         fetchedAt: new Date().toISOString(),
         source: 'discord-aggregate',
-        ...(debug
+        ...(includeDebugDetails
           ? {
               details: {
                 mode,
