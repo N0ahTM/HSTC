@@ -1,33 +1,80 @@
-# HSTC Architecture (Current Implementation)
+# Architecture
 
 ## Overview
 
-HSTC is a Vite/React single-page application deployed on Amplify Hosting.
-Backend scope is intentionally small: one Amplify Gen 2 Lambda function for Discord data aggregation.
+HSTC is a statically-hosted React single-page application with a minimal, purpose-built serverless backend. The architecture prioritizes **performance at the edge**, **strict type safety**, and **clear separation of concerns** across the frontend layer stack.
 
 ## Runtime Topology
 
-1. Browser loads static assets from Amplify/CloudFront.
-2. Frontend sections fetch Discord data through:
-   - Discord widget endpoint (`VITE_DISCORD_WIDGET_URL` or default)
-   - aggregate endpoint from `amplify_outputs.json` (`custom.discordCombinedUrl`, now CloudFront edge URL)
-3. CloudFront forwards API requests to Lambda Function URL.
-4. WAF (rate-based) protects the CloudFront API edge.
-5. Aggregate function queries Discord APIs, applies short-lived in-memory cache, and returns normalized events/images.
-
 ```mermaid
 flowchart LR
-  browser[BrowserClient] --> app[ReactSPA]
-  app --> outputs[amplify_outputsJson]
-  outputs --> edge[CloudFrontApi]
-  edge --> lambdaUrl[LambdaFunctionUrl]
-  lambdaUrl --> discord[DiscordApi]
-  edge --> waf[WAFRateLimitRule]
-  app --> assetCdn[CloudFrontAssets]
-  assetCdn --> s3[S3Bucket]
+  browser[Browser] --> spa[React SPA]
+  spa --> outputs[amplify_outputs.json]
+  outputs --> edge[CloudFront API]
+  edge --> waf[WAF Rate Limit]
+  edge --> lambda[Lambda Function URL]
+  lambda --> discord[Discord API]
+  spa --> assetCdn[CloudFront Assets]
+  assetCdn --> s3[S3 Bucket]
 ```
 
-## Backend Structure
+1. Browser loads the SPA from Amplify Hosting (CloudFront + S3).
+2. Frontend resolves the Discord aggregate API endpoint from `amplify_outputs.json`.
+3. API requests hit a CloudFront distribution acting as the public edge.
+4. AWS WAF rate-based rules filter abusive traffic before it reaches origin.
+5. A Lambda Function URL serves as the origin, querying Discord APIs with short-lived in-memory caching.
+6. Static assets (images) are served from a separate S3-backed CloudFront distribution with immutable caching.
+
+---
+
+## Frontend Architecture
+
+### Layer Stack
+
+| Layer | Path | Responsibility |
+|---|---|---|
+| **Primitives** | `src/lib/ui` | Domain-agnostic UI building blocks |
+| **Utilities** | `src/lib/utils` | Pure helpers, formatters, guards |
+| **Motion** | `src/lib/motion` | Animation engine abstraction (Anime.js wrappers) |
+| **Features** | `src/features/site` | HSTC-specific page composition logic |
+| **Sections** | `src/sections` | Concrete section implementations (layout + data binding) |
+| **Components** | `src/components` | Shared presentational components |
+| **Hooks** | `src/hooks` | Reusable React hooks (data, motion, a11y) |
+| **Providers** | `src/providers` | Context providers for shared state |
+
+### Layer Rules
+
+- Code in `src/lib/*` must be **domain-agnostic** — reusable in another project without modification.
+- Code in `src/features/*` describes **page composition** specific to HSTC.
+- `src/sections/*` contains only layout and data binding; business logic lives in hooks and providers.
+
+### Key Frontend Patterns
+
+**Lazy Section Rendering**
+- Sections below the fold use `IntersectionObserver` via `useAnimateOnIntersect`.
+- Sections render only when entering the viewport, reducing initial bundle execution.
+- Fallback render logic ensures content appears even if `IntersectionObserver` is unavailable.
+
+**Data Flow**
+- `DiscordDataProvider` centralizes Discord data fetching (events, images, stats).
+- Request-generation gates prevent race conditions between concurrent fetches.
+- Defensive response normalization guards against malformed API payloads.
+
+**Endpoint Resolution Chain**
+`src/config/amplifyOutputs.ts` resolves the aggregate API endpoint in strict priority:
+1. `VITE_DISCORD_COMBINED_ENDPOINT` (explicit override)
+2. Local dev proxy (`/api/discord-combined`) when `VITE_USE_LOCAL_DISCORD_API=true`
+3. Build-time `amplify_outputs.json`
+4. Runtime `/amplify_outputs.json` (fetched from host)
+5. `VITE_DISCORD_COMBINED_FALLBACK`
+
+---
+
+## Backend Architecture
+
+### Scope
+
+The backend is intentionally minimal: one Lambda function that aggregates Discord data.
 
 ```
 amplify/
@@ -38,61 +85,54 @@ amplify/
         └── handler.ts
 ```
 
-No Cognito/AppSync/Data/Storage resources are defined in this repository.
+No Cognito, AppSync, DynamoDB, or Storage resources are defined. This keeps the infrastructure surface small and the cold-start latency low.
 
-## Frontend Structure
+### `discord-aggregate` Function
 
-- App shell and lazy loading: `src/App.tsx`
-- Reusable layer: `src/lib/ui`, `src/lib/utils`, `src/lib/motion`
-- Site-specific feature wrappers: `src/features/site/*`
-- Data context: `src/providers/DiscordDataProvider.tsx`
-- Endpoint resolution: `src/config/amplifyOutputs.ts`
-- Community events/images UI: `src/sections/CommunitySection.tsx`, `src/sections/CommunityImagesSection.tsx`
-- Hero/join live counters: `src/hooks/useDiscordStats.ts`
+- **Input**: Query params (`mode=events|images|both`, `limit`, `all`)
+- **Logic**: Fetches Discord scheduled events and image channel data; applies 60-second in-memory cache
+- **Output**: Normalized JSON with `events`, `images`, and `meta` (cache status, fetch timestamp)
+- **Security**: Optional `x-hstc-edge-key` header validation; debug details gated by `ALLOW_PUBLIC_DEBUG_DETAILS`
 
-### Reuse Boundary Rules
+### Infrastructure (CDK via Amplify Gen 2)
 
-- Put code in `src/lib/*` if it is domain-agnostic and reusable in another site.
-- Put code in `src/features/*` if it describes HSTC-specific page composition.
-- Keep `src/sections/*` as concrete implementations while `src/features/site/*` acts as composition entrypoints.
+- **Lambda**: Node.js 22 runtime, ARM64 architecture for cost/performance
+- **Function URL**: IAM-authenticated origin; public access blocked by CloudFront origin guard
+- **CloudFront Distribution**: Public API entrypoint with custom cache behaviors
+- **WAF WebACL**: Rate-based rule (IP-level) to prevent abuse
 
-## Configuration and Environment
+---
 
-### Generated output
+## Configuration & Environment
 
-- `amplify_outputs.json` is generated by Amplify backend deploy.
-- `vite.config.ts` copies it into `dist/` for runtime access.
-
-### Frontend env vars
+### Frontend Environment Variables
 
 | Variable | Purpose |
-| --- | --- |
-| `VITE_DISCORD_WIDGET_URL` | Discord widget endpoint |
-| `VITE_DISCORD_COMBINED_ENDPOINT` | Explicit aggregate endpoint override |
+|---|---|
+| `VITE_DISCORD_WIDGET_URL` | Discord widget endpoint for live stats |
+| `VITE_DISCORD_COMBINED_ENDPOINT` | Explicit aggregate API override |
 | `VITE_DISCORD_COMBINED_FALLBACK` | Fallback endpoint if outputs are missing |
-| `VITE_USE_LOCAL_DISCORD_API` | Use local `/api/discord-combined` proxy in dev |
-| `VITE_ASSET_CDN_BASE_URL` | Optional CloudFront base URL for `/images/*` delivery |
+| `VITE_USE_LOCAL_DISCORD_API` | Enable local `/api/discord-combined` proxy in dev |
+| `VITE_ASSET_CDN_BASE_URL` | Optional CloudFront base URL for image delivery |
 
-### Backend secrets
+### Backend Secrets
 
 - `DISCORD_BOT_TOKEN`
 - `DISCORD_CHANNEL_ID`
 - `DISCORD_GUILD_ID`
-- `DISCORD_EDGE_ORIGIN_KEY` (optional header guard from CloudFront to Lambda)
+- `DISCORD_EDGE_ORIGIN_KEY` (optional origin guard)
 
-## Deploy Flow
+Secrets are injected via Amplify Secrets Manager — never committed or inlined into function config.
 
-Defined in `amplify.yml`:
+---
 
-1. `ampx pipeline-deploy` deploys backend (Lambda + Function URL + CloudFront API edge + WAF rule).
-2. `amplify_outputs.json` is validated.
-3. Frontend build runs (`npm run build`).
-4. Redirect sync script applies custom rules to Amplify app.
-5. Optional asset pipeline syncs `public/images` to S3 and serves via CloudFront asset domain.
-6. Frontend image utilities require an asset base URL from `custom.assetBaseUrl` (no local fallback).
+## Security Model
 
-## Operational Notes
-
-- Redirect rules source of truth: `amplify-redirects.json`
-- Security/cache headers source of truth: `customHttp.yml`
-- Strict findings and remediation tracking: `docs/strict-code-review-full.md`
+| Layer | Control |
+|---|---|
+| **Edge** | CloudFront + WAF rate limiting |
+| **Origin** | Lambda Function URL with optional header guard |
+| **CORS** | Restricted to production origins (no wildcard) |
+| **Headers** | HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy |
+| **Secrets** | Amplify Secrets Manager; no plaintext env inlining |
+| **Debug** | Internal error details suppressed unless explicitly enabled |

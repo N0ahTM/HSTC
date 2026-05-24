@@ -50,5 +50,5 @@ Important:
 ## References
 
 - [Architecture](../docs/architecture.md)
-- [Amplify Integration](../docs/amplify-gen2-integration.md)
+- [Deployment](../docs/deployment.md)
 - [Amplify Gen 2 docs](https://docs.amplify.aws/gen2/)

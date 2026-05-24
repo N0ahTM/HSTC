@@ -1,28 +1,32 @@
-# Animationsleitfaden
+# Animation System
 
-Dieser Leitfaden erklärt, wie die Anime.js-gestützten Animationen in der HSTC-Seite aufgebaut sind und wie du sie erweitern kannst.
+## Philosophy
 
-## Grundlagen
+All animations are **progressive enhancement**. They convey no essential information and are completely suppressed when the user has `prefers-reduced-motion` enabled. The system is built on Anime.js with a custom abstraction layer to keep timelines consistent, performant, and cleanup-safe.
 
-- **Bibliothek**: [Anime.js](https://animejs.com/documentation) wird als zentrale Animationsengine genutzt (`animejs`).
-- **Bewegungsvorlieben**: Über den Hook `usePrefersReducedMotion` sowie CSS-Klassen auf `<html>` werden Animationen deaktiviert, wenn Nutzer `prefers-reduced-motion` aktiviert haben.
-- **Intersection Observer**: Der Hook `useAnimateOnIntersect` (bzw. `useStaggerReveal`) koppelt Scroll-Reveals an die Sichtbarkeit eines Elements.
-- **Zähler**: Der Hook `useAnimatedNumber` animiert numerische Werte z. B. für Live-Statistiken.
+## Motion Architecture
 
-## Wichtige Module
+```
+src/motion/
+├── hero.ts         # Hero-specific timelines (intro sequence, logo drift)
+├── ambient.ts      # Background effects (starfield, nebula, meteors)
+├── textEffects.ts  # Typography animations (letter reveal, split text)
+├── interactions.ts # User-driven effects (3D tilt, button press, carousel)
+└── carousel.ts     # Carousel transition logic
+```
 
-| Datei | Zweck |
-| --- | --- |
-| `src/hooks/usePrefersReducedMotion.ts` | Abfrageschicht für `prefers-reduced-motion` Media Query. |
-| `src/hooks/useAnimateOnIntersect.ts` | Intersection Observer + Anime.js-Callback, plus `useStaggerReveal` Hilfsfunktion. |
-| `src/hooks/useAnimatedNumber.ts` | Animiert Zahlenwerte in DOM-Elementen. |
-| `src/motion/hero.ts` | Enthält Hero-spezifische Timelines (Intro + Logo-Drift) und Utility `stopAnimations`. |
+## Core Hooks
 
-## Scroll-Reveal einsetzen
+| Hook | Purpose |
+|---|---|
+| `usePrefersReducedMotion` | Media query wrapper that drives all motion gates |
+| `useAnimateOnIntersect` | Intersection Observer + Anime.js callback |
+| `useStaggerReveal` | Convenience wrapper for scroll-triggered staggered reveals |
+| `useAnimatedNumber` | Numeric value interpolation with cleanup |
 
-1. Erstelle eine `useRef<HTMLElement | null>` Referenz auf die Sektion.
-2. Rufe `useStaggerReveal(sectionRef)` im Komponenten-Body auf.
-3. Versehe alle Items innerhalb der Sektion, die gestaffelt erscheinen sollen, mit `data-reveal-item` oder eigenen Selektoren via Optionsobjekt.
+## Scroll Reveal Pattern
+
+Sections use `useStaggerReveal` to animate children into view as the user scrolls:
 
 ```tsx
 const sectionRef = useRef<HTMLElement | null>(null);
@@ -31,18 +35,17 @@ useStaggerReveal(sectionRef, { delay: 120, translateY: 32 });
 return (
   <section ref={sectionRef}>
     <h2>Heading</h2>
-    <div data-reveal-item>…</div>
+    <div data-reveal-item>Card 1</div>
+    <div data-reveal-item>Card 2</div>
   </section>
 );
 ```
 
-## Eigene Timelines bauen
+## Custom Timeline Pattern
 
-Wenn du komplexere Abläufe brauchst:
+For complex orchestrated sequences:
 
 ```tsx
-import anime from 'animejs';
-
 useEffect(() => {
   if (prefersReducedMotion) return;
 
@@ -55,37 +58,17 @@ useEffect(() => {
 }, [prefersReducedMotion]);
 ```
 
-Achte darauf, Timelines im Cleanup zu stoppen, um Speicherlecks zu vermeiden.
+Every timeline is paused in cleanup to prevent memory leaks.
 
-## Zahlen animieren
+## Accessibility
 
-```tsx
-const valueRef = useRef<HTMLSpanElement | null>(null);
-useAnimatedNumber(statsValue, valueRef, { duration: 800 });
+- `prefers-reduced-motion`: All animated elements skip to their end state immediately.
+- No critical information is conveyed through motion alone.
+- Transform and opacity are used exclusively for GPU-accelerated rendering.
 
-return <span ref={valueRef}>{statsValue ?? '—'}</span>;
-```
+## Performance Rules
 
-Der Hook kümmert sich um Platzhalter, reduzierte Bewegung und Rundung.
-
-## Accessibility & Performance
-
-- Animationen gelten als dekorativ: keine wichtigen Informationen dürfen ausschließlich animiert dargestellt werden.
-- Bei `prefers-reduced-motion` werden alle animierten Elemente sofort in den Endzustand gesetzt.
-- Nutze transform/opacity statt Layout-Eigenschaften für flüssige Performance.
-- Füge Animationen sparsam hinzu: zu viele parallele Timelines können Mobile-Geräte belasten.
-
-## Ideen für Erweiterungen
-
-- **Timeline-Sync**: Mehrere Sektionen über einen globalen Timeline-Controller koordinieren.
-- **Perspective Reveal**: `rotateX/rotateY` in `useStaggerReveal` für 3D-Karten.
-- **Section-Waypoints**: Scroll-Progress (z. B. Progress-Bar im Nav) mit Anime.js `setDashoffset` animieren.
-- **Sound Hooks**: Bei optischen Highlights optional Audioeffekte (mit Rücksicht auf Accessibility).
-
-## Fehlerbehebung
-
-- Prüfe, ob Referenzen (`ref`) gesetzt sind, bevor du Anime.js aufrufst.
-- Bei SSR/Build-Fehlern sicherstellen, dass `window` nur im `useEffect` genutzt wird.
-- Verwende `npm run build`, um TS-Fehler früh zu erkennen.
-
-Mit diesem Setup kannst du jede Sektion der Seite mit konsistenten, leicht wartbaren Animationen ausstatten.
+- Animate only `transform` and `opacity`.
+- Limit concurrent timelines on mobile.
+- Use `IntersectionObserver` to avoid running off-screen animations.
+- Clean up all Anime.js instances on unmount.

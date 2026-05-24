@@ -6,3 +6,4 @@ amplify_outputs.json
 .lighthouseci/
 *.tsbuildinfo
 amplify/node_modules/
+public/images/_manifest.json
