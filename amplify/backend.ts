@@ -8,15 +8,15 @@ import {
   ViewerProtocolPolicy
 } from 'aws-cdk-lib/aws-cloudfront';
 import { FunctionUrlOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { CfnWebACL, CfnWebACLAssociation } from 'aws-cdk-lib/aws-wafv2';
 import { FunctionUrlAuthType, HttpMethod } from 'aws-cdk-lib/aws-lambda';
 import { discordAggregate } from './functions/discord-aggregate/resource.js';
+import { siteAssets } from './storage/resource.js';
 
 /**
  * Production backend: single aggregate Lambda exposed via Function URL.
  */
-const backend = defineBackend({ discordAggregate });
+const backend = defineBackend({ discordAggregate, siteAssets });
 
 const requiredSecretKeys = ['DISCORD_CHANNEL_ID', 'DISCORD_BOT_TOKEN', 'DISCORD_GUILD_ID'] as const;
 const plaintextOverrides = requiredSecretKeys.filter((key) => {
@@ -72,13 +72,8 @@ if (edgeOriginHeaderValue) {
   backend.discordAggregate.addEnvironment('DISCORD_EDGE_ORIGIN_KEY', edgeOriginHeaderValue);
 }
 
-const edgeStack = backend.createStack('DiscordAggregateEdge');
-const assetsBucket = new Bucket(edgeStack, 'SiteAssetsBucket', {
-  encryption: BucketEncryption.S3_MANAGED,
-  enforceSSL: true,
-  blockPublicAccess: BlockPublicAccess.BLOCK_ALL
-});
-const assetsDistribution = new Distribution(edgeStack, 'SiteAssetsDistribution', {
+const assetsBucket = backend.siteAssets.resources.bucket;
+const assetsDistribution = new Distribution(backend.siteAssets.stack, 'SiteAssetsDistribution', {
   comment: 'CloudFront CDN for static site assets bucket',
   defaultBehavior: {
     origin: S3BucketOrigin.withOriginAccessControl(assetsBucket),
@@ -87,6 +82,7 @@ const assetsDistribution = new Distribution(edgeStack, 'SiteAssetsDistribution',
     allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS
   }
 });
+const edgeStack = backend.createStack('DiscordAggregateEdge');
 
 const discordCombinedDistribution = new Distribution(edgeStack, 'DiscordAggregateDistribution', {
   comment: 'CloudFront edge for discord aggregate function URL',
