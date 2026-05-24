@@ -21,10 +21,10 @@
     "lint:infra": "eslint \"{scripts,amplify}/**/*.{ts,mjs}\" \"vite.config.ts\"",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "assets:sync": "node ./scripts/sync-assets-to-s3.mjs",
-    "prebuild": "npm run build:images -- --skip-existing",
-    "predev": "npm run build:images -- --skip-existing",
+    "prebuild": "node scripts/ensure-images.mjs",
+    "predev": "node scripts/ensure-images.mjs",
     "sandbox": "npx -y -p @aws-amplify/backend-cli@latest ampx sandbox",
-    "sandbox:remove": "npx -y -p @aws-amplify/backend-cli@latest ampx sandbox --remove",
+    "sandbox:remove": "npx -y -p @aws-amplify/backend-cli@latest ampx sandbox delete -y",
     "ampx:version": "npx -y -p @aws-amplify/backend-cli@latest ampx -v",
     "perf:lighthouse": "lhci autorun --config=.lighthouserc.json"
   },

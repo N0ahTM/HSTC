@@ -16,6 +16,7 @@ frontend:
         - npm run build
     postBuild:
       commands:
+        - npm run assets:sync
         - node scripts/apply-amplify-redirects.mjs
   artifacts:
     baseDirectory: dist
