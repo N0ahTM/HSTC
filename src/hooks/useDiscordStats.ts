@@ -20,6 +20,7 @@ const DEFAULT_WIDGET_URL = 'https://discord.com/api/guilds/628996745837150211/wi
 const REFRESH_INTERVAL = 300_000;
 const CACHE_KEY = 'hstc.discord.widget';
 const CACHE_TTL = 300_000;
+const isDev = import.meta.env.DEV;
 
 interface CachedStats {
   presenceCount: number;
@@ -36,6 +37,12 @@ let intervalHandle: number | null = null;
 let subscriberCount = 0;
 let initialized = false;
 const listeners = new Set<(value: DiscordStatsSnapshot) => void>();
+
+function devError(error: unknown) {
+  if (isDev) {
+    console.error(error);
+  }
+}
 
 function publish(next: DiscordStatsSnapshot) {
   snapshot = next;
@@ -59,7 +66,7 @@ function readCache(): CachedStats | null {
     }
     return parsed;
   } catch (err) {
-    console.error(err);
+    devError(err);
     return null;
   }
 }
@@ -76,7 +83,7 @@ function writeCache(presence: number, voice: number) {
   try {
     window.localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
   } catch (err) {
-    console.error(err);
+    devError(err);
   }
 }
 
@@ -97,7 +104,7 @@ async function fetchNetwork(): Promise<void> {
       writeCache(presence, voice);
       publish({ presenceCount: presence, inVoice: voice, isLoading: false, error: undefined });
     } catch (err) {
-      console.error(err);
+      devError(err);
       const hasUsableData = snapshot.presenceCount !== null || snapshot.inVoice !== null;
       publish({
         ...snapshot,

@@ -54,7 +54,8 @@ VITE_ASSET_CDN_BASE_URL=https://<cloudfront-assets-domain>
 
 Notes:
 
-- If `VITE_ASSET_CDN_BASE_URL` is empty, app keeps loading local `/images/*`.
+- App resolves assets from `custom.assetBaseUrl` in `amplify_outputs.json`.
+- `VITE_ASSET_CDN_BASE_URL` can override this at build/runtime if required.
 - `assets:sync` optionally invalidates CloudFront when `ASSET_CLOUDFRONT_DISTRIBUTION_ID` is set.
 
 ## CI Gates

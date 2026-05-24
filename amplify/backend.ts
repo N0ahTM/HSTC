@@ -7,7 +7,8 @@ import {
   OriginRequestPolicy,
   ViewerProtocolPolicy
 } from 'aws-cdk-lib/aws-cloudfront';
-import { FunctionUrlOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { FunctionUrlOrigin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3';
 import { CfnWebACL, CfnWebACLAssociation } from 'aws-cdk-lib/aws-wafv2';
 import { FunctionUrlAuthType, HttpMethod } from 'aws-cdk-lib/aws-lambda';
 import { discordAggregate } from './functions/discord-aggregate/resource.js';
@@ -72,6 +73,21 @@ if (edgeOriginHeaderValue) {
 }
 
 const edgeStack = backend.createStack('DiscordAggregateEdge');
+const assetsBucket = new Bucket(edgeStack, 'SiteAssetsBucket', {
+  encryption: BucketEncryption.S3_MANAGED,
+  enforceSSL: true,
+  blockPublicAccess: BlockPublicAccess.BLOCK_ALL
+});
+const assetsDistribution = new Distribution(edgeStack, 'SiteAssetsDistribution', {
+  comment: 'CloudFront CDN for static site assets bucket',
+  defaultBehavior: {
+    origin: S3BucketOrigin.withOriginAccessControl(assetsBucket),
+    viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+    allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS
+  }
+});
+
 const discordCombinedDistribution = new Distribution(edgeStack, 'DiscordAggregateDistribution', {
   comment: 'CloudFront edge for discord aggregate function URL',
   defaultBehavior: {
@@ -89,46 +105,53 @@ const discordCombinedDistribution = new Distribution(edgeStack, 'DiscordAggregat
   }
 });
 
-const webAcl = new CfnWebACL(edgeStack, 'DiscordAggregateWebAcl', {
-  name: 'discord-aggregate-waf',
-  scope: 'CLOUDFRONT',
-  defaultAction: { allow: {} },
-  visibilityConfig: {
-    cloudWatchMetricsEnabled: true,
-    metricName: 'DiscordAggregateWaf',
-    sampledRequestsEnabled: true
-  },
-  rules: [
-    {
-      name: 'RateLimitByIp',
-      priority: 0,
-      statement: {
-        rateBasedStatement: {
-          aggregateKeyType: 'IP',
-          limit: 1200
+const region = Stack.of(edgeStack).region;
+const canCreateCloudFrontWaf = region === 'us-east-1';
+if (canCreateCloudFrontWaf) {
+  const webAcl = new CfnWebACL(edgeStack, 'DiscordAggregateWebAcl', {
+    name: 'discord-aggregate-waf',
+    scope: 'CLOUDFRONT',
+    defaultAction: { allow: {} },
+    visibilityConfig: {
+      cloudWatchMetricsEnabled: true,
+      metricName: 'DiscordAggregateWaf',
+      sampledRequestsEnabled: true
+    },
+    rules: [
+      {
+        name: 'RateLimitByIp',
+        priority: 0,
+        statement: {
+          rateBasedStatement: {
+            aggregateKeyType: 'IP',
+            limit: 1200
+          }
+        },
+        action: {
+          block: {}
+        },
+        visibilityConfig: {
+          cloudWatchMetricsEnabled: true,
+          metricName: 'DiscordAggregateRateLimitByIp',
+          sampledRequestsEnabled: true
         }
-      },
-      action: {
-        block: {}
-      },
-      visibilityConfig: {
-        cloudWatchMetricsEnabled: true,
-        metricName: 'DiscordAggregateRateLimitByIp',
-        sampledRequestsEnabled: true
       }
-    }
-  ]
-});
+    ]
+  });
 
-new CfnWebACLAssociation(edgeStack, 'DiscordAggregateWebAclAssociation', {
-  webAclArn: webAcl.attrArn,
-  resourceArn: `arn:aws:cloudfront::${Stack.of(edgeStack).account}:distribution/${discordCombinedDistribution.distributionId}`
-});
+  new CfnWebACLAssociation(edgeStack, 'DiscordAggregateWebAclAssociation', {
+    webAclArn: webAcl.attrArn,
+    resourceArn: `arn:aws:cloudfront::${Stack.of(edgeStack).account}:distribution/${discordCombinedDistribution.distributionId}`
+  });
+}
 
 backend.addOutput({
   custom: {
     discordCombinedUrl: `https://${discordCombinedDistribution.distributionDomainName}/`,
-    discordCombinedOriginUrl: discordCombinedUrl.url
+    discordCombinedOriginUrl: discordCombinedUrl.url,
+    assetBucketName: assetsBucket.bucketName,
+    assetBaseUrl: `https://${assetsDistribution.distributionDomainName}`,
+    assetDistributionId: assetsDistribution.distributionId
   }
 });
 

@@ -5,6 +5,7 @@ import { selectBackgroundUrl } from '@/lib/utils';
 
 type Props = { children: React.ReactNode };
 type State = { hasError: boolean; error?: Error };
+const isDev = import.meta.env.DEV;
 
 export class ErrorBoundary extends React.Component<Props, State> {
   state: State = { hasError: false };
@@ -14,7 +15,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught', error, errorInfo);
+    if (isDev) {
+      console.error('ErrorBoundary caught', error, errorInfo);
+    }
   }
 
   handleReload = () => {

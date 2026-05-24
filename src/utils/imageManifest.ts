@@ -6,6 +6,7 @@
  */
 
 import rawManifest from '../../public/images/_manifest.json';
+import { getAssetBaseUrl } from '@/config/amplifyOutputs';
 
 export type ImageVariant = {
   src: string;
@@ -26,10 +27,7 @@ type NormalizedManifest = Record<string, ImageVariant[]>; // key: original web p
 
 const manifest: NormalizedManifest = normalizeManifest(rawManifest as ImageManifest);
 const DEFAULT_PLACEHOLDER_WIDTH = 320;
-const ASSET_CDN_BASE_URL =
-  typeof import.meta.env.VITE_ASSET_CDN_BASE_URL === 'string'
-    ? import.meta.env.VITE_ASSET_CDN_BASE_URL.trim().replace(/\/+$/, '')
-    : '';
+const ASSET_BASE_URL = getAssetBaseUrl();
 
 function isAbsoluteUrl(value: string): boolean {
   return /^https?:\/\//i.test(value) || value.startsWith('//');
@@ -70,8 +68,8 @@ function normalizeRequestUrl(source: string): string {
 
 function toDeliveryUrl(source: string): string {
   const normalized = normalizeRequestUrl(source);
-  if (ASSET_CDN_BASE_URL && normalized.startsWith('/images/')) {
-    return `${ASSET_CDN_BASE_URL}${normalized}`;
+  if (normalized.startsWith('/images/')) {
+    return `${ASSET_BASE_URL}${normalized}`;
   }
   return normalized;
 }

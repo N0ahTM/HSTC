@@ -89,6 +89,7 @@ Defined in `amplify.yml`:
 3. Frontend build runs (`npm run build`).
 4. Redirect sync script applies custom rules to Amplify app.
 5. Optional asset pipeline syncs `public/images` to S3 and serves via CloudFront asset domain.
+6. Frontend image utilities require an asset base URL from `custom.assetBaseUrl` (no local fallback).
 
 ## Operational Notes
 

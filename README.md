@@ -119,8 +119,8 @@ Required Amplify secrets for the aggregate function:
 
 Asset delivery flow:
 
-- Local fallback: `/images/*` from repo
-- CDN mode: set `VITE_ASSET_CDN_BASE_URL=https://<asset-cloudfront-domain>`
+- Assets are delivered via `custom.assetBaseUrl` from `amplify_outputs.json` (or `VITE_ASSET_CDN_BASE_URL` override)
+- No local image fallback is used in production code paths
 - Sync assets with `npm run assets:sync` (requires AWS CLI credentials)
 
 ## Documentation

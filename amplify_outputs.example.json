@@ -2,6 +2,9 @@
   "version": "1.4",
   "custom": {
     "discordCombinedUrl": "https://d111111abcdef8.cloudfront.net/",
-    "discordCombinedOriginUrl": "https://YOUR_LAMBDA_ID.lambda-url.eu-central-1.on.aws/"
+    "discordCombinedOriginUrl": "https://YOUR_LAMBDA_ID.lambda-url.eu-central-1.on.aws/",
+    "assetBucketName": "hstc-assets-example-bucket",
+    "assetBaseUrl": "https://d2assetsexample.cloudfront.net",
+    "assetDistributionId": "E123ASSETDISTID"
   }
 }

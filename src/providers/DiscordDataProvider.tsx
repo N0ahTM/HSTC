@@ -93,6 +93,11 @@ interface DiscordDataContextValue {
 
 const DEFAULT_IMAGE_LIMIT = 20;
 const isDev = import.meta.env.DEV;
+const logProviderError = (message: string, error: unknown) => {
+  if (isDev) {
+    console.error(message, error);
+  }
+};
 
 const DiscordDataContext = createContext<DiscordDataContextValue | null>(null);
 
@@ -196,7 +201,7 @@ export function DiscordDataProvider({ children }: { children: ReactNode }) {
       if ((error as Error).name === 'AbortError') {
         return;
       }
-      console.error('discord-data initial load failed', error);
+      logProviderError('discord-data initial load failed', error);
       setEventsError('Events konnten nicht geladen werden.');
       setImagesError('Discord-Bilder konnten nicht geladen werden.');
     } finally {
@@ -256,7 +261,7 @@ export function DiscordDataProvider({ children }: { children: ReactNode }) {
       if ((error as Error).name === 'AbortError') {
         return;
       }
-      console.error('discord-data pagination failed', error);
+      logProviderError('discord-data pagination failed', error);
       setImagesError('Weitere Discord-Bilder konnten nicht geladen werden.');
     } finally {
       if (loadMoreController.current === controller) {
