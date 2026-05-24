@@ -302,7 +302,7 @@ Status:
 - Live smoke checks:
   - `/discord` -> **302** auf Discord (fix live)
   - `/join` -> **302** auf RSI (fix live)
-  - `/amplify_outputs.json` -> weiterhin **404** (statisches Site-Artefakt noch nicht mit lokalen Änderungen ausgerollt)
+  - `/amplify_outputs.json` -> **200** (fix live nach Push/Amplify Build)
   - `/images/_manifest.json` -> `Cache-Control: no-cache, max-age=0, must-revalidate` (fix live)
   - Security headers (`HSTS`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`) auf Responses sichtbar (fix live)
 
@@ -343,7 +343,5 @@ Status:
   - restriktivere CORS Origins
   - Entfernen von plaintext secret overrides
   - Debug-Details nur noch bei explizit gesetztem `ALLOW_PUBLIC_DEBUG_DETAILS=true`
-- Amplify Full Deploy von lokalen Source-Änderungen ist ohne Push auf das verbundene Repository nicht möglich:
-  - `ampx pipeline-deploy` verweigert lokale Ausführung (nur CI)
-  - `create-deployment` ist für repository-connected Apps deaktiviert
+- Hinweis: Für repository-verbundene Amplify Apps erfolgt Full Deploy über Git-Push/CI (lokaler `pipeline-deploy` bleibt erwartbar blockiert).
 
